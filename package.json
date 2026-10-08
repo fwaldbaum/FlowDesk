@@ -1,0 +1,23 @@
+{
+  "name": "flowdesk",
+  "private": true,
+  "version": "1.0.0",
+  "description": "FlowDesk — CRM ligero tipo Kanban para gestionar leads",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c blue,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run start -w server",
+    "db:migrate": "npm run migrate -w server",
+    "db:seed": "npm run seed -w server"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  }
+}

@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-canvas text-fg font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    color-scheme: dark;
+  }
+  ::selection {
+    @apply bg-accent/40;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent/60 ring-offset-0;
+  }
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-md border border-line bg-canvas px-3 py-2 text-sm text-fg placeholder:text-subtle
+      transition-colors hover:border-line-strong focus:border-accent/70 focus:outline-none focus:ring-0;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium text-muted;
+  }
+  .kbd {
+    @apply rounded border border-line bg-raised px-1.5 py-px font-mono text-2xs text-muted;
+  }
+}
+
+/* Thin, unobtrusive scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2b3244 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #2b3244;
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}

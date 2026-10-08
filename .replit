@@ -1,0 +1,10 @@
+run = "npm run build && npm start"
+modules = ["nodejs-20", "postgresql-16"]
+
+[deployment]
+build = ["npm", "run", "build"]
+run = ["npm", "start"]
+
+[[ports]]
+localPort = 3001
+externalPort = 80
