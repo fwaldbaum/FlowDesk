@@ -1,5 +1,18 @@
 import { Server } from 'socket.io';
+import { query } from './db.js';
 import { getSession, parseCookies, SESSION_COOKIE } from './services/auth.js';
+
+/**
+ * 'socket': push over Socket.io (long-lived servers: local, Replit, Render, a VPS).
+ * 'poll':   persist events in Postgres and let clients poll /api/events. Needed on
+ *           serverless platforms such as Vercel, which can't hold WebSocket connections.
+ */
+export const REALTIME_MODE =
+  process.env.REALTIME_MODE === 'poll' || process.env.REALTIME_MODE === 'socket'
+    ? process.env.REALTIME_MODE
+    : process.env.VERCEL
+      ? 'poll'
+      : 'socket';
 
 let io = null;
 
@@ -28,9 +41,18 @@ export function initRealtime(httpServer) {
   return io;
 }
 
-/** Broadcast an event to every connected board. No-op before init (e.g. seed script). */
-export function broadcast(event, payload) {
+/**
+ * Notify every open board. Awaited by callers: on serverless the instance may freeze
+ * as soon as the response is sent, so the event row must be written first.
+ */
+export async function broadcast(event, payload) {
   io?.emit(event, payload);
+  if (REALTIME_MODE !== 'poll') return;
+  await query('INSERT INTO events (type, payload) VALUES ($1, $2)', [event, JSON.stringify(payload)]);
+  // Clients poll every few seconds, so a few minutes of history is plenty.
+  if (Math.random() < 0.05) {
+    await query(`DELETE FROM events WHERE created_at < now() - interval '10 minutes'`);
+  }
 }
 
 export function disconnectSession(sessionId) {

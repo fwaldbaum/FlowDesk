@@ -64,8 +64,8 @@ export async function createLead(input, { origin = 'manual' } = {}) {
     return { lead: await getLead(row.id, db), notes: created };
   });
 
-  broadcast('lead:created', { lead, origin });
-  for (const note of notes) broadcast('note:created', note);
+  await broadcast('lead:created', { lead, origin });
+  for (const note of notes) await broadcast('note:created', note);
   return lead;
 }
 
@@ -81,7 +81,7 @@ export async function updateLead(id, patch) {
   );
   if (rowCount === 0) return null;
   const lead = await getLead(id);
-  broadcast('lead:updated', lead);
+  await broadcast('lead:updated', lead);
   return lead;
 }
 
@@ -126,15 +126,15 @@ export async function moveLead(id, { status, beforeId = null }) {
   });
   if (!result) return null;
 
-  broadcast('leads:reordered', { status, order: result.order });
-  broadcast('lead:updated', result.lead);
-  if (result.note) broadcast('note:created', result.note);
+  await broadcast('leads:reordered', { status, order: result.order });
+  await broadcast('lead:updated', result.lead);
+  if (result.note) await broadcast('note:created', result.note);
   return result.lead;
 }
 
 export async function deleteLead(id) {
   const { rowCount } = await query('DELETE FROM leads WHERE id = $1', [id]);
-  if (rowCount > 0) broadcast('lead:deleted', { id });
+  if (rowCount > 0) await broadcast('lead:deleted', { id });
   return rowCount > 0;
 }
 
@@ -163,8 +163,8 @@ export async function addNote(leadId, { kind, body, dueAt }) {
     return created;
   });
   if (!note) return null;
-  broadcast('note:created', note);
-  broadcast('lead:updated', await getLead(leadId));
+  await broadcast('note:created', note);
+  await broadcast('lead:updated', await getLead(leadId));
   return note;
 }
 
@@ -174,15 +174,15 @@ export async function updateNote(id, { done }) {
     [id, done],
   );
   if (!note) return null;
-  broadcast('note:updated', note);
-  broadcast('lead:updated', await getLead(note.lead_id));
+  await broadcast('note:updated', note);
+  await broadcast('lead:updated', await getLead(note.lead_id));
   return note;
 }
 
 export async function deleteNote(id) {
   const { rows: [note] } = await query('DELETE FROM notes WHERE id = $1 RETURNING *', [id]);
   if (!note) return false;
-  broadcast('note:deleted', { id, lead_id: note.lead_id });
-  broadcast('lead:updated', await getLead(note.lead_id));
+  await broadcast('note:deleted', { id, lead_id: note.lead_id });
+  await broadcast('lead:updated', await getLead(note.lead_id));
   return true;
 }

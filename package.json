@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "FlowDesk — CRM ligero tipo Kanban para gestionar leads",
+  "type": "module",
   "workspaces": [
     "server",
     "client"

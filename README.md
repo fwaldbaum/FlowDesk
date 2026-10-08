@@ -25,8 +25,11 @@ con cuentas para el equipo.
 
 ```
 FlowDesk/
+├── api/index.js          # Función serverless de Vercel (reutiliza server/src/app.js)
+├── vercel.json
 ├── server/src
-│   ├── index.js          # Express + Socket.io; sirve el frontend compilado en producción
+│   ├── app.js            # App Express (API + frontend compilado)
+│   ├── index.js          # Servidor HTTP + Socket.io para despliegues tradicionales
 │   ├── schema.sql        # Esquema idempotente (se aplica en cada arranque)
 │   ├── services/leads.js # Lógica de leads/notas + emisión de eventos en tiempo real
 │   ├── services/auth.js  # Contraseñas (scrypt), sesiones y rate limiting
@@ -61,6 +64,23 @@ El esquema se crea automáticamente al iniciar el servidor (`npm run db:migrate`
 npm run build && npm start        # http://localhost:3001
 ```
 
+### Despliegue en Vercel
+
+1. En [vercel.com/new](https://vercel.com/new) importa el repositorio. No cambies nada de build: `vercel.json`
+   ya define el comando, la carpeta de salida y la función de la API.
+2. En el proyecto, **Storage → Create Database → Neon** (Postgres). La integración inyecta `DATABASE_URL`
+   automáticamente. Con Supabase, copia su cadena de conexión *pooler* en `DATABASE_URL`.
+3. Opcional: agrega `WEBHOOK_SECRET` en **Settings → Environment Variables**.
+4. Despliega, abre la URL y pulsa **Crear mi espacio**. Las tablas se crean solas en la primera petición.
+
+Con la CLI: `npx vercel link`, `npx vercel env add DATABASE_URL` y `npx vercel deploy --prod`.
+
+Diferencias en Vercel (serverless):
+
+- Vercel no mantiene conexiones WebSocket, así que el tiempo real usa **sondeo cada 3 s** sobre una tabla
+  `events` en Postgres (solo mientras la pestaña está visible). En servidores normales se sigue usando Socket.io.
+- El límite de intentos de inicio de sesión vive en memoria de cada instancia, por lo que es menos estricto.
+
 **Supabase / Neon / Replit**: usa la cadena de conexión del proveedor en `DATABASE_URL`. Si no incluye
 `sslmode=require`, define `PGSSL=true`. En Replit, el archivo `.replit` ya trae los comandos de build y run.
 
@@ -75,6 +95,7 @@ npm run build && npm start        # http://localhost:3001
 | `CORS_ORIGIN` | Orígenes permitidos para Socket.io, separados por coma |
 | `NODE_ENV` | `production` marca la cookie de sesión como `Secure` |
 | `TRUST_PROXY` | Proxies de confianza para `X-Forwarded-*` (por defecto, solo redes privadas) |
+| `REALTIME_MODE` | `socket` o `poll`; por defecto `poll` en Vercel y `socket` en el resto |
 
 ## Páginas y acceso
 
@@ -126,7 +147,7 @@ curl -X POST http://localhost:3001/api/webhooks/lead \
 | `PATCH` / `DELETE` | `/api/notes/:id` | Marcar recordatorio (`{ done }`) / eliminar |
 | `GET` | `/api/webhooks/events` | Últimas 25 solicitudes del webhook |
 
-Eventos Socket.io emitidos: `lead:created`, `lead:updated`, `lead:deleted`, `leads:reordered`,
+Eventos de tiempo real (por Socket.io o, en modo sondeo, vía `GET /api/events?after=<id>`): `lead:created`, `lead:updated`, `lead:deleted`, `leads:reordered`,
 `note:created`, `note:updated`, `note:deleted`.
 
 ## Atajos de teclado

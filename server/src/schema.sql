@@ -62,3 +62,13 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 CREATE INDEX IF NOT EXISTS sessions_user_idx ON sessions (user_id);
+
+-- Realtime feed for deployments without WebSockets (e.g. Vercel). Rows are short-lived.
+CREATE TABLE IF NOT EXISTS events (
+  id         BIGSERIAL PRIMARY KEY,
+  type       TEXT        NOT NULL,
+  payload    JSONB       NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS events_created_idx ON events (created_at);

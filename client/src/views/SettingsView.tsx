@@ -72,7 +72,7 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
 }
 
 export function SettingsView() {
-  const { webhookTick, connection, toast } = useStore();
+  const { webhookTick, connection, toast, realtimeMode } = useStore();
   const [events, setEvents] = useState<WebhookEvent[] | null>(null);
   const [secretRequired, setSecretRequired] = useState(false);
   const [sending, setSending] = useState(false);
@@ -228,7 +228,14 @@ export function SettingsView() {
           <AccountSection />
 
           <div className="grid gap-5 md:grid-cols-2">
-            <Section title="Tiempo real" description="Actualizaciones vía WebSocket (Socket.io).">
+            <Section
+              title="Tiempo real"
+              description={
+                realtimeMode === 'poll'
+                  ? 'Actualizaciones por consulta cada 3 segundos (modo serverless).'
+                  : 'Actualizaciones instantáneas vía WebSocket (Socket.io).'
+              }
+            >
               <div className="flex items-center gap-2 text-[13px]">
                 <span
                   className={clsx(

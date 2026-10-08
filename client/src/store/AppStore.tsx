@@ -135,10 +135,15 @@ interface Store extends DataState {
   newLeadOpen: boolean;
   setNewLeadOpen: (open: boolean) => void;
 
+  /** How live updates arrive: WebSocket push, or polling on serverless hosts. */
+  realtimeMode: 'socket' | 'poll';
+
   toasts: Toast[];
   toast: (t: Omit<Toast, 'id'>) => void;
   dismissToast: (id: number) => void;
 }
+
+const POLL_INTERVAL_MS = 3000;
 
 const StoreContext = createContext<Store | null>(null);
 
@@ -148,6 +153,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newLeadOpen, setNewLeadOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [realtimeMode, setRealtimeMode] = useState<'socket' | 'poll'>('socket');
   const toastSeq = useRef(0);
 
   const dismissToast = useCallback((id: number) => {
@@ -196,57 +202,136 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   expireRef.current = expire;
 
   useEffect(() => {
-    reload();
-    const socket = io({ transports: ['websocket', 'polling'] });
-    let everConnected = false;
+    let cancelled = false;
+    let stop = () => {};
 
-    socket.on('connect', () => {
-      dispatch({ type: 'connection', value: 'online' });
-      // After a reconnect we may have missed events: resync.
-      if (everConnected) reload();
-      everConnected = true;
-    });
-    socket.on('disconnect', (reason) => {
-      dispatch({ type: 'connection', value: 'offline' });
-      // The server kicks sockets whose session was revoked (logout elsewhere, removed member).
-      if (reason === 'io server disconnect') expireRef.current();
-    });
-    socket.on('connect_error', (err) => {
-      if (err.message === 'unauthorized') expireRef.current();
-      else dispatch({ type: 'connection', value: 'offline' });
-    });
-    socket.io.on('reconnect_attempt', () => dispatch({ type: 'connection', value: 'connecting' }));
-
-    socket.on('lead:created', ({ lead, origin }: { lead: Lead; origin: string }) => {
-      dispatch({ type: 'lead/upsert', lead });
-      if (origin === 'webhook') {
-        dispatch({ type: 'webhook/tick' });
-        dispatch({ type: 'highlight', id: lead.id, on: true });
-        window.setTimeout(() => dispatch({ type: 'highlight', id: lead.id, on: false }), 4000);
-        toast({
-          tone: 'webhook',
-          title: 'Nuevo lead vía webhook',
-          description: [lead.name, lead.source].filter(Boolean).join(' · '),
-          action: { label: 'Ver', onClick: () => openLeadRef.current(lead.id) },
-        });
+    /** Applies one realtime event. Every handler is idempotent, so redelivery is harmless. */
+    const handle = (type: string, payload: any, { quiet = false } = {}) => {
+      switch (type) {
+        case 'lead:created': {
+          const { lead, origin } = payload as { lead: Lead; origin: string };
+          dispatch({ type: 'lead/upsert', lead });
+          if (origin === 'webhook' && !quiet) {
+            dispatch({ type: 'webhook/tick' });
+            dispatch({ type: 'highlight', id: lead.id, on: true });
+            window.setTimeout(() => dispatch({ type: 'highlight', id: lead.id, on: false }), 4000);
+            toast({
+              tone: 'webhook',
+              title: 'Nuevo lead vía webhook',
+              description: [lead.name, lead.source].filter(Boolean).join(' · '),
+              action: { label: 'Ver', onClick: () => openLeadRef.current(lead.id) },
+            });
+          }
+          break;
+        }
+        case 'lead:updated':
+          dispatch({ type: 'lead/upsert', lead: payload as Lead });
+          break;
+        case 'lead:deleted': {
+          const { id } = payload as { id: number };
+          dispatch({ type: 'lead/remove', id });
+          setSelectedId((cur) => (cur === id ? null : cur));
+          break;
+        }
+        case 'leads:reordered': {
+          const { status, order } = payload as { status: Status; order: number[] };
+          dispatch({ type: 'leads/reorder', status, order });
+          break;
+        }
+        case 'note:created':
+        case 'note:updated':
+          dispatch({ type: 'note/upsert', note: payload as Note });
+          break;
+        case 'note:deleted': {
+          const { id, lead_id } = payload as { id: number; lead_id: number };
+          dispatch({ type: 'note/remove', id, leadId: lead_id });
+          break;
+        }
       }
-    });
-    socket.on('lead:updated', (lead: Lead) => dispatch({ type: 'lead/upsert', lead }));
-    socket.on('lead:deleted', ({ id }: { id: number }) => {
-      dispatch({ type: 'lead/remove', id });
-      setSelectedId((cur) => (cur === id ? null : cur));
-    });
-    socket.on('leads:reordered', ({ status, order }: { status: Status; order: number[] }) =>
-      dispatch({ type: 'leads/reorder', status, order }),
-    );
-    socket.on('note:created', (note: Note) => dispatch({ type: 'note/upsert', note }));
-    socket.on('note:updated', (note: Note) => dispatch({ type: 'note/upsert', note }));
-    socket.on('note:deleted', ({ id, lead_id }: { id: number; lead_id: number }) =>
-      dispatch({ type: 'note/remove', id, leadId: lead_id }),
-    );
+    };
+
+    const startSocket = () => {
+      const socket = io({ transports: ['websocket', 'polling'] });
+      let everConnected = false;
+      socket.on('connect', () => {
+        dispatch({ type: 'connection', value: 'online' });
+        // After a reconnect we may have missed events: resync.
+        if (everConnected) reload();
+        everConnected = true;
+      });
+      socket.on('disconnect', (reason) => {
+        dispatch({ type: 'connection', value: 'offline' });
+        // The server kicks sockets whose session was revoked (logout elsewhere, removed member).
+        if (reason === 'io server disconnect') expireRef.current();
+      });
+      socket.on('connect_error', (err) => {
+        if (err.message === 'unauthorized') expireRef.current();
+        else dispatch({ type: 'connection', value: 'offline' });
+      });
+      socket.io.on('reconnect_attempt', () => dispatch({ type: 'connection', value: 'connecting' }));
+      socket.onAny((type: string, payload: unknown) => handle(type, payload));
+      return () => {
+        socket.disconnect();
+      };
+    };
+
+    /** Serverless fallback: poll the Postgres-backed event feed while the tab is visible. */
+    const startPolling = (initialCursor: number) => {
+      let cursor = initialCursor;
+      const seen = new Set<number>();
+      let timer: number | undefined;
+      let inFlight = false;
+
+      const poll = async () => {
+        if (inFlight || document.visibilityState !== 'visible') return;
+        inFlight = true;
+        try {
+          for (const event of await api.events(cursor)) {
+            if (seen.has(event.id)) continue;
+            seen.add(event.id);
+            // Events at or before the cursor are already reflected in the initial load.
+            handle(event.type, event.payload, { quiet: event.id <= initialCursor });
+            cursor = Math.max(cursor, event.id);
+          }
+          if (seen.size > 2000) seen.clear();
+          dispatch({ type: 'connection', value: 'online' });
+        } catch {
+          dispatch({ type: 'connection', value: 'offline' });
+        } finally {
+          inFlight = false;
+        }
+      };
+
+      const onVisible = () => {
+        if (document.visibilityState === 'visible') poll();
+      };
+      timer = window.setInterval(poll, POLL_INTERVAL_MS);
+      document.addEventListener('visibilitychange', onVisible);
+      poll();
+      return () => {
+        window.clearInterval(timer);
+        document.removeEventListener('visibilitychange', onVisible);
+      };
+    };
+
+    (async () => {
+      try {
+        // Read the cursor before the data so nothing that happens in between is missed.
+        const { mode, cursor } = await api.eventsCursor();
+        if (cancelled) return;
+        setRealtimeMode(mode);
+        await reload();
+        if (cancelled) return;
+        stop = mode === 'poll' ? startPolling(cursor) : startSocket();
+      } catch {
+        dispatch({ type: 'connection', value: 'offline' });
+        reload();
+      }
+    })();
 
     return () => {
-      socket.disconnect();
+      cancelled = true;
+      stop();
     };
   }, [reload, toast]);
 
@@ -263,11 +348,12 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       openLead: setSelectedId,
       newLeadOpen,
       setNewLeadOpen,
+      realtimeMode,
       toasts,
       toast,
       dismissToast,
     }),
-    [state, reload, loadNotes, moveLead, search, selectedId, newLeadOpen, toasts, toast, dismissToast],
+    [state, reload, loadNotes, moveLead, search, selectedId, newLeadOpen, realtimeMode, toasts, toast, dismissToast],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

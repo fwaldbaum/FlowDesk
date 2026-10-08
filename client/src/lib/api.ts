@@ -59,6 +59,10 @@ export const api = {
   updateNote: (id: number, done: boolean) => request<Note>(`/notes/${id}`, json('PATCH', { done })),
   deleteNote: (id: number) => request<void>(`/notes/${id}`, { method: 'DELETE' }),
 
+  eventsCursor: () => request<{ mode: 'socket' | 'poll'; cursor: number }>('/events/cursor'),
+  events: (after: number) =>
+    request<{ id: number; type: string; payload: unknown }[]>(`/events?after=${after}`),
+
   webhookEvents: () => request<WebhookEvent[]>('/webhooks/events'),
   webhookConfig: () => request<{ secretRequired: boolean }>('/webhooks/config'),
   sendTestWebhook: () => request<{ ok: boolean; lead: Lead }>('/webhooks/test', { method: 'POST' }),
