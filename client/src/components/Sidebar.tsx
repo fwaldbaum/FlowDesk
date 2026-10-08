@@ -1,13 +1,15 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import { Settings, SquareKanban, Users } from 'lucide-react';
+import { LogOut, Settings, SquareKanban, Users } from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
 import { useStore } from '../store/AppStore';
 import { Logo, LogoMark } from './Logo';
+import { Avatar } from './ui';
 
 const NAV = [
-  { to: '/', label: 'Tablero', icon: SquareKanban, end: true },
-  { to: '/contactos', label: 'Contactos', icon: Users },
-  { to: '/configuracion', label: 'Configuración', icon: Settings },
+  { to: '/app', label: 'Tablero', icon: SquareKanban, end: true },
+  { to: '/app/contactos', label: 'Contactos', icon: Users },
+  { to: '/app/configuracion', label: 'Configuración', icon: Settings },
 ];
 
 const CONNECTION = {
@@ -18,7 +20,14 @@ const CONNECTION = {
 
 export function Sidebar() {
   const { connection } = useStore();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const conn = CONNECTION[connection];
+
+  const signOut = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <aside className="flex w-14 shrink-0 flex-col border-r border-line bg-canvas md:w-56">
@@ -51,12 +60,30 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-line p-3">
-        <div className="flex items-center justify-center gap-2 text-xs text-subtle md:justify-start" title={conn.label}>
-          <span className={clsx('h-1.5 w-1.5 rounded-full', conn.dot)} />
-          <span className="hidden md:inline">{conn.label}</span>
-        </div>
+      <div className="flex items-center justify-center gap-2 px-3 pb-3 text-xs text-subtle md:justify-start" title={conn.label}>
+        <span className={clsx('h-1.5 w-1.5 rounded-full', conn.dot)} />
+        <span className="hidden md:inline">{conn.label}</span>
       </div>
+
+      {user && (
+        <div className="flex flex-col items-center gap-2 border-t border-line p-2 md:flex-row md:gap-2.5 md:p-3">
+          <span title={`${user.name} · ${user.email}`}>
+            <Avatar name={user.name} size="sm" />
+          </span>
+          <div className="hidden min-w-0 flex-1 md:block">
+            <p className="truncate text-xs font-medium text-fg">{user.name}</p>
+            <p className="truncate text-2xs text-subtle">{user.email}</p>
+          </div>
+          <button
+            onClick={signOut}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-subtle transition-colors hover:bg-raised hover:text-fg"
+          >
+            <LogOut size={14} />
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

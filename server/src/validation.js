@@ -52,3 +52,31 @@ export const webhookLeadSchema = z.object({
 export function formatZodError(err) {
   return err.issues.map((i) => ({ field: i.path.join('.'), message: i.message }));
 }
+
+const emailField = z
+  .string({ required_error: 'El email es obligatorio' })
+  .trim()
+  .toLowerCase()
+  .email('Email inválido')
+  .max(320);
+
+const passwordField = z
+  .string({ required_error: 'La contraseña es obligatoria' })
+  .min(8, 'La contraseña debe tener al menos 8 caracteres')
+  .max(200, 'La contraseña es demasiado larga');
+
+export const registerSchema = z.object({
+  name: z.string({ required_error: 'El nombre es obligatorio' }).trim().min(1, 'El nombre es obligatorio').max(100),
+  email: emailField,
+  password: passwordField,
+});
+
+export const loginSchema = z.object({
+  email: emailField,
+  password: z.string({ required_error: 'La contraseña es obligatoria' }).min(1, 'La contraseña es obligatoria').max(200),
+});
+
+export const passwordChangeSchema = z.object({
+  current: z.string().min(1, 'Ingresa tu contraseña actual').max(200),
+  next: passwordField,
+});

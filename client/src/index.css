@@ -54,3 +54,16 @@
 input[type='datetime-local']::-webkit-calendar-picker-indicator {
   filter: invert(0.7);
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Faint grid that fades out from the top; used behind the landing hero and auth pages. */
+.bg-grid {
+  background-image: linear-gradient(to right, rgb(38 45 61 / 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(38 45 61 / 0.45) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 30%, transparent 100%);
+}

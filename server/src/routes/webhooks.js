@@ -6,6 +6,9 @@ import { query } from '../db.js';
 import { createLead } from '../services/leads.js';
 import { formatZodError, webhookLeadSchema } from '../validation.js';
 
+/** Public: third parties post leads here, authenticated by WEBHOOK_SECRET when set. */
+export const publicWebhooksRouter = Router();
+/** Session-protected helpers used by the Settings screen. */
 export const webhooksRouter = Router();
 
 const secret = process.env.WEBHOOK_SECRET || '';
@@ -45,8 +48,8 @@ async function ingest(req, res, payload) {
 }
 
 // Public ingestion endpoint: callable from forms, Zapier, Make, n8n, etc.
-webhooksRouter.options('/webhooks/lead', cors());
-webhooksRouter.post('/webhooks/lead', cors(), async (req, res) => {
+publicWebhooksRouter.options('/webhooks/lead', cors());
+publicWebhooksRouter.post('/webhooks/lead', cors(), async (req, res) => {
   const provided = req.get('x-webhook-secret') ?? req.query.secret;
   if (!secretMatches(provided)) {
     await logEvent({ status: 'rejected', payload: req.body, error: 'Secreto inválido', ip: req.ip });

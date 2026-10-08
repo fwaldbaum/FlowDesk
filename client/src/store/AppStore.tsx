@@ -3,6 +3,7 @@ import {
   type ReactNode,
 } from 'react';
 import { io } from 'socket.io-client';
+import { useAuth } from '../auth/AuthContext';
 import { api } from '../lib/api';
 import type { Lead, Note, Status } from '../lib/types';
 
@@ -190,6 +191,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   // Keep the latest callbacks reachable from long-lived socket handlers.
   const openLeadRef = useRef(setSelectedId);
   openLeadRef.current = setSelectedId;
+  const { expire } = useAuth();
+  const expireRef = useRef(expire);
+  expireRef.current = expire;
 
   useEffect(() => {
     reload();
@@ -202,7 +206,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       if (everConnected) reload();
       everConnected = true;
     });
-    socket.on('disconnect', () => dispatch({ type: 'connection', value: 'offline' }));
+    socket.on('disconnect', (reason) => {
+      dispatch({ type: 'connection', value: 'offline' });
+      // The server kicks sockets whose session was revoked (logout elsewhere, removed member).
+      if (reason === 'io server disconnect') expireRef.current();
+    });
+    socket.on('connect_error', (err) => {
+      if (err.message === 'unauthorized') expireRef.current();
+      else dispatch({ type: 'connection', value: 'offline' });
+    });
     socket.io.on('reconnect_attempt', () => dispatch({ type: 'connection', value: 'connecting' }));
 
     socket.on('lead:created', ({ lead, origin }: { lead: Lead; origin: string }) => {

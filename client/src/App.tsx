@@ -13,10 +13,10 @@ export function App() {
       <Sidebar />
       <main className="flex min-w-0 flex-1 flex-col">
         <Routes>
-          <Route path="/" element={<BoardView />} />
-          <Route path="/contactos" element={<ContactsView />} />
-          <Route path="/configuracion" element={<SettingsView />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route index element={<BoardView />} />
+          <Route path="contactos" element={<ContactsView />} />
+          <Route path="configuracion" element={<SettingsView />} />
+          <Route path="*" element={<Navigate to="/app" replace />} />
         </Routes>
       </main>
       <LeadSlideOver />

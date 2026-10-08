@@ -6,14 +6,18 @@ import { ZodError } from 'zod';
 import { pool } from './db.js';
 import { migrate } from './migrate.js';
 import { initRealtime } from './realtime.js';
+import { requireAuth } from './middleware/auth.js';
+import { authRouter, usersRouter } from './routes/auth.js';
 import { leadsRouter } from './routes/leads.js';
-import { webhooksRouter } from './routes/webhooks.js';
+import { publicWebhooksRouter, webhooksRouter } from './routes/webhooks.js';
 import { formatZodError } from './validation.js';
 
 const PORT = Number(process.env.PORT) || 3001;
 
 const app = express();
-app.set('trust proxy', true);
+// Trust X-Forwarded-* only from private-network proxies (Replit, Render, nginx…) unless overridden,
+// so clients can't spoof their IP to dodge login rate limits.
+app.set('trust proxy', process.env.TRUST_PROXY ?? 'loopback, linklocal, uniquelocal');
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: false, limit: '256kb' }));
 
@@ -21,8 +25,13 @@ app.get('/api/health', async (_req, res) => {
   await pool.query('SELECT 1');
   res.json({ ok: true });
 });
+app.use('/api', authRouter);
+app.use('/api', publicWebhooksRouter);
+// Everything below requires a signed-in user.
+app.use('/api', requireAuth);
 app.use('/api', leadsRouter);
 app.use('/api', webhooksRouter);
+app.use('/api', usersRouter);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Ruta no encontrada' }));
 
 // In production the API also serves the built SPA.

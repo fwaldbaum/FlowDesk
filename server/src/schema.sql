@@ -42,3 +42,23 @@ CREATE TABLE IF NOT EXISTS webhook_events (
 );
 
 CREATE INDEX IF NOT EXISTS webhook_events_created_idx ON webhook_events (created_at DESC);
+
+CREATE TABLE IF NOT EXISTS users (
+  id            SERIAL PRIMARY KEY,
+  name          TEXT        NOT NULL,
+  email         TEXT        NOT NULL UNIQUE,
+  password_hash TEXT        NOT NULL,
+  role          TEXT        NOT NULL DEFAULT 'member' CHECK (role IN ('owner', 'member')),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Only a SHA-256 of the session token is stored, so a DB leak can't be replayed as cookies.
+CREATE TABLE IF NOT EXISTS sessions (
+  id          SERIAL PRIMARY KEY,
+  token_hash  TEXT        NOT NULL UNIQUE,
+  user_id     INTEGER     NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS sessions_user_idx ON sessions (user_id);

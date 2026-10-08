@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import clsx from 'clsx';
-import { Check, Copy, KeyRound, RefreshCw, Send } from 'lucide-react';
+import { Check, Copy, KeyRound, RefreshCw, Send, Trash2, UserPlus } from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
 import { Header } from '../components/Header';
-import { Button, IconButton, StatusDot } from '../components/ui';
+import { Avatar, Button, IconButton, StatusDot } from '../components/ui';
 import { api } from '../lib/api';
 import { STATUSES } from '../lib/constants';
 import { formatDateTime, timeAgo } from '../lib/format';
-import type { WebhookEvent } from '../lib/types';
+import type { User, WebhookEvent } from '../lib/types';
 import { useStore } from '../store/AppStore';
 
 async function copyText(text: string) {
@@ -223,6 +224,9 @@ export function SettingsView() {
             )}
           </Section>
 
+          <TeamSection />
+          <AccountSection />
+
           <div className="grid gap-5 md:grid-cols-2">
             <Section title="Tiempo real" description="Actualizaciones vía WebSocket (Socket.io).">
               <div className="flex items-center gap-2 text-[13px]">
@@ -250,5 +254,165 @@ export function SettingsView() {
         </div>
       </div>
     </>
+  );
+}
+
+function TeamSection() {
+  const { user: me } = useAuth();
+  const { toast } = useStore();
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [adding, setAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const isOwner = me?.role === 'owner';
+
+  useEffect(() => {
+    api.users().then(setUsers).catch(() => setUsers([]));
+  }, []);
+
+  const add = async (e: FormEvent) => {
+    e.preventDefault();
+    setAdding(true);
+    setError(null);
+    try {
+      const created = await api.addUser(form.name, form.email, form.password);
+      setUsers((list) => [...(list ?? []), created]);
+      setForm({ name: '', email: '', password: '' });
+      toast({ tone: 'success', title: 'Miembro añadido', description: `Comparte el acceso con ${created.email}` });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const remove = async (id: number) => {
+    try {
+      await api.removeUser(id);
+      setUsers((list) => list?.filter((u) => u.id !== id) ?? null);
+      setConfirmId(null);
+    } catch (err) {
+      toast({ tone: 'error', title: 'No se pudo eliminar', description: (err as Error).message });
+    }
+  };
+
+  const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  return (
+    <Section
+      title="Equipo"
+      description={
+        isOwner
+          ? 'Crea cuentas para las personas que trabajan tus leads. Todos comparten el mismo tablero.'
+          : 'Personas con acceso a este espacio. Solo el propietario puede añadir o quitar miembros.'
+      }
+    >
+      <ul className="-mx-2 divide-y divide-line/60">
+        {(users ?? []).map((u) => (
+          <li key={u.id} className="flex items-center gap-3 px-2 py-2.5">
+            <Avatar name={u.name} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-medium text-fg">
+                {u.name}
+                {u.id === me?.id && <span className="ml-1.5 text-xs font-normal text-subtle">(tú)</span>}
+              </p>
+              <p className="truncate text-xs text-subtle">{u.email}</p>
+            </div>
+            <span className="rounded-full border border-line px-2 py-0.5 text-2xs text-muted">
+              {u.role === 'owner' ? 'Propietario' : 'Miembro'}
+            </span>
+            {isOwner && u.role !== 'owner' && (
+              confirmId === u.id ? (
+                <div className="flex items-center gap-1">
+                  <Button size="sm" variant="ghost" onClick={() => setConfirmId(null)}>Cancelar</Button>
+                  <Button size="sm" variant="danger" onClick={() => remove(u.id)}>Quitar</Button>
+                </div>
+              ) : (
+                <IconButton label={`Quitar a ${u.name}`} onClick={() => setConfirmId(u.id)}>
+                  <Trash2 size={13} />
+                </IconButton>
+              )
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {isOwner && (
+        <form onSubmit={add} className="mt-4 rounded-lg border border-line bg-canvas p-4">
+          <p className="mb-3 flex items-center gap-2 text-xs font-medium text-muted">
+            <UserPlus size={14} /> Añadir miembro
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <input className="input" placeholder="Nombre" aria-label="Nombre" value={form.name} onChange={set('name')} required />
+            <input className="input" type="email" placeholder="email@empresa.com" aria-label="Email" value={form.email} onChange={set('email')} required />
+            <input
+              className="input"
+              type="password"
+              placeholder="Contraseña temporal"
+              aria-label="Contraseña temporal"
+              autoComplete="new-password"
+              minLength={8}
+              value={form.password}
+              onChange={set('password')}
+              required
+            />
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <p className="text-2xs text-subtle">
+              {error ? <span className="text-red-400">{error}</span> : 'Mínimo 8 caracteres. Pídele que la cambie al entrar.'}
+            </p>
+            <Button type="submit" size="sm" variant="primary" disabled={adding}>
+              {adding ? 'Añadiendo…' : 'Añadir'}
+            </Button>
+          </div>
+        </form>
+      )}
+    </Section>
+  );
+}
+
+function AccountSection() {
+  const { user } = useAuth();
+  const { toast } = useStore();
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      await api.changePassword(current, next);
+      setCurrent('');
+      setNext('');
+      toast({ tone: 'success', title: 'Contraseña actualizada', description: 'Se cerró la sesión en tus otros dispositivos.' });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Section title="Tu cuenta" description={user ? `${user.name} · ${user.email}` : undefined}>
+      <form onSubmit={submit} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div>
+          <label className="label" htmlFor="pw-current">Contraseña actual</label>
+          <input id="pw-current" className="input" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} required />
+        </div>
+        <div>
+          <label className="label" htmlFor="pw-next">Nueva contraseña</label>
+          <input id="pw-next" className="input" type="password" autoComplete="new-password" minLength={8} value={next} onChange={(e) => setNext(e.target.value)} required />
+        </div>
+        <Button type="submit" variant="secondary" className="h-[38px]" disabled={saving}>
+          {saving ? 'Guardando…' : 'Cambiar contraseña'}
+        </Button>
+        {error && <p className="text-xs text-red-400 sm:col-span-3">{error}</p>}
+      </form>
+    </Section>
   );
 }

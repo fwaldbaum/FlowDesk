@@ -48,3 +48,11 @@ export interface LeadInput {
   status?: Status;
   notes?: string;
 }
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'owner' | 'member';
+  created_at: string;
+}
