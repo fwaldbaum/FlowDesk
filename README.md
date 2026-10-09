@@ -119,6 +119,8 @@ Diferencias en Vercel (serverless):
   suspender (con motivo visible para el usuario) y reactivar; restablecer la contraseña; cerrar sus sesiones; dar o
   quitar permisos de administrador; y eliminar la cuenta (si es dueña, se elimina su espacio completo). Cada acción
   queda en un historial de auditoría. Un administrador no puede suspenderse, quitarse permisos ni eliminarse a sí mismo.
+- **Dar permisos de administrador a una cuenta existente** (por ejemplo, en producción):
+  `npx vercel env pull .env` y luego `npm run admin:grant -- correo@ejemplo.com`.
 - **Seguridad.** Contraseñas con `scrypt`; sesión en cookie `httpOnly` + `SameSite=Lax` de 30 días (en la base solo se
   guarda el hash SHA-256 del token). Login limitado a 8 intentos por email y 40 por IP cada 15 min; registros, a 10 por
   IP por hora. Suspender, restablecer la contraseña o eliminar una cuenta la desconecta al instante.
