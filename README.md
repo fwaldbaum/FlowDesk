@@ -77,6 +77,11 @@ frontend con Vite (con fallback SPA a `index.html`) y el servicio `server` ejecu
 3. Opcional: agrega `ADMIN_EMAILS` en **Settings → Environment Variables** con tu correo.
 4. Despliega, abre la URL y pulsa **Crear cuenta gratis**. Las tablas se crean (y migran) solas en la primera petición.
 
+Si la app muestra un error de base de datos, abre `https://<tu-app>/api/health`: indica qué variable se usó y la
+causa (falta la base, credenciales, host, SSL, base pausada…) sin mostrar credenciales. Se aceptan `DATABASE_URL`,
+`POSTGRES_URL` y las variables con prefijo personalizado de las integraciones. Tras agregar o cambiar una variable,
+**vuelve a desplegar**.
+
 Con la CLI: `npx vercel link`, `npx vercel env add DATABASE_URL` y `npx vercel deploy --prod`.
 
 Diferencias en Vercel (serverless):

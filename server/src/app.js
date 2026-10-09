@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { ZodError } from 'zod';
-import { pool } from './db.js';
+import { dbInfo, explainDbError, pool } from './db.js';
 import { migrate } from './migrate.js';
 import { requireAuth } from './middleware/auth.js';
 import { adminRouter } from './routes/admin.js';
@@ -23,6 +23,18 @@ app.set(
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: false, limit: '256kb' }));
 
+// Diagnostics without credentials: open /api/health to see why the DB is unavailable.
+app.get('/api/health', async (_req, res) => {
+  try {
+    await migrate();
+    await pool.query('SELECT 1');
+    res.json({ ok: true, db: dbInfo });
+  } catch (err) {
+    console.error('[db] health check failed:', err);
+    res.status(503).json({ ok: false, db: dbInfo, code: err.code ?? null, error: explainDbError(err) });
+  }
+});
+
 // Serverless platforms never run index.js, so make sure the schema exists before the
 // first query. After the first call this is a resolved promise.
 app.use('/api', async (_req, res, next) => {
@@ -30,15 +42,11 @@ app.use('/api', async (_req, res, next) => {
     await migrate();
     next();
   } catch (err) {
-    console.error('[db] migration failed:', err.message);
-    res.status(503).json({ error: 'Base de datos no disponible. Revisa DATABASE_URL.' });
+    console.error('[db] migration failed:', err);
+    res.status(503).json({ error: explainDbError(err), code: err.code ?? null });
   }
 });
 
-app.get('/api/health', async (_req, res) => {
-  await pool.query('SELECT 1');
-  res.json({ ok: true });
-});
 app.use('/api', authRouter);
 app.use('/api', publicWebhooksRouter);
 // Everything below requires a signed-in user.
