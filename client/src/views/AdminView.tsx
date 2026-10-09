@@ -138,8 +138,9 @@ export function AdminView() {
               <MailWarning size={16} className="mt-0.5 shrink-0 text-amber-300" />
               <p className="text-amber-100/90">
                 El envío de correos no está configurado, así que la verificación de correo y «Olvidé mi contraseña» están
-                desactivados. Agrega <code className="text-fg">RESEND_API_KEY</code> (y{' '}
-                <code className="text-fg">EMAIL_FROM</code> con un dominio verificado) en las variables de entorno.
+                desactivados. Gratis con Gmail: agrega <code className="text-fg">SMTP_HOST</code>,{' '}
+                <code className="text-fg">SMTP_USER</code> y <code className="text-fg">SMTP_PASS</code> (contraseña de
+                aplicación) en las variables de entorno. También sirve <code className="text-fg">RESEND_API_KEY</code>.
               </p>
             </div>
           )}

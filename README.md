@@ -103,8 +103,9 @@ Diferencias en Vercel (serverless):
 | `PGSSL` | `true` para forzar TLS |
 | `PORT` | Puerto del servidor (por defecto `3001`) |
 | `ADMIN_EMAILS` | Correos separados por coma que siempre son administradores (una vez verificado el correo) |
-| `RESEND_API_KEY` | Activa el envío de correos (verificación y recuperación de contraseña) con [Resend](https://resend.com) |
-| `EMAIL_FROM` | Remitente, en un dominio verificado en Resend (ej: `FlowDesk <hola@tudominio.com>`) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Envío de correos por SMTP (Gmail, Brevo, Outlook, Zoho…). Opcional `SMTP_SECURE` |
+| `RESEND_API_KEY` | Alternativa: envío de correos con [Resend](https://resend.com) |
+| `EMAIL_FROM` | Remitente. Con SMTP, por defecto `SMTP_USER`; con Resend, un dominio verificado |
 | `APP_URL` | URL pública para los enlaces de los correos (por defecto, el host de la petición) |
 | `EMAIL_TRANSPORT` | `console` en desarrollo: imprime los correos y sus enlaces en el log del servidor |
 | `CORS_ORIGIN` | Orígenes permitidos para Socket.io, separados por coma |
@@ -139,7 +140,7 @@ Diferencias en Vercel (serverless):
 
 ## Correo: verificación y recuperación de contraseña
 
-Con `RESEND_API_KEY` configurado:
+Con un proveedor de correo configurado (SMTP o Resend):
 
 - Al registrarse se envía un enlace de confirmación (válido 24 h). Hasta confirmarlo, la cuenta solo ve la pantalla
   «Confirma tu correo» (con reenvío) y la API responde `403 EMAIL_NOT_VERIFIED`. La pantalla se desbloquea sola al
@@ -149,7 +150,17 @@ Con `RESEND_API_KEY` configurado:
 - `ADMIN_EMAILS` solo otorga permisos cuando el correo está verificado, así nadie puede «reservar» un correo admin.
 - Los enlaces son de un solo uso; pedir uno nuevo invalida el anterior. En la base solo se guarda su hash.
 
-Sin `RESEND_API_KEY` la verificación no se exige (para no bloquear a nadie) y el panel de administración lo avisa.
+Sin proveedor la verificación no se exige (para no bloquear a nadie) y el panel de administración lo avisa.
+
+**Opciones gratuitas**
+
+| Proveedor | Gratis | ¿Necesita dominio? | Configuración |
+| --- | --- | --- | --- |
+| Gmail | 500 correos/día | No | `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER=tu@gmail.com`, `SMTP_PASS=<contraseña de aplicación>` |
+| Brevo | 300 correos/día | No (verificas un remitente) | `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_PORT=587`, usuario y clave SMTP de Brevo, `EMAIL_FROM` = remitente verificado |
+| Resend | 3.000 correos/mes | Sí | `RESEND_API_KEY`, `EMAIL_FROM` en tu dominio |
+
+La contraseña de aplicación de Gmail se crea en myaccount.google.com/apppasswords (requiere verificación en dos pasos).
 Las cuentas creadas antes de esta función quedan como verificadas.
 
 ## Vista Hoy, WhatsApp, importación y formulario

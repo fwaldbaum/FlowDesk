@@ -1,19 +1,51 @@
+import nodemailer from 'nodemailer';
+
 /**
- * Transactional email. Uses Resend's HTTP API when RESEND_API_KEY is set. With
- * EMAIL_TRANSPORT=console (local development) emails are printed to the server log.
- * With neither, email features are off: verification isn't required and password
- * reset reports that email isn't configured.
+ * Transactional email, first configured option wins:
+ *  - SMTP_HOST (+ SMTP_USER / SMTP_PASS): any SMTP server — Gmail, Brevo, Outlook, Zoho…
+ *  - RESEND_API_KEY: Resend's HTTP API.
+ *  - EMAIL_TRANSPORT=console: print emails to the server log (local development).
+ * With none, email features are off: verification isn't required and password reset
+ * reports that email isn't configured.
  */
+const SMTP_HOST = process.env.SMTP_HOST;
 const RESEND_KEY = process.env.RESEND_API_KEY;
 const CONSOLE = process.env.EMAIL_TRANSPORT === 'console';
-const FROM = process.env.EMAIL_FROM || 'FlowDesk <onboarding@resend.dev>';
+const FROM =
+  process.env.EMAIL_FROM ||
+  (SMTP_HOST && process.env.SMTP_USER ? `FlowDesk <${process.env.SMTP_USER}>` : 'FlowDesk <onboarding@resend.dev>');
 
-export const emailEnabled = Boolean(RESEND_KEY) || CONSOLE;
+export const emailEnabled = Boolean(SMTP_HOST) || Boolean(RESEND_KEY) || CONSOLE;
+
+let smtp = null;
+function smtpTransport() {
+  if (!smtp) {
+    const port = Number(process.env.SMTP_PORT) || 587;
+    smtp = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port,
+      // 465 is implicit TLS; other ports upgrade with STARTTLS.
+      secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : port === 465,
+      auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+    });
+  }
+  return smtp;
+}
 
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 export async function sendEmail({ to, subject, html, text }) {
+  if (SMTP_HOST && !CONSOLE) {
+    try {
+      await smtpTransport().sendMail({ from: FROM, to, subject, html, text });
+    } catch (err) {
+      throw Object.assign(new Error(`SMTP: ${err.message}`), { code: 'EMAIL_SEND_FAILED' });
+    }
+    return;
+  }
   if (CONSOLE || !RESEND_KEY) {
     console.log(`[email] to=${to} subject="${subject}"\n${text}\n`);
     return;
