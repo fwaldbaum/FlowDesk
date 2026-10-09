@@ -25,12 +25,11 @@ con cuentas para el equipo.
 
 ```
 FlowDesk/
-├── api/index.js          # Función serverless de Vercel (reutiliza server/src/app.js)
-├── vercel.json
+├── vercel.json           # Vercel Services: cliente (Vite) + servidor (Express)
 ├── server/src
-│   ├── app.js            # App Express (API + frontend compilado)
+│   ├── app.js            # App Express (export default: entrada en Vercel)
 │   ├── index.js          # Servidor HTTP + Socket.io para despliegues tradicionales
-│   ├── schema.sql        # Esquema idempotente (se aplica en cada arranque)
+│   ├── schema.js         # Esquema idempotente (se aplica al arrancar o en la primera petición)
 │   ├── services/leads.js # Lógica de leads/notas + emisión de eventos en tiempo real
 │   ├── services/auth.js  # Contraseñas (scrypt), sesiones y rate limiting
 │   ├── routes/           # /api/auth, /api/users, /api/leads, /api/notes, /api/webhooks
@@ -66,12 +65,16 @@ npm run build && npm start        # http://localhost:3001
 
 ### Despliegue en Vercel
 
-1. En [vercel.com/new](https://vercel.com/new) importa el repositorio. No cambies nada de build: `vercel.json`
-   ya define el comando, la carpeta de salida y la función de la API.
+`vercel.json` usa [Vercel Services](https://vercel.com/docs/services): el servicio `client` compila el
+frontend con Vite (con fallback SPA a `index.html`) y el servicio `server` ejecuta la app Express
+(`server/src/app.js`) como función. `/api/*` va al servidor con su ruta original y todo lo demás al cliente.
+
+1. En [vercel.com/new](https://vercel.com/new) importa el repositorio. No cambies nada de build: cada servicio
+   ya define su framework y su raíz.
 2. En el proyecto, **Storage → Create Database → Neon** (Postgres). La integración inyecta `DATABASE_URL`
    automáticamente. Con Supabase, copia su cadena de conexión *pooler* en `DATABASE_URL`.
 3. Opcional: agrega `WEBHOOK_SECRET` en **Settings → Environment Variables**.
-4. Despliega, abre la URL y pulsa **Crear mi espacio**. Las tablas se crean solas en la primera petición.
+4. Despliega, abre la URL y pulsa **Crear mi espacio**. Las tablas se crean solas en la primera petición a la API.
 
 Con la CLI: `npx vercel link`, `npx vercel env add DATABASE_URL` y `npx vercel deploy --prod`.
 

@@ -1,10 +1,16 @@
-import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { pool } from './db.js';
+import { SCHEMA_SQL } from './schema.js';
 
-export async function migrate() {
-  const sql = await readFile(fileURLToPath(new URL('./schema.sql', import.meta.url)), 'utf8');
-  await pool.query(sql);
+let ready = null;
+
+/** Apply the schema once per process (or serverless instance). Retries after a failure. */
+export function migrate() {
+  ready ??= pool.query(SCHEMA_SQL).catch((err) => {
+    ready = null;
+    throw err;
+  });
+  return ready;
 }
 
 // Allow `node src/migrate.js` as a standalone command.

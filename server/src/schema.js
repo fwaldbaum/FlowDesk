@@ -1,5 +1,6 @@
--- FlowDesk schema. Idempotent: safe to run on every boot.
-
+// FlowDesk schema. Idempotent: safe to run on every boot or cold start.
+// Kept as a JS module (not a .sql file) so serverless bundlers always include it.
+export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS leads (
   id              SERIAL PRIMARY KEY,
   name            TEXT        NOT NULL,
@@ -72,3 +73,4 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 CREATE INDEX IF NOT EXISTS events_created_idx ON events (created_at);
+`;
