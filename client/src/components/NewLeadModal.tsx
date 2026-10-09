@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { api } from '../lib/api';
 import { SOURCE_SUGGESTIONS, STATUSES } from '../lib/constants';
 import type { LeadInput, Status } from '../lib/types';
 import { useStore } from '../store/AppStore';
+import { dialogMotion, overlayMotion } from './motion';
 import { Button, IconButton } from './ui';
 
 const EMPTY = { name: '', company: '', email: '', phone: '', source: '', value: '', status: 'new' as Status, notes: '' };
@@ -24,8 +26,6 @@ export function NewLeadModal() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [newLeadOpen, setNewLeadOpen]);
-
-  if (!newLeadOpen) return null;
 
   const set = (key: keyof typeof EMPTY) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -62,9 +62,12 @@ export function NewLeadModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 px-4 py-[10vh]">
+    <AnimatePresence>
+    {newLeadOpen && (
+    <motion.div key="new-lead" {...overlayMotion} className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 px-4 py-[10vh] backdrop-blur-[2px]">
       <div className="fixed inset-0" onClick={() => setNewLeadOpen(false)} />
-      <form
+      <motion.form
+        {...dialogMotion}
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-lead-title"
@@ -125,7 +128,9 @@ export function NewLeadModal() {
             {saving ? 'Guardando…' : 'Crear lead'}
           </Button>
         </div>
-      </form>
-    </div>
+      </motion.form>
+    </motion.div>
+    )}
+    </AnimatePresence>
   );
 }

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { RefreshCw, Search, Users, X } from 'lucide-react';
+import { MailWarning, RefreshCw, Search, Users, X } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
+import { CountUp } from '../components/motion';
 import { Header } from '../components/Header';
 import { Avatar, IconButton } from '../components/ui';
 import { api } from '../lib/api';
@@ -10,20 +12,23 @@ import type { AdminStats, AdminUser } from '../lib/types';
 import { useStore } from '../store/AppStore';
 import { AdminUserPanel, UserBadges } from './AdminUserPanel';
 
-type Filter = 'all' | 'active' | 'banned' | 'admins';
+type Filter = 'all' | 'active' | 'banned' | 'admins' | 'unverified';
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'Todos' },
   { id: 'active', label: 'Activos' },
   { id: 'banned', label: 'Suspendidos' },
   { id: 'admins', label: 'Administradores' },
+  { id: 'unverified', label: 'Sin verificar' },
 ];
 
 function StatTile({ label, value, hint }: { label: string; value: number | undefined; hint?: string }) {
   return (
     <div className="rounded-xl border border-line bg-surface px-4 py-3.5">
       <p className="text-xs text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight text-fg">{value ?? '—'}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight text-fg">
+        {value == null ? '—' : <CountUp value={value} />}
+      </p>
       {hint && <p className="mt-0.5 text-2xs text-subtle">{hint}</p>}
     </div>
   );
@@ -128,6 +133,16 @@ export function AdminView() {
       />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-6 md:px-6">
+          {stats && !stats.email_enabled && (
+            <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-4 py-3 text-[13px]">
+              <MailWarning size={16} className="mt-0.5 shrink-0 text-amber-300" />
+              <p className="text-amber-100/90">
+                El envío de correos no está configurado, así que la verificación de correo y «Olvidé mi contraseña» están
+                desactivados. Agrega <code className="text-fg">RESEND_API_KEY</code> (y{' '}
+                <code className="text-fg">EMAIL_FROM</code> con un dominio verificado) en las variables de entorno.
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             <StatTile label="Usuarios" value={stats?.users} />
             <StatTile label="Nuevos" value={stats?.new_7d} hint="últimos 7 días" />
@@ -254,8 +269,10 @@ export function AdminView() {
         </div>
       </div>
 
+      <AnimatePresence>
       {selected != null && (
         <AdminUserPanel
+          key={selected}
           userId={selected}
           onClose={() => setSelected(null)}
           onChanged={refresh}
@@ -265,6 +282,7 @@ export function AdminView() {
           }}
         />
       )}
+      </AnimatePresence>
     </>
   );
 }

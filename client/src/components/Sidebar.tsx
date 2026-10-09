@@ -1,12 +1,15 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import { LogOut, Settings, ShieldCheck, SquareKanban, Users } from 'lucide-react';
+import { motion } from 'motion/react';
+import { LogOut, Settings, ShieldCheck, SquareKanban, Sun, Users } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { useStore } from '../store/AppStore';
 import { Logo, LogoMark } from './Logo';
+import { spring } from './motion';
 import { Avatar } from './ui';
 
 const NAV = [
+  { to: '/app/hoy', label: 'Hoy', icon: Sun, end: false },
   { to: '/app', label: 'Tablero', icon: SquareKanban, end: true },
   { to: '/app/contactos', label: 'Contactos', icon: Users },
   { to: '/app/configuracion', label: 'Configuración', icon: Settings },
@@ -21,7 +24,9 @@ const CONNECTION = {
 } as const;
 
 export function Sidebar() {
-  const { connection } = useStore();
+  const { connection, today } = useStore();
+  const overdue = today?.stats.overdue ?? 0;
+  const badge = (to: string) => (to === '/app/hoy' && overdue > 0 ? (overdue > 99 ? '99+' : overdue) : 0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const conn = CONNECTION[connection];
@@ -51,13 +56,29 @@ export function Sidebar() {
             title={label}
             className={({ isActive }) =>
               clsx(
-                'flex h-8 items-center justify-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors md:justify-start',
-                isActive ? 'bg-raised text-fg' : 'text-muted hover:bg-raised/60 hover:text-fg',
+                'relative flex h-8 items-center justify-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors md:justify-start',
+                isActive ? 'text-fg' : 'text-muted hover:bg-raised/50 hover:text-fg',
               )
             }
           >
-            <Icon size={16} strokeWidth={1.75} />
-            <span className="hidden md:inline">{label}</span>
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <motion.span
+                    layoutId="nav-active"
+                    transition={spring}
+                    className="absolute inset-0 rounded-md border border-line bg-raised"
+                  />
+                )}
+                <Icon size={16} strokeWidth={1.75} className="relative" />
+                <span className="relative hidden md:inline">{label}</span>
+                {badge?.(to) ? (
+                  <span className="relative ml-auto hidden min-w-[18px] rounded-full bg-red-500/90 px-1.5 text-center text-[10px] font-semibold leading-[18px] text-white md:inline">
+                    {badge(to)}
+                  </span>
+                ) : null}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

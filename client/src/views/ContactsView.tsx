@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
-import { ArrowDown, ArrowUp, ArrowUpDown, Bell, Users } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Bell, Download, Upload, Users } from 'lucide-react';
+import { ImportModal } from '../components/ImportModal';
+import { downloadFile, leadsToCsv } from '../lib/csv';
 import { Header } from '../components/Header';
 import { Avatar, Button, StatusBadge } from '../components/ui';
 import { STATUSES } from '../lib/constants';
@@ -34,6 +36,7 @@ const COLUMNS: { key: SortKey; label: string; className?: string }[] = [
 export function ContactsView() {
   const { openLead, loaded, leads, setNewLeadOpen, search } = useStore();
   const visible = useFilteredLeads();
+  const [importOpen, setImportOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'created_at', dir: -1 });
 
@@ -74,7 +77,22 @@ export function ContactsView() {
             <span className="tabular-nums text-subtle">{counts[s.id] ?? 0}</span>
           </button>
         ))}
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-3">
+          <Button size="sm" variant="ghost" onClick={() => setImportOpen(true)}>
+            <Upload size={13} /> Importar
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={rows.length === 0}
+            onClick={() => downloadFile(`leads-${new Date().toISOString().slice(0, 10)}.csv`, leadsToCsv(rows))}
+            title="Exporta los leads visibles con los filtros actuales"
+          >
+            <Download size={13} /> Exportar
+          </Button>
+        </div>
       </div>
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
 
       <div className="min-h-0 flex-1 overflow-auto">
         {loaded && rows.length === 0 ? (
@@ -84,7 +102,12 @@ export function ContactsView() {
               {search || statusFilter !== 'all' ? 'Ningún lead coincide con los filtros.' : 'Aún no tienes leads.'}
             </p>
             {!search && statusFilter === 'all' && (
-              <Button variant="primary" onClick={() => setNewLeadOpen(true)}>Crear el primero</Button>
+              <div className="flex gap-2">
+                <Button variant="primary" onClick={() => setNewLeadOpen(true)}>Crear el primero</Button>
+                <Button onClick={() => setImportOpen(true)}>
+                  <Upload size={13} /> Importar CSV
+                </Button>
+              </div>
             )}
           </div>
         ) : (

@@ -5,7 +5,7 @@ import {
 import { io } from 'socket.io-client';
 import { useAuth } from '../auth/AuthContext';
 import { api } from '../lib/api';
-import type { Lead, Note, Status } from '../lib/types';
+import type { Lead, Note, Status, TodayData, Workspace } from '../lib/types';
 
 // ---- Data state --------------------------------------------------------------
 
@@ -137,6 +137,12 @@ interface Store extends DataState {
 
   /** How live updates arrive: WebSocket push, or polling on serverless hosts. */
   realtimeMode: 'socket' | 'poll';
+  /** "Hoy" summary; refreshed shortly after any realtime change. */
+  today: TodayData | null;
+  refreshToday: () => void;
+  /** Workspace settings (WhatsApp template, country code, form). */
+  workspace: Workspace | null;
+  setWorkspace: (ws: Workspace) => void;
 
   toasts: Toast[];
   toast: (t: Omit<Toast, 'id'>) => void;
@@ -154,6 +160,21 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [newLeadOpen, setNewLeadOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [realtimeMode, setRealtimeMode] = useState<'socket' | 'poll'>('socket');
+  const [today, setToday] = useState<TodayData | null>(null);
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+
+  useEffect(() => {
+    api.workspace().then(setWorkspace).catch(() => {});
+  }, []);
+  const todayTimer = useRef<number>();
+
+  // Debounced: a drag or an import fires several events in a row.
+  const refreshToday = useCallback(() => {
+    window.clearTimeout(todayTimer.current);
+    todayTimer.current = window.setTimeout(() => {
+      api.today().then(setToday).catch(() => {});
+    }, 350);
+  }, []);
   const toastSeq = useRef(0);
 
   const dismissToast = useCallback((id: number) => {
@@ -172,10 +193,11 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     try {
       dispatch({ type: 'leads/set', leads: await api.leads() });
+      refreshToday();
     } catch (err) {
       toast({ tone: 'error', title: 'No se pudieron cargar los leads', description: (err as Error).message });
     }
-  }, [toast]);
+  }, [toast, refreshToday]);
 
   const loadNotes = useCallback(async (leadId: number) => {
     dispatch({ type: 'notes/set', leadId, notes: await api.notes(leadId) });
@@ -207,17 +229,21 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
     /** Applies one realtime event. Every handler is idempotent, so redelivery is harmless. */
     const handle = (type: string, payload: any, { quiet = false } = {}) => {
+      if (type !== 'hello') refreshToday();
       switch (type) {
+        case 'leads:reload':
+          reload();
+          break;
         case 'lead:created': {
           const { lead, origin } = payload as { lead: Lead; origin: string };
           dispatch({ type: 'lead/upsert', lead });
-          if (origin === 'webhook' && !quiet) {
+          if ((origin === 'webhook' || origin === 'form') && !quiet) {
             dispatch({ type: 'webhook/tick' });
             dispatch({ type: 'highlight', id: lead.id, on: true });
             window.setTimeout(() => dispatch({ type: 'highlight', id: lead.id, on: false }), 4000);
             toast({
               tone: 'webhook',
-              title: 'Nuevo lead vía webhook',
+              title: origin === 'form' ? 'Nuevo lead desde tu formulario' : 'Nuevo lead vía webhook',
               description: [lead.name, lead.source].filter(Boolean).join(' · '),
               action: { label: 'Ver', onClick: () => openLeadRef.current(lead.id) },
             });
@@ -333,7 +359,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       cancelled = true;
       stop();
     };
-  }, [reload, toast]);
+  }, [reload, toast, refreshToday]);
 
   const value = useMemo<Store>(
     () => ({
@@ -349,11 +375,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       newLeadOpen,
       setNewLeadOpen,
       realtimeMode,
+      today,
+      refreshToday,
+      workspace,
+      setWorkspace,
       toasts,
       toast,
       dismissToast,
     }),
-    [state, reload, loadNotes, moveLead, search, selectedId, newLeadOpen, realtimeMode, toasts, toast, dismissToast],
+    [state, reload, loadNotes, moveLead, search, selectedId, newLeadOpen, realtimeMode, today, refreshToday, workspace, toasts, toast, dismissToast],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

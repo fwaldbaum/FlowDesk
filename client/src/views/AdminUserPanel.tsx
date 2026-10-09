@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import clsx from 'clsx';
-import { Ban, KeyRound, LogOut, ShieldCheck, ShieldOff, Trash2, UserCheck, X } from 'lucide-react';
+import { Ban, KeyRound, LogOut, MailCheck, ShieldCheck, ShieldOff, Trash2, UserCheck, X } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useAuth } from '../auth/AuthContext';
+import { overlayMotion, panelMotion } from '../components/motion';
 import { Avatar, Button, IconButton } from '../components/ui';
 import { api } from '../lib/api';
 import { COMPANY_SIZE_LABELS, HEARD_FROM_LABELS } from '../lib/constants';
@@ -9,7 +11,7 @@ import { formatDate, formatDateTime, timeAgo } from '../lib/format';
 import type { AdminAction, AdminUser } from '../lib/types';
 import { useStore } from '../store/AppStore';
 
-export function UserBadges({ user }: { user: Pick<AdminUser, 'is_admin' | 'banned_at'> }) {
+export function UserBadges({ user }: { user: Pick<AdminUser, 'is_admin' | 'banned_at' | 'email_verified_at'> }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-1">
       {user.banned_at ? (
@@ -18,6 +20,11 @@ export function UserBadges({ user }: { user: Pick<AdminUser, 'is_admin' | 'banne
         </span>
       ) : (
         <span className="rounded-full border border-line px-2 py-0.5 text-2xs text-muted">Activo</span>
+      )}
+      {!user.email_verified_at && !user.banned_at && (
+        <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-2xs font-medium text-amber-300">
+          Sin verificar
+        </span>
       )}
       {user.is_admin && (
         <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-2xs font-medium text-accent-soft">
@@ -36,6 +43,7 @@ const ACTION_LABELS: Record<AdminAction['action'], string> = {
   unban: 'Cuenta reactivada',
   password_reset: 'Contraseña restablecida',
   logout: 'Sesiones cerradas',
+  verify_email: 'Correo marcado como verificado',
   grant_admin: 'Ahora es administrador',
   revoke_admin: 'Ya no es administrador',
   delete: 'Cuenta eliminada',
@@ -161,11 +169,12 @@ export function AdminUserPanel({ userId, onClose, onChanged, onDeleted }: {
 
   return (
     <div className="fixed inset-0 z-40">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <aside
+      <motion.div {...overlayMotion} className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={onClose} />
+      <motion.aside
+        {...panelMotion}
         role="complementary"
         aria-label="Detalle de usuario"
-        className="absolute inset-y-0 right-0 flex w-full max-w-[520px] animate-slide-in flex-col border-l border-line bg-surface shadow-overlay"
+        className="absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col border-l border-line bg-surface shadow-overlay"
       >
         {!detail ? (
           <div className="p-6 text-xs text-subtle">Cargando…</div>
@@ -237,6 +246,13 @@ export function AdminUserPanel({ userId, onClose, onChanged, onDeleted }: {
                   <Row label="Rol en el espacio">{detail.role === 'owner' ? 'Propietario' : 'Miembro'}</Row>
                   <Row label="Miembros">{detail.members_count}</Row>
                   <Row label="Leads">{detail.leads_count}</Row>
+                  <Row label="Correo">
+                    {detail.email_verified_at ? (
+                      <span className="text-emerald-300">Verificado</span>
+                    ) : (
+                      <span className="text-amber-300">Sin verificar</span>
+                    )}
+                  </Row>
                   <Row label="Registro">{formatDateTime(detail.created_at)}</Row>
                   <Row label="Último acceso">{detail.last_login_at ? timeAgo(detail.last_login_at) : 'Nunca'}</Row>
                   <Row label="Sesiones activas">{detail.active_sessions}</Row>
@@ -299,6 +315,14 @@ export function AdminUserPanel({ userId, onClose, onChanged, onDeleted }: {
                     >
                       <LogOut size={13} /> Cerrar sesiones ({detail.active_sessions})
                     </Button>
+                    {!detail.email_verified_at && (
+                      <Button
+                        onClick={() => run('verify', () => api.admin.verify(userId), 'Correo marcado como verificado')}
+                        disabled={busy === 'verify'}
+                      >
+                        <MailCheck size={13} /> Marcar correo verificado
+                      </Button>
+                    )}
                     {detail.is_admin ? (
                       <Button
                         onClick={() => run('admin', () => api.admin.setAdmin(userId, false), 'Permisos de administrador retirados')}
@@ -414,7 +438,7 @@ export function AdminUserPanel({ userId, onClose, onChanged, onDeleted }: {
             </div>
           </>
         )}
-      </aside>
+      </motion.aside>
     </div>
   );
 }

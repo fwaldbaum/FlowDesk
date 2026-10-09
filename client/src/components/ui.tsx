@@ -7,7 +7,8 @@ import type { Status } from '../lib/types';
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-accent text-white hover:bg-accent-hover border border-white/5',
+  primary:
+    'bg-accent text-white hover:bg-accent-hover border border-white/10 shadow-[0_1px_0_0_rgba(255,255,255,0.12)_inset,0_4px_14px_-6px_rgba(79,70,229,0.7)]',
   secondary: 'bg-raised text-fg border border-line hover:border-line-strong hover:bg-[#222839]',
   ghost: 'text-muted hover:text-fg hover:bg-raised',
   danger: 'text-red-400 hover:text-red-300 hover:bg-red-500/10',
@@ -21,7 +22,7 @@ export const Button = forwardRef<
     <button
       ref={ref}
       className={clsx(
-        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md font-medium transition-colors disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md font-medium transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50',
         size === 'sm' ? 'h-7 px-2.5 text-xs' : 'h-8 px-3 text-[13px]',
         variants[variant],
         className,

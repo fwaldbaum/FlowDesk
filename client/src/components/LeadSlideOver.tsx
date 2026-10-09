@@ -3,11 +3,14 @@ import clsx from 'clsx';
 import {
   Bell, Building2, CalendarClock, Check, DollarSign, Mail, Phone, PhoneCall, Tag, Trash2, X,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { api } from '../lib/api';
 import { STATUSES } from '../lib/constants';
 import { formatDate, formatDateTime, money, timeAgo, toLocalInput } from '../lib/format';
 import type { Lead, Note, Status } from '../lib/types';
 import { columnOrder, useStore } from '../store/AppStore';
+import { ContactActions } from './ContactActions';
+import { overlayMotion, panelMotion } from './motion';
 import { Avatar, Button, IconButton, StatusDot } from './ui';
 
 export function LeadSlideOver() {
@@ -23,20 +26,23 @@ export function LeadSlideOver() {
     return () => window.removeEventListener('keydown', onKey);
   }, [selectedId, openLead]);
 
-  if (!lead) return null;
-
   return (
-    <div className="fixed inset-0 z-40">
-      <div className="absolute inset-0 bg-black/40" onClick={() => openLead(null)} />
-      <aside
-        role="complementary"
-        aria-label={`Detalle de ${lead.name}`}
-        className="absolute inset-y-0 right-0 flex w-full max-w-[480px] animate-slide-in flex-col border-l border-line bg-surface shadow-overlay"
-      >
-        {/* key resets local edit state when switching leads */}
-        <LeadDetail key={lead.id} lead={lead} onClose={() => openLead(null)} />
-      </aside>
-    </div>
+    <AnimatePresence>
+      {lead && (
+        <motion.div key="lead-panel" className="fixed inset-0 z-40">
+          <motion.div {...overlayMotion} className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={() => openLead(null)} />
+          <motion.aside
+            {...panelMotion}
+            role="complementary"
+            aria-label={`Detalle de ${lead.name}`}
+            className="absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col border-l border-line bg-surface shadow-overlay"
+          >
+            {/* key resets local edit state when switching leads */}
+            <LeadDetail key={lead.id} lead={lead} onClose={() => openLead(null)} />
+          </motion.aside>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -104,6 +110,9 @@ function LeadDetail({ lead, onClose }: { lead: Lead; onClose: () => void }) {
         <IconButton label="Cerrar panel" onClick={onClose}>
           <X size={16} />
         </IconButton>
+      </div>
+      <div className="border-b border-line px-5 py-3">
+        <ContactActions lead={lead} />
       </div>
 
       <div className="flex-1 overflow-y-auto">

@@ -60,6 +60,8 @@ export interface User {
   workspace_id: number;
   workspace_name: string | null;
   needs_onboarding: boolean;
+  email_verified: boolean;
+  needs_verification: boolean;
   created_at: string;
 }
 
@@ -94,6 +96,7 @@ export interface AdminUser {
   ban_reason: string | null;
   created_at: string;
   last_login_at: string | null;
+  email_verified_at: string | null;
   workspace_id: number;
   workspace_name: string;
   heard_from: HeardFrom | null;
@@ -109,12 +112,15 @@ export interface AdminUser {
 export interface AdminAction {
   id: number;
   admin_email: string | null;
-  action: 'update' | 'ban' | 'unban' | 'password_reset' | 'logout' | 'grant_admin' | 'revoke_admin' | 'delete';
+  action:
+    | 'update' | 'ban' | 'unban' | 'password_reset' | 'logout' | 'grant_admin' | 'revoke_admin' | 'delete'
+    | 'verify_email';
   details: Record<string, unknown> | null;
   created_at: string;
 }
 
 export interface AdminStats {
+  email_enabled: boolean;
   users: number;
   new_7d: number;
   banned: number;
@@ -123,4 +129,51 @@ export interface AdminStats {
   surveys: number;
   heard_from: { key: HeardFrom; count: number }[];
   company_size: { key: CompanySize; count: number }[];
+}
+
+export interface FormSettings {
+  title: string;
+  description: string;
+  button: string;
+  success: string;
+  source: string;
+  theme: 'light' | 'dark';
+  accent: string;
+  fields: { phone: boolean; company: boolean; message: boolean };
+}
+
+export interface Workspace {
+  id: number;
+  name: string;
+  country_code: string;
+  whatsapp_template: string;
+  form_key: string;
+  form_settings: FormSettings;
+}
+
+export interface TodayReminder {
+  id: number;
+  lead_id: number;
+  body: string;
+  due_at: string;
+  lead_name: string;
+  company: string | null;
+  phone: string | null;
+  email: string | null;
+  status: Status;
+}
+
+export interface TodayData {
+  reminders: TodayReminder[];
+  fresh: Lead[];
+  stale: Lead[];
+  stats: { new_7d: number; open_value: number; won_month: number; overdue: number };
+}
+
+export type ContactChannel = 'whatsapp' | 'call' | 'email';
+
+export interface ImportResult {
+  created: number;
+  skipped: number;
+  invalid: { row: number; message: string }[];
 }

@@ -1,9 +1,12 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Info } from 'lucide-react';
+import { motion } from 'motion/react';
+import { ArrowLeft, CircleCheck, CircleX, Eye, EyeOff, Info, LoaderCircle, MailOpen } from 'lucide-react';
 import { safeNext, useAuth } from '../auth/AuthContext';
 import { LogoMark } from '../components/Logo';
+import { ease, spring } from '../components/motion';
 import { Button } from '../components/ui';
+import { api } from '../lib/api';
 
 function AuthLayout({ title, subtitle, children, footer }: {
   title: string;
@@ -21,7 +24,12 @@ function AuthLayout({ title, subtitle, children, footer }: {
       </div>
 
       <main className="relative flex flex-1 items-start justify-center px-4 pb-16 pt-[8vh]">
-        <div className="w-full max-w-[380px]">
+        <motion.div
+          className="w-full max-w-[380px]"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease }}
+        >
           <div className="mb-8 flex flex-col items-center text-center">
             <Link to="/" aria-label="FlowDesk, inicio" className="mb-6">
               <LogoMark size={40} />
@@ -31,7 +39,7 @@ function AuthLayout({ title, subtitle, children, footer }: {
           </div>
           <div className="rounded-xl border border-line bg-surface p-6 shadow-overlay">{children}</div>
           {footer && <div className="mt-6 text-center text-[13px] text-muted">{footer}</div>}
-        </div>
+        </motion.div>
       </main>
     </div>
   );
@@ -130,7 +138,10 @@ export function LoginPage() {
           />
         </div>
         <div>
-          <label className="label" htmlFor="login-password">Contraseña</label>
+          <div className="flex items-baseline justify-between">
+            <label className="label" htmlFor="login-password">Contraseña</label>
+            <Link to="/olvide" className="text-2xs text-accent-soft hover:text-fg">¿Olvidaste tu contraseña?</Link>
+          </div>
           <PasswordInput id="login-password" value={password} onChange={setPassword} autoComplete="current-password" />
         </div>
         <FormError message={error} />
@@ -276,6 +287,288 @@ export function RegisterPage() {
           Tu cuenta tendrá su propio espacio privado: solo tú y las personas que invites verán tus leads.
         </p>
       </form>
+    </AuthLayout>
+  );
+}
+
+/** Big centered status icon for single-message auth screens. */
+function StatusIcon({ children, tone }: { children: ReactNode; tone: 'accent' | 'success' | 'error' }) {
+  const colors = {
+    accent: 'border-accent/40 bg-accent/10 text-accent-soft',
+    success: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
+    error: 'border-red-500/40 bg-red-500/10 text-red-300',
+  };
+  return (
+    <motion.div
+      initial={{ scale: 0.6, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1, transition: spring }}
+      className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border ${colors[tone]}`}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/** Shown to signed-in users who still need to confirm their email. */
+export function VerifyEmailGate() {
+  const { user, refresh, logout } = useAuth();
+  const navigate = useNavigate();
+  const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [error, setError] = useState<string | null>(null);
+
+  // Confirming in another tab (or on the phone) unlocks this one automatically.
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === 'visible') refresh().catch(() => {});
+    };
+    const timer = window.setInterval(check, 5000);
+    window.addEventListener('focus', check);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', check);
+    };
+  }, [refresh]);
+
+  const resend = async () => {
+    setState('sending');
+    setError(null);
+    try {
+      await api.resendVerification();
+      setState('sent');
+    } catch (err) {
+      setError((err as Error).message);
+      setState('idle');
+    }
+  };
+
+  return (
+    <AuthLayout
+      title="Confirma tu correo"
+      subtitle="Un último paso para proteger tu cuenta"
+      footer={
+        <button
+          onClick={async () => {
+            await logout();
+            navigate('/login', { replace: true });
+          }}
+          className="text-muted hover:text-fg"
+        >
+          Usar otra cuenta
+        </button>
+      }
+    >
+      <div className="text-center">
+        <StatusIcon tone="accent">
+          <MailOpen size={22} />
+        </StatusIcon>
+        <p className="text-[13px] leading-relaxed text-muted">
+          Te enviamos un enlace a <span className="font-medium text-fg">{user?.email}</span>. Ábrelo para activar tu
+          cuenta; esta pantalla se actualizará sola.
+        </p>
+        <p className="mt-3 text-2xs text-subtle">¿No llegó? Revisa spam o promociones.</p>
+        <div className="mt-5">
+          <FormError message={error} />
+          <Button className="mt-3 w-full" onClick={resend} disabled={state !== 'idle'}>
+            {state === 'sending' ? 'Enviando…' : state === 'sent' ? 'Enlace reenviado' : 'Reenviar enlace'}
+          </Button>
+        </div>
+      </div>
+    </AuthLayout>
+  );
+}
+
+/** Target of the link in the verification email. */
+export function VerifyEmailPage() {
+  const [params] = useSearchParams();
+  const { status, refresh } = useAuth();
+  const [state, setState] = useState<'pending' | 'ok' | 'error'>('pending');
+  const [error, setError] = useState('');
+  const started = useRef(false);
+
+  useEffect(() => {
+    // StrictMode runs effects twice in development; a token can only be used once.
+    if (started.current) return;
+    started.current = true;
+    api
+      .verifyEmail(params.get('token') ?? '')
+      .then(async () => {
+        setState('ok');
+        await refresh().catch(() => {});
+      })
+      .catch((err) => {
+        setError((err as Error).message);
+        setState('error');
+      });
+  }, [params, refresh]);
+
+  return (
+    <AuthLayout
+      title={state === 'ok' ? '¡Correo confirmado!' : state === 'error' ? 'Enlace no válido' : 'Confirmando…'}
+      subtitle={state === 'ok' ? 'Tu cuenta ya está activa' : 'Verificación de correo'}
+    >
+      <div className="text-center">
+        {state === 'pending' && (
+          <StatusIcon tone="accent">
+            <LoaderCircle size={22} className="animate-spin" />
+          </StatusIcon>
+        )}
+        {state === 'ok' && (
+          <>
+            <StatusIcon tone="success">
+              <CircleCheck size={22} />
+            </StatusIcon>
+            <Link to={status === 'authenticated' ? '/app' : '/login'}>
+              <Button variant="primary" className="h-9 w-full">
+                {status === 'authenticated' ? 'Continuar' : 'Iniciar sesión'}
+              </Button>
+            </Link>
+          </>
+        )}
+        {state === 'error' && (
+          <>
+            <StatusIcon tone="error">
+              <CircleX size={22} />
+            </StatusIcon>
+            <p className="mb-5 text-[13px] text-muted">{error}</p>
+            <Link to={status === 'authenticated' ? '/verifica-tu-correo' : '/login'}>
+              <Button className="h-9 w-full">Pedir un enlace nuevo</Button>
+            </Link>
+          </>
+        )}
+      </div>
+    </AuthLayout>
+  );
+}
+
+export function ForgotPasswordPage() {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await api.forgotPassword(email);
+      setSent(true);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <AuthLayout
+      title={sent ? 'Revisa tu correo' : '¿Olvidaste tu contraseña?'}
+      subtitle={sent ? 'Te enviamos las instrucciones' : 'Te enviaremos un enlace para crear una nueva'}
+      footer={
+        <Link to="/login" className="font-medium text-accent-soft hover:text-fg">
+          Volver a iniciar sesión
+        </Link>
+      }
+    >
+      {sent ? (
+        <div className="text-center">
+          <StatusIcon tone="success">
+            <MailOpen size={22} />
+          </StatusIcon>
+          <p className="text-[13px] leading-relaxed text-muted">
+            Si existe una cuenta con <span className="font-medium text-fg">{email}</span>, recibirás un enlace válido por
+            1 hora. Revisa también spam.
+          </p>
+        </div>
+      ) : (
+        <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label className="label" htmlFor="forgot-email">Email</label>
+            <input
+              id="forgot-email"
+              type="email"
+              className="input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              placeholder="tu@empresa.com"
+              autoFocus
+              required
+            />
+          </div>
+          <FormError message={error} />
+          <Button type="submit" variant="primary" className="h-9 w-full" disabled={busy}>
+            {busy ? 'Enviando…' : 'Enviar enlace'}
+          </Button>
+        </form>
+      )}
+    </AuthLayout>
+  );
+}
+
+export function ResetPasswordPage() {
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const token = params.get('token') ?? '';
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await api.resetPassword(token, password);
+      setDone(true);
+      window.setTimeout(() => navigate('/login', { replace: true }), 2200);
+    } catch (err) {
+      setError((err as Error).message);
+      setBusy(false);
+    }
+  };
+
+  return (
+    <AuthLayout
+      title={done ? 'Contraseña actualizada' : 'Crea una nueva contraseña'}
+      subtitle={done ? 'Ya puedes iniciar sesión' : 'Por seguridad cerraremos tus otras sesiones'}
+      footer={
+        <Link to="/login" className="font-medium text-accent-soft hover:text-fg">
+          Volver a iniciar sesión
+        </Link>
+      }
+    >
+      {done ? (
+        <div className="text-center">
+          <StatusIcon tone="success">
+            <CircleCheck size={22} />
+          </StatusIcon>
+          <p className="text-[13px] text-muted">Te llevamos al inicio de sesión…</p>
+        </div>
+      ) : (
+        <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label className="label" htmlFor="reset-password">Nueva contraseña</label>
+            <PasswordInput
+              id="reset-password"
+              value={password}
+              onChange={setPassword}
+              autoComplete="new-password"
+              placeholder="Mínimo 8 caracteres"
+            />
+          </div>
+          <FormError message={error} />
+          {error && (
+            <Link to="/olvide" className="block text-center text-xs text-accent-soft hover:text-fg">
+              Pedir un enlace nuevo
+            </Link>
+          )}
+          <Button type="submit" variant="primary" className="h-9 w-full" disabled={busy || password.length < 8}>
+            {busy ? 'Guardando…' : 'Guardar contraseña'}
+          </Button>
+        </form>
+      )}
     </AuthLayout>
   );
 }

@@ -14,6 +14,8 @@ interface Auth {
   login: (email: string, password: string) => Promise<User>;
   register: (input: RegisterInput) => Promise<User>;
   submitSurvey: (input: SurveyInput) => Promise<void>;
+  /** Re-reads the session (e.g. after confirming the email in another tab). */
+  refresh: () => Promise<void>;
   logout: () => Promise<void>;
   /** Drop local session state (e.g. after a 401). */
   expire: () => void;
@@ -47,6 +49,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user;
   }, []);
 
+  const refresh = useCallback(async () => {
+    const { user } = await api.me();
+    if (user) setState({ status: 'authenticated', user });
+    else setState({ status: 'anonymous', user: null });
+  }, []);
+
   const submitSurvey = useCallback(async (input: SurveyInput) => {
     const { user } = await api.submitSurvey(input);
     setState({ status: 'authenticated', user });
@@ -58,8 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [expire]);
 
   const value = useMemo<Auth>(
-    () => ({ ...state, login, register, submitSurvey, logout, expire }),
-    [state, login, register, submitSurvey, logout, expire],
+    () => ({ ...state, login, register, submitSurvey, refresh, logout, expire }),
+    [state, login, register, submitSurvey, refresh, logout, expire],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -80,7 +88,7 @@ export function safeNext(next: string | null) {
  * Gate for signed-in pages. New owners are sent to the welcome survey first;
  * `onboarding` marks the survey page itself.
  */
-export function RequireAuth({ children, onboarding = false }: { children: ReactNode; onboarding?: boolean }) {
+export function RequireAuth({ children, step }: { children: ReactNode; step?: 'verify' | 'onboarding' }) {
   const { status, user } = useAuth();
   const location = useLocation();
   if (status === 'loading') {
@@ -90,8 +98,12 @@ export function RequireAuth({ children, onboarding = false }: { children: ReactN
     const next = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/login?next=${next}`} replace />;
   }
-  if (!onboarding && user?.needs_onboarding) return <Navigate to="/bienvenida" replace />;
-  if (onboarding && !user?.needs_onboarding) return <Navigate to="/app" replace />;
+  // Gates run in order: confirm the email, then answer the welcome survey, then the app.
+  const required = user?.needs_verification ? 'verify' : user?.needs_onboarding ? 'onboarding' : undefined;
+  if (required !== step) {
+    const to = { verify: '/verifica-tu-correo', onboarding: '/bienvenida' } as const;
+    return <Navigate to={required ? to[required] : '/app'} replace />;
+  }
   return <>{children}</>;
 }
 

@@ -3,6 +3,7 @@ import { query, withTransaction } from '../db.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { disconnectUser, disconnectWorkspace } from '../realtime.js';
 import { hashPassword } from '../services/auth.js';
+import { emailEnabled } from '../services/email.js';
 import {
   adminFlagSchema, adminPasswordSchema, adminUserUpdateSchema, banSchema, COMPANY_SIZES, HEARD_FROM,
 } from '../validation.js';
@@ -13,7 +14,7 @@ adminRouter.use('/admin', requireAdmin);
 
 const ADMIN_USER_SELECT = `
   SELECT u.id, u.name, u.email, u.phone, u.job_title, u.role, u.is_admin, u.banned_at, u.ban_reason,
-         u.created_at, u.last_login_at,
+         u.created_at, u.last_login_at, u.email_verified_at,
          w.id AS workspace_id, w.name AS workspace_name,
          sr.heard_from, sr.heard_from_detail, sr.company_size, sr.company_about,
          sr.created_at AS survey_at,
@@ -30,6 +31,7 @@ const FILTERS = {
   active: 'u.banned_at IS NULL',
   banned: 'u.banned_at IS NOT NULL',
   admins: 'u.is_admin',
+  unverified: 'u.email_verified_at IS NULL',
 };
 
 const escapeLike = (s) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
@@ -86,6 +88,7 @@ adminRouter.get('/admin/stats', async (_req, res) => {
   };
   res.json({
     ...totals,
+    email_enabled: emailEnabled,
     heard_from: await breakdown('heard_from', HEARD_FROM),
     company_size: await breakdown('company_size', COMPANY_SIZES),
   });
@@ -176,6 +179,17 @@ adminRouter.post('/admin/users/:id/password', async (req, res) => {
   if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
   await revokeSessions(id);
   await logAction(req, user, 'password_reset');
+  res.json(await getAdminUser(id));
+});
+
+adminRouter.post('/admin/users/:id/verify', async (req, res) => {
+  const id = targetId(req);
+  const { rows: [user] } = await query(
+    'UPDATE users SET email_verified_at = coalesce(email_verified_at, now()) WHERE id = $1 RETURNING id, email',
+    [id],
+  );
+  if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+  await logAction(req, user, 'verify_email');
   res.json(await getAdminUser(id));
 });
 

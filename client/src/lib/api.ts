@@ -1,10 +1,15 @@
 import type {
-  AdminAction, AdminStats, AdminUser, Lead, LeadInput, Note, RegisterInput, Status, SurveyInput, User,
-  WebhookEvent,
+  AdminAction, AdminStats, AdminUser, ContactChannel, FormSettings, ImportResult, Lead, LeadInput, Note,
+  RegisterInput, Status, SurveyInput, TodayData, User, WebhookEvent, Workspace,
 } from './types';
 
 export class ApiError extends Error {
-  constructor(message: string, public status: number, public details?: { field: string; message: string }[]) {
+  constructor(
+    message: string,
+    public status: number,
+    public details?: { field: string; message: string }[],
+    public code?: string,
+  ) {
     super(message);
   }
 }
@@ -26,7 +31,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (res.status === 401 && !path.startsWith('/auth/')) unauthorizedHandler?.();
   if (!res.ok) {
     const detail = data.details?.[0]?.message;
-    throw new ApiError(detail ?? data.error ?? 'Error de red', res.status, data.details);
+    throw new ApiError(detail ?? data.error ?? 'Error de red', res.status, data.details, data.code);
   }
   return data as T;
 }
@@ -38,6 +43,11 @@ export const api = {
   login: (email: string, password: string) =>
     request<{ user: User }>('/auth/login', json('POST', { email, password })),
   register: (input: RegisterInput) => request<{ user: User }>('/auth/register', json('POST', input)),
+  verifyEmail: (token: string) => request<{ ok: true }>('/auth/verify', json('POST', { token })),
+  resendVerification: () => request<{ ok: true }>('/auth/verify/resend', { method: 'POST' }),
+  forgotPassword: (email: string) => request<{ ok: true }>('/auth/forgot', json('POST', { email })),
+  resetPassword: (token: string, password: string) =>
+    request<void>('/auth/reset', json('POST', { token, password })),
   submitSurvey: (input: SurveyInput) => request<{ user: User }>('/auth/onboarding', json('POST', input)),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
   changePassword: (current: string, next: string) =>
@@ -53,6 +63,18 @@ export const api = {
   updateLead: (id: number, patch: Partial<Lead>) => request<Lead>(`/leads/${id}`, json('PATCH', patch)),
   moveLead: (id: number, status: Status, beforeId: number | null) =>
     request<Lead>(`/leads/${id}/move`, json('POST', { status, beforeId })),
+  logContact: (id: number, channel: ContactChannel) =>
+    request<Lead>(`/leads/${id}/contact`, json('POST', { channel })),
+  importLeads: (rows: Record<string, unknown>[], skipDuplicates: boolean) =>
+    request<ImportResult>('/leads/import', json('POST', { rows, skipDuplicates })),
+  today: () => request<TodayData>('/today'),
+  workspace: () => request<Workspace>('/workspace'),
+  updateWorkspace: (patch: Partial<Pick<Workspace, 'name' | 'country_code' | 'whatsapp_template' | 'form_settings'>>) =>
+    request<Workspace>('/workspace', json('PATCH', patch)),
+  rotateFormKey: () => request<Workspace>('/workspace/form-key/rotate', { method: 'POST' }),
+  publicForm: (key: string) => request<{ workspace: string; settings: Omit<FormSettings, 'source'> }>(`/forms/${key}`),
+  submitForm: (key: string, data: Record<string, string>) =>
+    request<{ ok: true }>(`/forms/${key}`, json('POST', data)),
   deleteLead: (id: number) => request<void>(`/leads/${id}`, { method: 'DELETE' }),
 
   notes: (leadId: number) => request<Note[]>(`/leads/${leadId}/notes`),
@@ -82,6 +104,7 @@ export const api = {
     resetPassword: (id: number, password: string) =>
       request<AdminUser>(`/admin/users/${id}/password`, json('POST', { password })),
     logout: (id: number) => request<AdminUser>(`/admin/users/${id}/logout`, { method: 'POST' }),
+    verify: (id: number) => request<AdminUser>(`/admin/users/${id}/verify`, { method: 'POST' }),
     setAdmin: (id: number, isAdmin: boolean) =>
       request<AdminUser>(`/admin/users/${id}/admin`, json('POST', { is_admin: isAdmin })),
     remove: (id: number) =>

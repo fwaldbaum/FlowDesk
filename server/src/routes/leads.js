@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import {
-  addNote, createLead, deleteLead, deleteNote, getLead, listLeads, listNotes, moveLead,
-  updateLead, updateNote,
+  addNote, createLead, deleteLead, deleteNote, getLead, importLeads, listLeads, listNotes, logContact,
+  moveLead, today, updateLead, updateNote,
 } from '../services/leads.js';
 import {
+  contactSchema, importSchema,
   leadCreateSchema, leadMoveSchema, leadUpdateSchema, noteCreateSchema, noteUpdateSchema,
 } from '../validation.js';
 
@@ -28,6 +29,23 @@ leadsRouter.get('/leads', async (req, res) => {
   res.json(await listLeads(ws(req)));
 });
 
+leadsRouter.get('/today', async (req, res) => {
+  res.json(await today(ws(req)));
+});
+
+leadsRouter.post('/leads/import', async (req, res) => {
+  const { rows, skipDuplicates } = importSchema.parse(req.body);
+  const valid = [];
+  const invalid = [];
+  rows.forEach((row, index) => {
+    const parsed = leadCreateSchema.safeParse(row);
+    if (parsed.success) valid.push({ index, data: parsed.data });
+    else invalid.push({ row: index + 1, message: parsed.error.issues[0]?.message ?? 'Fila inválida' });
+  });
+  const { created, skipped } = await importLeads(ws(req), valid, { skipDuplicates });
+  res.json({ created, skipped: skipped.length, invalid });
+});
+
 leadsRouter.post('/leads', async (req, res) => {
   const lead = await createLead(ws(req), leadCreateSchema.parse(req.body));
   res.status(201).json(lead);
@@ -45,6 +63,11 @@ leadsRouter.patch('/leads/:id', async (req, res) => {
 
 leadsRouter.post('/leads/:id/move', async (req, res) => {
   const lead = await moveLead(ws(req), idParam(req), leadMoveSchema.parse(req.body));
+  return lead ? res.json(lead) : notFound(res);
+});
+
+leadsRouter.post('/leads/:id/contact', async (req, res) => {
+  const lead = await logContact(ws(req), idParam(req), contactSchema.parse(req.body).channel);
   return lead ? res.json(lead) : notFound(res);
 });
 

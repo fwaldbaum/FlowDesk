@@ -11,9 +11,11 @@ con cuentas para el equipo.
 
 ![Tablero](docs/screenshots/tablero.png)
 
-| Ficha del lead | Contactos |
+| Vista Hoy | Ficha del lead |
 | --- | --- |
-| ![Detalle](docs/screenshots/detalle-lead.png) | ![Contactos](docs/screenshots/contactos.png) |
+| ![Hoy](docs/screenshots/hoy.png) | ![Detalle](docs/screenshots/detalle-lead.png) |
+| **Formulario para tu web** | **Importar CSV** |
+| ![Formulario](docs/screenshots/formulario.png) | ![Importar](docs/screenshots/importar.png) |
 
 ## Stack
 
@@ -100,7 +102,11 @@ Diferencias en Vercel (serverless):
 | `DATABASE_URL` | Cadena de conexión PostgreSQL |
 | `PGSSL` | `true` para forzar TLS |
 | `PORT` | Puerto del servidor (por defecto `3001`) |
-| `ADMIN_EMAILS` | Correos separados por coma que siempre son administradores de la plataforma |
+| `ADMIN_EMAILS` | Correos separados por coma que siempre son administradores (una vez verificado el correo) |
+| `RESEND_API_KEY` | Activa el envío de correos (verificación y recuperación de contraseña) con [Resend](https://resend.com) |
+| `EMAIL_FROM` | Remitente, en un dominio verificado en Resend (ej: `FlowDesk <hola@tudominio.com>`) |
+| `APP_URL` | URL pública para los enlaces de los correos (por defecto, el host de la petición) |
+| `EMAIL_TRANSPORT` | `console` en desarrollo: imprime los correos y sus enlaces en el log del servidor |
 | `CORS_ORIGIN` | Orígenes permitidos para Socket.io, separados por coma |
 | `NODE_ENV` | `production` marca la cookie de sesión como `Secure` |
 | `TRUST_PROXY` | Proxies de confianza para `X-Forwarded-*` (por defecto, solo redes privadas) |
@@ -131,6 +137,35 @@ Diferencias en Vercel (serverless):
   IP por hora. Suspender, restablecer la contraseña o eliminar una cuenta la desconecta al instante.
 - Toda la API y el tiempo real exigen sesión, excepto `POST /api/webhooks/lead`, que se autentica con la clave del espacio.
 
+## Correo: verificación y recuperación de contraseña
+
+Con `RESEND_API_KEY` configurado:
+
+- Al registrarse se envía un enlace de confirmación (válido 24 h). Hasta confirmarlo, la cuenta solo ve la pantalla
+  «Confirma tu correo» (con reenvío) y la API responde `403 EMAIL_NOT_VERIFIED`. La pantalla se desbloquea sola al
+  confirmar desde otra pestaña o el teléfono.
+- «¿Olvidaste tu contraseña?» envía un enlace de un solo uso (válido 1 h) que no revela si el correo existe. Al
+  restablecerla se cierran todas las sesiones.
+- `ADMIN_EMAILS` solo otorga permisos cuando el correo está verificado, así nadie puede «reservar» un correo admin.
+- Los enlaces son de un solo uso; pedir uno nuevo invalida el anterior. En la base solo se guarda su hash.
+
+Sin `RESEND_API_KEY` la verificación no se exige (para no bloquear a nadie) y el panel de administración lo avisa.
+Las cuentas creadas antes de esta función quedan como verificadas.
+
+## Vista Hoy, WhatsApp, importación y formulario
+
+- **Hoy** (`/app/hoy`): recordatorios vencidos y del día, próximos 7 días, leads nuevos sin contacto y leads abiertos
+  sin contacto hace más de 7 días, con indicadores del pipeline. El menú muestra cuántos recordatorios están vencidos.
+- **WhatsApp / Llamar / Correo** en cada lead: abren la app correspondiente y registran el contacto en el historial
+  (y la fecha de último contacto). El mensaje de WhatsApp y el código de país se configuran en **Configuración**, con
+  las variables `{nombre}`, `{empresa_cliente}`, `{vendedor}` y `{empresa}`.
+- **Importar CSV** (Contactos → Importar): admite `,` `;` o tabulador, comillas y acentos; detecta las columnas,
+  entiende montos como `$1.200.000` y etapas en español, y omite duplicados por email o teléfono. **Exportar** descarga
+  los contactos filtrados en un CSV que Excel abre correctamente.
+- **Formulario para tu web** (Configuración): título, textos, campos, tema y color con vista previa en vivo. Se publica
+  en `/f/<clave>` y se inserta con un fragmento que ajusta solo la altura del iframe. Usa una clave pública distinta a
+  la del webhook, tiene un campo trampa para bots y límite de envíos por IP.
+
 ## Webhook de leads
 
 Cada espacio tiene su propia clave (en **Configuración → Webhook de entrada**, donde también se puede regenerar):
@@ -159,6 +194,13 @@ curl -X POST https://tu-app.vercel.app/api/webhooks/lead \
 | `GET` | `/api/auth/me` | Usuario actual (`null` si no hay sesión) |
 | `POST` | `/api/auth/password` | `{ current, next }` — cambiar contraseña |
 | `GET` / `POST` / `DELETE` | `/api/users[/:id]` | Equipo (crear y quitar: solo propietario) |
+| `POST` | `/api/auth/verify` · `/api/auth/verify/resend` | Confirmar correo / reenviar enlace |
+| `POST` | `/api/auth/forgot` · `/api/auth/reset` | Pedir enlace de recuperación / fijar nueva contraseña |
+| `GET` | `/api/today` | Resumen de la vista Hoy |
+| `POST` | `/api/leads/:id/contact` | `{ channel: whatsapp \| call \| email }` — registra un contacto |
+| `POST` | `/api/leads/import` | `{ rows, skipDuplicates }` — hasta 2.000 filas por llamada |
+| `GET` / `PATCH` | `/api/workspace` | Ajustes del espacio (WhatsApp, formulario) |
+| `GET` / `POST` | `/api/forms/:key` | Formulario público: configuración / envío |
 | `GET` | `/api/leads` | Todos los leads (con `pending_reminders`) |
 | `POST` | `/api/leads` | Crear lead |
 | `PATCH` | `/api/leads/:id` | Editar campos (`name`, `email`, `phone`, `company`, `source`, `value`, `last_contact_at`) |

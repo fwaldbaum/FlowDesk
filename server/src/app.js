@@ -10,6 +10,7 @@ import { authRouter, usersRouter } from './routes/auth.js';
 import { eventsRouter } from './routes/events.js';
 import { leadsRouter } from './routes/leads.js';
 import { publicWebhooksRouter, webhooksRouter } from './routes/webhooks.js';
+import { publicFormsRouter, workspaceRouter } from './routes/workspace.js';
 import { formatZodError } from './validation.js';
 
 export const app = express();
@@ -49,6 +50,7 @@ app.use('/api', async (_req, res, next) => {
 
 app.use('/api', authRouter);
 app.use('/api', publicWebhooksRouter);
+app.use('/api', publicFormsRouter);
 // Everything below requires a signed-in user.
 app.use('/api', requireAuth);
 app.use('/api', leadsRouter);
@@ -56,6 +58,7 @@ app.use('/api', webhooksRouter);
 app.use('/api', usersRouter);
 app.use('/api', eventsRouter);
 app.use('/api', adminRouter);
+app.use('/api', workspaceRouter);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Ruta no encontrada' }));
 
 // On a long-lived server the API also serves the built SPA (on Vercel the client service does).

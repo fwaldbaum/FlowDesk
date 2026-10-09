@@ -142,3 +142,54 @@ export const passwordChangeSchema = z.object({
   current: z.string().min(1, 'Ingresa tu contraseña actual').max(200),
   next: passwordField,
 });
+
+export const tokenSchema = z.object({ token: z.string().min(20).max(200) });
+export const emailOnlySchema = z.object({ email: emailField });
+export const passwordResetSchema = z.object({ token: z.string().min(20).max(200), password: passwordField });
+
+export const contactSchema = z.object({ channel: z.enum(['whatsapp', 'call', 'email']) });
+
+export const importSchema = z.object({
+  rows: z.array(z.record(z.unknown())).min(1, 'El archivo no tiene filas').max(2000, 'Máximo 2.000 filas por importación'),
+  skipDuplicates: z.boolean().default(true),
+});
+
+export const FORM_DEFAULTS = {
+  title: 'Hablemos',
+  description: 'Déjanos tus datos y te contactaremos a la brevedad.',
+  button: 'Enviar',
+  success: '¡Gracias! Te contactaremos pronto.',
+  source: 'Formulario web',
+  theme: 'light',
+  accent: '#4F46E5',
+  fields: { phone: true, company: false, message: true },
+};
+
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Color inválido');
+
+export const formSettingsSchema = z.object({
+  title: z.string().trim().min(1).max(80),
+  description: z.string().trim().max(240),
+  button: z.string().trim().min(1).max(40),
+  success: z.string().trim().min(1).max(240),
+  source: z.string().trim().min(1).max(60),
+  theme: z.enum(['light', 'dark']),
+  accent: hexColor,
+  fields: z.object({ phone: z.boolean(), company: z.boolean(), message: z.boolean() }),
+});
+
+export const workspaceUpdateSchema = z.object({
+  name: z.string().trim().min(1).max(80).optional(),
+  country_code: z.string().trim().regex(/^\d{1,4}$/, 'Código de país inválido (ej: 56)').optional(),
+  whatsapp_template: z.string().trim().min(1).max(500).optional(),
+  form_settings: formSettingsSchema.optional(),
+});
+
+export const formSubmitSchema = z.object({
+  name: z.string({ required_error: 'Escribe tu nombre' }).trim().min(2, 'Escribe tu nombre').max(120),
+  email: z.string({ required_error: 'Escribe tu correo' }).trim().email('Correo inválido').max(320),
+  phone: z.string().trim().max(30).optional().nullable(),
+  company: z.string().trim().max(120).optional().nullable(),
+  message: z.string().trim().max(2000).optional().nullable(),
+  website: z.string().optional().nullable(), // honeypot: real people never fill it
+});

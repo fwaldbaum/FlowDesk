@@ -151,4 +151,33 @@ CREATE TABLE IF NOT EXISTS admin_actions (
 );
 
 CREATE INDEX IF NOT EXISTS admin_actions_target_idx ON admin_actions (target_user_id, created_at DESC);
+
+-- ---- v4: email verification, password reset, WhatsApp, embeddable form -------
+
+-- Accounts that existed before verification shipped are trusted (the default fills them in
+-- once); new rows start unverified because the default is dropped right after.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE users ALTER COLUMN email_verified_at DROP DEFAULT;
+
+CREATE TABLE IF NOT EXISTS email_tokens (
+  id          SERIAL PRIMARY KEY,
+  user_id     INTEGER     NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  purpose     TEXT        NOT NULL CHECK (purpose IN ('verify', 'reset')),
+  token_hash  TEXT        NOT NULL UNIQUE,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  used_at     TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS email_tokens_user_idx ON email_tokens (user_id, purpose);
+
+ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS country_code TEXT NOT NULL DEFAULT '56';
+ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS whatsapp_template TEXT NOT NULL
+  DEFAULT 'Hola {nombre}, te escribo de {empresa}. ¿Tienes unos minutos para conversar?';
+-- Public key for the embeddable form; separate from the webhook key so publishing it on a
+-- website only allows form submissions.
+ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS form_key TEXT
+  DEFAULT replace(gen_random_uuid()::text, '-', '');
+ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS form_settings JSONB NOT NULL DEFAULT '{}'::jsonb;
+CREATE UNIQUE INDEX IF NOT EXISTS workspaces_form_key_idx ON workspaces (form_key);
 `;

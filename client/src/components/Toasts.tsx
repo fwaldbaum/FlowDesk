@@ -1,6 +1,8 @@
 import clsx from 'clsx';
+import { AnimatePresence, motion } from 'motion/react';
 import { CircleAlert, CircleCheck, Webhook, X } from 'lucide-react';
 import { useStore } from '../store/AppStore';
+import { spring } from './motion';
 
 const ICONS = {
   default: null,
@@ -13,9 +15,14 @@ export function Toasts() {
   const { toasts, dismissToast } = useStore();
   return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-[60] flex w-80 flex-col gap-2" aria-live="polite">
+      <AnimatePresence initial={false}>
       {toasts.map((t) => (
-        <div
+        <motion.div
           key={t.id}
+          layout
+          initial={{ opacity: 0, y: 16, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1, transition: spring }}
+          exit={{ opacity: 0, x: 48, transition: { duration: 0.18 } }}
           className="pointer-events-auto flex items-start gap-3 rounded-lg border border-line bg-surface px-3.5 py-3 shadow-overlay"
         >
           {ICONS[t.tone ?? 'default'] && <span className="mt-px">{ICONS[t.tone ?? 'default']}</span>}
@@ -37,8 +44,9 @@ export function Toasts() {
           <button aria-label="Cerrar" onClick={() => dismissToast(t.id)} className="text-subtle hover:text-fg">
             <X size={14} />
           </button>
-        </div>
+        </motion.div>
       ))}
+      </AnimatePresence>
     </div>
   );
 }

@@ -5,7 +5,9 @@ import {
   ArrowLeft, Building, Building2, CalendarDays, Check, Ellipsis, Landmark, Megaphone, Newspaper, Search,
   Share2, User, Users, UsersRound, type LucideIcon,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAuth } from '../auth/AuthContext';
+import { ease } from '../components/motion';
 import { LogoMark } from '../components/Logo';
 import { Button } from '../components/ui';
 import { COMPANY_SIZE_LABELS, HEARD_FROM_LABELS } from '../lib/constants';
@@ -143,11 +145,25 @@ export function OnboardingPage() {
           </div>
           <div className="mb-5 grid grid-cols-3 gap-1.5" aria-hidden>
             {STEPS.map((_, i) => (
-              <span key={i} className={clsx('h-1 rounded-full transition-colors', i <= step ? 'bg-accent' : 'bg-line')} />
+              <span key={i} className="h-1 overflow-hidden rounded-full bg-line">
+                <motion.span
+                  className="block h-full rounded-full bg-accent"
+                  initial={false}
+                  animate={{ width: i <= step ? '100%' : '0%' }}
+                  transition={{ duration: 0.4, ease }}
+                />
+              </span>
             ))}
           </div>
 
           <section className="rounded-xl border border-line bg-surface p-6 shadow-overlay">
+            <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0, transition: { duration: 0.28, ease } }}
+              exit={{ opacity: 0, x: -24, transition: { duration: 0.15 } }}
+            >
             <h2 className="text-base font-semibold text-fg">{STEPS[step]!.title}</h2>
             <p className="mb-5 mt-1 text-xs text-muted">{STEPS[step]!.hint}</p>
 
@@ -211,6 +227,8 @@ export function OnboardingPage() {
               </div>
             )}
 
+            </motion.div>
+            </AnimatePresence>
             {error && <p role="alert" className="mt-3 text-xs text-red-400">{error}</p>}
 
             <div className="mt-6 flex items-center justify-between">

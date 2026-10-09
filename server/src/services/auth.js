@@ -1,6 +1,7 @@
 import { createHash, randomBytes, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { query } from '../db.js';
+import { emailEnabled } from './email.js';
 
 const scrypt = promisify(scryptCb);
 
@@ -44,6 +45,7 @@ export async function createSession(userId) {
 /** Columns behind publicUser(); `u` is users, `w` is workspaces. */
 export const USER_SELECT = `
   u.id, u.name, u.email, u.phone, u.job_title, u.role, u.is_admin, u.workspace_id, u.created_at,
+  u.email_verified_at,
   w.name AS workspace_name,
   (u.role = 'owner' AND NOT EXISTS (SELECT 1 FROM survey_responses sr WHERE sr.user_id = u.id))
     AS needs_onboarding`;
@@ -102,6 +104,9 @@ export const publicUser = (u) => ({
   is_admin: Boolean(u.is_admin),
   workspace_id: u.workspace_id,
   workspace_name: u.workspace_name ?? null,
+  email_verified: Boolean(u.email_verified_at),
+  // Verification is only enforced when the server can actually send email.
+  needs_verification: emailEnabled && !u.email_verified_at,
   needs_onboarding: Boolean(u.needs_onboarding),
   created_at: u.created_at,
 });
@@ -138,4 +143,41 @@ export function createRateLimiter({ max, windowMs }) {
       hits.delete(key);
     },
   };
+}
+
+// ---- Single-use email tokens (verification, password reset) ----------------
+
+const TOKEN_TTL = { verify: 24 * 60 * 60 * 1000, reset: 60 * 60 * 1000 };
+
+/** Issues a new token and invalidates older unused ones for the same purpose. */
+export async function createEmailToken(userId, purpose) {
+  await query(
+    'UPDATE email_tokens SET used_at = now() WHERE user_id = $1 AND purpose = $2 AND used_at IS NULL',
+    [userId, purpose],
+  );
+  const token = randomBytes(32).toString('base64url');
+  await query(
+    'INSERT INTO email_tokens (user_id, purpose, token_hash, expires_at) VALUES ($1, $2, $3, $4)',
+    [userId, purpose, sha256(token), new Date(Date.now() + TOKEN_TTL[purpose])],
+  );
+  return token;
+}
+
+/** Marks a valid token as used and returns its user id, or null if invalid/expired/used. */
+export async function consumeEmailToken(token, purpose, db = { query }) {
+  if (typeof token !== 'string' || token.length < 20) return null;
+  const { rows: [row] } = await db.query(
+    `UPDATE email_tokens SET used_at = now()
+      WHERE token_hash = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > now()
+      RETURNING user_id`,
+    [sha256(token), purpose],
+  );
+  return row?.user_id ?? null;
+}
+
+/** Public base URL for links in emails. */
+export function appUrl(req) {
+  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, '');
+  const host = req.get('x-forwarded-host') ?? req.get('host');
+  return `${req.protocol}://${host}`;
 }

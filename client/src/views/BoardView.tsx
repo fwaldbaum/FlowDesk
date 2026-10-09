@@ -9,6 +9,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import clsx from 'clsx';
+import { motion } from 'motion/react';
+import { ease } from '../components/motion';
 import { Bell, Clock, Inbox } from 'lucide-react';
 import { Header } from '../components/Header';
 import { StatusDot } from '../components/ui';
@@ -246,10 +248,16 @@ function LeadCard({
 }) {
   const origin = [lead.company, lead.source].filter(Boolean).join(' · ');
   return (
-    <article
+    <motion.article
+      // Cards fade in when they mount: first load, a new lead, or landing in another column.
+      initial={overlay ? false : { opacity: 0, y: 6, scale: 0.98 }}
+      animate={overlay ? { rotate: 1.5, scale: 1.02 } : { opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease }}
       className={clsx(
-        'select-none rounded-lg border bg-surface px-3 py-2.5 transition-colors duration-700',
-        overlay ? 'cursor-grabbing border-line-strong shadow-overlay' : 'cursor-grab hover:border-line-strong',
+        'select-none rounded-lg border bg-surface px-3 py-2.5 transition-[border-color,background-color,box-shadow] duration-300',
+        overlay
+          ? 'cursor-grabbing border-line-strong shadow-overlay'
+          : 'cursor-grab hover:border-line-strong hover:shadow-[0_6px_20px_-12px_rgba(0,0,0,0.8)]',
         placeholder && 'opacity-30',
         highlighted ? 'border-accent/70 bg-[#1a1d33]' : !overlay && 'border-line',
       )}
@@ -277,6 +285,6 @@ function LeadCard({
           {lead.last_contact_at ? timeAgo(lead.last_contact_at) : 'Sin contacto'}
         </span>
       </div>
-    </article>
+    </motion.article>
   );
 }
