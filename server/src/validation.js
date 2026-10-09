@@ -65,11 +65,73 @@ const passwordField = z
   .min(8, 'La contraseña debe tener al menos 8 caracteres')
   .max(200, 'La contraseña es demasiado larga');
 
+const nameField = z
+  .string({ required_error: 'El nombre es obligatorio' })
+  .trim()
+  .min(2, 'Escribe tu nombre completo')
+  .max(100);
+
+const phoneField = z
+  .string({ required_error: 'El teléfono es obligatorio' })
+  .trim()
+  .regex(/^\+?[0-9 ()-]{7,20}$/, 'Teléfono inválido. Usa solo números, espacios y + (ej: +56 9 1234 5678)')
+  .refine((v) => v.replace(/\D/g, '').length >= 7, 'El teléfono debe tener al menos 7 dígitos');
+
+const jobTitleField = z
+  .string({ required_error: 'Indica tu rol en la empresa' })
+  .trim()
+  .min(2, 'Indica tu rol en la empresa')
+  .max(80);
+
 export const registerSchema = z.object({
-  name: z.string({ required_error: 'El nombre es obligatorio' }).trim().min(1, 'El nombre es obligatorio').max(100),
+  name: nameField,
+  email: emailField,
+  phone: phoneField,
+  job_title: jobTitleField,
+  password: passwordField,
+});
+
+/** Accounts an owner creates for teammates. */
+export const memberSchema = z.object({
+  name: nameField,
   email: emailField,
   password: passwordField,
 });
+
+export const HEARD_FROM = ['google', 'social', 'referral', 'ads', 'blog', 'event', 'other'];
+export const COMPANY_SIZES = ['solo', '2-10', '11-50', '51-200', '200+'];
+
+export const surveySchema = z
+  .object({
+    heard_from: z.enum(HEARD_FROM, { errorMap: () => ({ message: 'Elige cómo conociste FlowDesk' }) }),
+    heard_from_detail: z.string().trim().max(200).optional().nullable(),
+    company_size: z.enum(COMPANY_SIZES, { errorMap: () => ({ message: 'Elige el tamaño de tu empresa' }) }),
+    company_about: z
+      .string({ required_error: 'Cuéntanos de qué trata tu empresa' })
+      .trim()
+      .min(3, 'Cuéntanos de qué trata tu empresa')
+      .max(500, 'Máximo 500 caracteres'),
+  })
+  .refine((v) => v.heard_from !== 'other' || (v.heard_from_detail ?? '').length > 0, {
+    message: 'Cuéntanos dónde nos conociste',
+    path: ['heard_from_detail'],
+  });
+
+export const adminUserUpdateSchema = z
+  .object({
+    name: nameField,
+    email: emailField,
+    phone: phoneField.nullable().or(z.literal('')),
+    job_title: z.string().trim().max(80).nullable(),
+  })
+  .partial();
+
+export const banSchema = z.object({
+  reason: z.string().trim().max(500).optional().nullable(),
+});
+
+export const adminPasswordSchema = z.object({ password: passwordField });
+export const adminFlagSchema = z.object({ is_admin: z.boolean() });
 
 export const loginSchema = z.object({
   email: emailField,

@@ -6,6 +6,7 @@ import { AuthProvider, RequireAuth } from './auth/AuthContext';
 import { AppStoreProvider } from './store/AppStore';
 import { LandingPage } from './views/LandingPage';
 import { LoginPage, RegisterPage } from './views/AuthPages';
+import { OnboardingPage } from './views/OnboardingPage';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
@@ -16,6 +17,14 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/registro" element={<RegisterPage />} />
+          <Route
+            path="/bienvenida"
+            element={
+              <RequireAuth onboarding>
+                <OnboardingPage />
+              </RequireAuth>
+            }
+          />
           <Route
             path="/app/*"
             element={

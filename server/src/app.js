@@ -5,6 +5,7 @@ import { ZodError } from 'zod';
 import { pool } from './db.js';
 import { migrate } from './migrate.js';
 import { requireAuth } from './middleware/auth.js';
+import { adminRouter } from './routes/admin.js';
 import { authRouter, usersRouter } from './routes/auth.js';
 import { eventsRouter } from './routes/events.js';
 import { leadsRouter } from './routes/leads.js';
@@ -46,6 +47,7 @@ app.use('/api', leadsRouter);
 app.use('/api', webhooksRouter);
 app.use('/api', usersRouter);
 app.use('/api', eventsRouter);
+app.use('/api', adminRouter);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Ruta no encontrada' }));
 
 // On a long-lived server the API also serves the built SPA (on Vercel the client service does).

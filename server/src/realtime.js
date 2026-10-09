@@ -28,7 +28,11 @@ export function initRealtime(httpServer) {
       const session = await getSession(token);
       if (!session) return next(new Error('unauthorized'));
       socket.data.user = session.user;
-      socket.join([`user:${session.user.id}`, `session:${session.sessionId}`]);
+      socket.join([
+        `workspace:${session.user.workspace_id}`,
+        `user:${session.user.id}`,
+        `session:${session.sessionId}`,
+      ]);
       next();
     } catch (err) {
       next(err);
@@ -42,13 +46,17 @@ export function initRealtime(httpServer) {
 }
 
 /**
- * Notify every open board. Awaited by callers: on serverless the instance may freeze
- * as soon as the response is sent, so the event row must be written first.
+ * Notify every open board of one workspace. Awaited by callers: on serverless the instance
+ * may freeze as soon as the response is sent, so the event row must be written first.
  */
-export async function broadcast(event, payload) {
-  io?.emit(event, payload);
+export async function broadcast(workspaceId, event, payload) {
+  io?.to(`workspace:${workspaceId}`).emit(event, payload);
   if (REALTIME_MODE !== 'poll') return;
-  await query('INSERT INTO events (type, payload) VALUES ($1, $2)', [event, JSON.stringify(payload)]);
+  await query('INSERT INTO events (workspace_id, type, payload) VALUES ($1, $2, $3)', [
+    workspaceId,
+    event,
+    JSON.stringify(payload),
+  ]);
   // Clients poll every few seconds, so a few minutes of history is plenty.
   if (Math.random() < 0.05) {
     await query(`DELETE FROM events WHERE created_at < now() - interval '10 minutes'`);
@@ -61,4 +69,8 @@ export function disconnectSession(sessionId) {
 
 export function disconnectUser(userId) {
   io?.in(`user:${userId}`).disconnectSockets(true);
+}
+
+export function disconnectWorkspace(workspaceId) {
+  io?.in(`workspace:${workspaceId}`).disconnectSockets(true);
 }

@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { api, onUnauthorized } from '../lib/api';
-import type { User } from '../lib/types';
+import type { RegisterInput, SurveyInput, User } from '../lib/types';
 
 type AuthState =
   | { status: 'loading'; user: null }
@@ -11,10 +11,9 @@ type AuthState =
 interface Auth {
   status: AuthState['status'];
   user: User | null;
-  /** True until the workspace owner has signed up. */
-  setupRequired: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (input: RegisterInput) => Promise<User>;
+  submitSurvey: (input: SurveyInput) => Promise<void>;
   logout: () => Promise<void>;
   /** Drop local session state (e.g. after a 401). */
   expire: () => void;
@@ -24,12 +23,10 @@ const AuthContext = createContext<Auth | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'loading', user: null });
-  const [setupRequired, setSetupRequired] = useState(false);
 
   const expire = useCallback(() => setState({ status: 'anonymous', user: null }), []);
 
   useEffect(() => {
-    api.authStatus().then((s) => setSetupRequired(s.setupRequired)).catch(() => {});
     api
       .me()
       .then(({ user }) => (user ? setState({ status: 'authenticated', user }) : expire()))
@@ -41,11 +38,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const { user } = await api.login(email, password);
     setState({ status: 'authenticated', user });
+    return user;
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    const { user } = await api.register(name, email, password);
-    setSetupRequired(false);
+  const register = useCallback(async (input: RegisterInput) => {
+    const { user } = await api.register(input);
+    setState({ status: 'authenticated', user });
+    return user;
+  }, []);
+
+  const submitSurvey = useCallback(async (input: SurveyInput) => {
+    const { user } = await api.submitSurvey(input);
     setState({ status: 'authenticated', user });
   }, []);
 
@@ -55,8 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [expire]);
 
   const value = useMemo<Auth>(
-    () => ({ ...state, setupRequired, login, register, logout, expire }),
-    [state, setupRequired, login, register, logout, expire],
+    () => ({ ...state, login, register, submitSurvey, logout, expire }),
+    [state, login, register, submitSurvey, logout, expire],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -73,8 +76,12 @@ export function safeNext(next: string | null) {
   return next && next.startsWith('/app') && !next.startsWith('//') ? next : '/app';
 }
 
-export function RequireAuth({ children }: { children: ReactNode }) {
-  const { status } = useAuth();
+/**
+ * Gate for signed-in pages. New owners are sent to the welcome survey first;
+ * `onboarding` marks the survey page itself.
+ */
+export function RequireAuth({ children, onboarding = false }: { children: ReactNode; onboarding?: boolean }) {
+  const { status, user } = useAuth();
   const location = useLocation();
   if (status === 'loading') {
     return <div className="h-full bg-canvas" aria-busy="true" />;
@@ -83,5 +90,12 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     const next = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/login?next=${next}`} replace />;
   }
+  if (!onboarding && user?.needs_onboarding) return <Navigate to="/bienvenida" replace />;
+  if (onboarding && !user?.needs_onboarding) return <Navigate to="/app" replace />;
   return <>{children}</>;
+}
+
+export function RequireAdmin({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  return user?.is_admin ? <>{children}</> : <Navigate to="/app" replace />;
 }

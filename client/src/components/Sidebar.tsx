@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import { LogOut, Settings, SquareKanban, Users } from 'lucide-react';
+import { LogOut, Settings, ShieldCheck, SquareKanban, Users } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { useStore } from '../store/AppStore';
 import { Logo, LogoMark } from './Logo';
@@ -11,6 +11,8 @@ const NAV = [
   { to: '/app/contactos', label: 'Contactos', icon: Users },
   { to: '/app/configuracion', label: 'Configuración', icon: Settings },
 ];
+
+const ADMIN_NAV = { to: '/app/admin', label: 'Administración', icon: ShieldCheck, end: false };
 
 const CONNECTION = {
   online: { label: 'En vivo', dot: 'bg-emerald-500' },
@@ -41,7 +43,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 p-2">
-        {NAV.map(({ to, label, icon: Icon, end }) => (
+        {(user?.is_admin ? [...NAV, ADMIN_NAV] : NAV).map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
@@ -72,7 +74,7 @@ export function Sidebar() {
           </span>
           <div className="hidden min-w-0 flex-1 md:block">
             <p className="truncate text-xs font-medium text-fg">{user.name}</p>
-            <p className="truncate text-2xs text-subtle">{user.email}</p>
+            <p className="truncate text-2xs text-subtle">{user.workspace_name ?? user.email}</p>
           </div>
           <button
             onClick={signOut}

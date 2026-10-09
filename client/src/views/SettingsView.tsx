@@ -74,10 +74,16 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
 export function SettingsView() {
   const { webhookTick, connection, toast, realtimeMode } = useStore();
   const [events, setEvents] = useState<WebhookEvent[] | null>(null);
-  const [secretRequired, setSecretRequired] = useState(false);
+  const { user } = useAuth();
+  const [webhookKey, setWebhookKey] = useState<string | null>(null);
+  const [revealKey, setRevealKey] = useState(false);
+  const [confirmRotate, setConfirmRotate] = useState(false);
   const [sending, setSending] = useState(false);
 
   const endpoint = `${window.location.origin}/api/webhooks/lead`;
+  const keyValue = webhookKey ?? '…';
+  const shownKey = revealKey ? keyValue : `${keyValue.slice(0, 6)}${'•'.repeat(18)}`;
+  const urlWithKey = `${endpoint}?key=${keyValue}`;
 
   const loadEvents = useCallback(async () => {
     try {
@@ -88,7 +94,7 @@ export function SettingsView() {
   }, []);
 
   useEffect(() => {
-    api.webhookConfig().then((c) => setSecretRequired(c.secretRequired)).catch(() => {});
+    api.webhookConfig().then((c) => setWebhookKey(c.key)).catch(() => {});
   }, []);
 
   // Refresh the log whenever a webhook lead arrives over the socket.
@@ -119,10 +125,20 @@ export function SettingsView() {
     2,
   );
 
+  const rotateKey = async () => {
+    try {
+      setWebhookKey((await api.rotateWebhookKey()).key);
+      setConfirmRotate(false);
+      toast({ tone: 'success', title: 'Clave regenerada', description: 'Actualiza tus integraciones con la nueva URL.' });
+    } catch (err) {
+      toast({ tone: 'error', title: 'No se pudo regenerar', description: (err as Error).message });
+    }
+  };
+
   const curl = [
     `curl -X POST ${endpoint} \\`,
     `  -H "Content-Type: application/json" \\`,
-    ...(secretRequired ? ['  -H "X-Webhook-Secret: $FLOWDESK_WEBHOOK_SECRET" \\'] : []),
+    `  -H "X-Webhook-Key: ${keyValue}" \\`,
     `  -d '${JSON.stringify(JSON.parse(payload))}'`,
   ].join('\n');
 
@@ -143,29 +159,40 @@ export function SettingsView() {
           >
             <div className="space-y-4">
               <div>
-                <p className="label">Endpoint</p>
+                <p className="label">URL del webhook (incluye la clave de tu espacio)</p>
                 <div className="flex items-center gap-2 rounded-lg border border-line bg-canvas py-1 pl-3 pr-1">
                   <span className="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-2xs font-semibold text-accent-soft">POST</span>
-                  <code className="min-w-0 flex-1 truncate font-mono text-xs text-fg">{endpoint}</code>
-                  <CopyButton text={endpoint} />
+                  <code className="min-w-0 flex-1 truncate font-mono text-xs text-fg">
+                    {endpoint}?key={shownKey}
+                  </code>
+                  <CopyButton text={urlWithKey} />
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5 rounded-lg border border-line bg-canvas px-3 py-2.5">
-                <KeyRound size={14} className="mt-0.5 shrink-0 text-subtle" />
-                <p className="text-xs leading-relaxed text-muted">
-                  {secretRequired ? (
-                    <>
-                      Protegido con secreto. Incluye la cabecera <code className="text-fg">X-Webhook-Secret</code> con el valor
-                      de <code className="text-fg">WEBHOOK_SECRET</code> configurado en el servidor.
-                    </>
-                  ) : (
-                    <>
-                      El endpoint es público. Define la variable <code className="text-fg">WEBHOOK_SECRET</code> en el servidor
-                      para exigir la cabecera <code className="text-fg">X-Webhook-Secret</code>.
-                    </>
-                  )}
-                </p>
+              <div className="flex flex-col gap-3 rounded-lg border border-line bg-canvas px-3 py-2.5 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                  <KeyRound size={14} className="mt-0.5 shrink-0 text-subtle" />
+                  <p className="text-xs leading-relaxed text-muted">
+                    La clave identifica a tu espacio: quien la tenga puede crear leads en él. También puedes enviarla en la
+                    cabecera <code className="text-fg">X-Webhook-Key</code>.
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <Button size="sm" variant="ghost" onClick={() => setRevealKey((v) => !v)}>
+                    {revealKey ? 'Ocultar' : 'Mostrar'}
+                  </Button>
+                  {user?.role === 'owner' &&
+                    (confirmRotate ? (
+                      <>
+                        <Button size="sm" variant="ghost" onClick={() => setConfirmRotate(false)}>Cancelar</Button>
+                        <Button size="sm" variant="danger" onClick={rotateKey}>Confirmar</Button>
+                      </>
+                    ) : (
+                      <Button size="sm" onClick={() => setConfirmRotate(true)} title="La clave actual dejará de funcionar">
+                        Regenerar
+                      </Button>
+                    ))}
+                </div>
               </div>
 
               <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">

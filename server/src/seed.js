@@ -16,17 +16,31 @@ const leads = [
   { name: 'Antonia Silva', company: 'Silva Eventos', source: 'Google Ads', value: 1900, status: 'lost', email: 'antonia@silvaeventos.cl', contact: 14 },
 ];
 
+// Usage: npm run db:seed -- [email]. Replaces the leads of that user's workspace
+// (or of the oldest workspace) with demo data. Other workspaces are untouched.
+const email = process.argv[2]?.toLowerCase();
+
 await migrate();
+const { rows: [target] } = email
+  ? await pool.query('SELECT workspace_id AS id FROM users WHERE email = $1', [email])
+  : await pool.query('SELECT id FROM workspaces ORDER BY id LIMIT 1');
+if (!target) {
+  console.error(email ? `[seed] no account with email ${email}` : '[seed] create an account first (/registro)');
+  process.exit(1);
+}
+const ws = target.id;
+
 await withTransaction(async (db) => {
-  await db.query('TRUNCATE leads, notes, webhook_events RESTART IDENTITY CASCADE');
+  await db.query('DELETE FROM leads WHERE workspace_id = $1', [ws]);
+  await db.query('DELETE FROM webhook_events WHERE workspace_id = $1', [ws]);
   const positions = {};
   for (const lead of leads) {
     const position = (positions[lead.status] = (positions[lead.status] ?? -1) + 1);
     const { rows: [{ id }] } = await db.query(
-      `INSERT INTO leads (name, email, phone, company, source, value, status, position, last_contact_at, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+      `INSERT INTO leads (workspace_id, name, email, phone, company, source, value, status, position, last_contact_at, created_at)
+       VALUES ($11, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
       [lead.name, lead.email ?? null, lead.phone ?? null, lead.company, lead.source, lead.value,
-        lead.status, position, lead.contact ? ago(lead.contact) : null, ago((lead.contact ?? 0) + 3)],
+        lead.status, position, lead.contact ? ago(lead.contact) : null, ago((lead.contact ?? 0) + 3), ws],
     );
     await db.query(
       `INSERT INTO notes (lead_id, kind, body, created_at) VALUES ($1, 'event', 'Lead creado manualmente', $2)`,
@@ -46,5 +60,5 @@ await withTransaction(async (db) => {
     }
   }
 });
-console.log(`[seed] inserted ${leads.length} demo leads`);
+console.log(`[seed] inserted ${leads.length} demo leads into workspace ${ws}`);
 await pool.end();

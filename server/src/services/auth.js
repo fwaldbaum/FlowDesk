@@ -41,18 +41,35 @@ export async function createSession(userId) {
   return { token, sessionId: session.id, expiresAt };
 }
 
-/** Resolve a raw cookie token to { sessionId, user } or null. */
+/** Columns behind publicUser(); `u` is users, `w` is workspaces. */
+export const USER_SELECT = `
+  u.id, u.name, u.email, u.phone, u.job_title, u.role, u.is_admin, u.workspace_id, u.created_at,
+  w.name AS workspace_name,
+  (u.role = 'owner' AND NOT EXISTS (SELECT 1 FROM survey_responses sr WHERE sr.user_id = u.id))
+    AS needs_onboarding`;
+
+/** Resolve a raw cookie token to { sessionId, user } or null. Suspended users have no session. */
 export async function getSession(token) {
   if (!token) return null;
   const { rows: [row] } = await query(
-    `SELECT s.id AS session_id, u.id, u.name, u.email, u.role, u.created_at
-       FROM sessions s JOIN users u ON u.id = s.user_id
-      WHERE s.token_hash = $1 AND s.expires_at > now()`,
+    `SELECT s.id AS session_id, ${USER_SELECT}
+       FROM sessions s
+       JOIN users u ON u.id = s.user_id
+       JOIN workspaces w ON w.id = u.workspace_id
+      WHERE s.token_hash = $1 AND s.expires_at > now() AND u.banned_at IS NULL`,
     [sha256(token)],
   );
   if (!row) return null;
   const { session_id: sessionId, ...user } = row;
   return { sessionId, user };
+}
+
+export async function loadUser(id) {
+  const { rows: [row] } = await query(
+    `SELECT ${USER_SELECT} FROM users u JOIN workspaces w ON w.id = u.workspace_id WHERE u.id = $1`,
+    [id],
+  );
+  return row ?? null;
 }
 
 export async function deleteSession(sessionId) {
@@ -75,7 +92,27 @@ export function parseCookies(header = '') {
   return out;
 }
 
-export const publicUser = ({ id, name, email, role, created_at }) => ({ id, name, email, role, created_at });
+export const publicUser = (u) => ({
+  id: u.id,
+  name: u.name,
+  email: u.email,
+  phone: u.phone ?? null,
+  job_title: u.job_title ?? null,
+  role: u.role,
+  is_admin: Boolean(u.is_admin),
+  workspace_id: u.workspace_id,
+  workspace_name: u.workspace_name ?? null,
+  needs_onboarding: Boolean(u.needs_onboarding),
+  created_at: u.created_at,
+});
+
+/** Emails listed in ADMIN_EMAILS are always platform admins. */
+export const isConfiguredAdmin = (email) =>
+  (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(email.toLowerCase());
 
 /** Fixed-window limiter, in memory. Good enough for a single-process deployment. */
 export function createRateLimiter({ max, windowMs }) {

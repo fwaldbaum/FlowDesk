@@ -1,12 +1,18 @@
 import { fileURLToPath } from 'node:url';
-import { pool } from './db.js';
+import { pool, withTransaction } from './db.js';
 import { SCHEMA_SQL } from './schema.js';
 
 let ready = null;
 
-/** Apply the schema once per process (or serverless instance). Retries after a failure. */
+/**
+ * Apply the schema once per process (or serverless instance). Runs in a transaction
+ * behind an advisory lock so concurrent cold starts can't migrate at the same time.
+ */
 export function migrate() {
-  ready ??= pool.query(SCHEMA_SQL).catch((err) => {
+  ready ??= withTransaction(async (db) => {
+    await db.query('SELECT pg_advisory_xact_lock(727274)');
+    await db.query(SCHEMA_SQL);
+  }).catch((err) => {
     ready = null;
     throw err;
   });

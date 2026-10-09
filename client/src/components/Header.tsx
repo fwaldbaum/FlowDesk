@@ -3,12 +3,19 @@ import { Plus, Search, X } from 'lucide-react';
 import { useStore } from '../store/AppStore';
 import { Button } from './ui';
 
-export function Header({ title, subtitle }: { title: string; subtitle?: ReactNode }) {
+export function Header({ title, subtitle, actions }: {
+  title: string;
+  subtitle?: ReactNode;
+  /** Replaces the lead search and "Nuevo Lead" button (e.g. in the admin panel). */
+  actions?: ReactNode;
+}) {
   const { search, setSearch, setNewLeadOpen } = useStore();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // "/" or Cmd/Ctrl+K focuses search, "N" opens the new-lead form.
+  const leadControls = !actions;
   useEffect(() => {
+    if (!leadControls) return;
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const typing = target.closest('input, textarea, select, [contenteditable="true"]');
@@ -24,7 +31,7 @@ export function Header({ title, subtitle }: { title: string; subtitle?: ReactNod
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [setNewLeadOpen]);
+  }, [setNewLeadOpen, leadControls]);
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-4 md:px-6">
@@ -33,6 +40,8 @@ export function Header({ title, subtitle }: { title: string; subtitle?: ReactNod
         {subtitle && <p className="hidden truncate text-xs text-subtle sm:block">{subtitle}</p>}
       </div>
 
+      {actions ?? (
+      <>
       <div className="relative w-40 sm:w-64">
         <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-subtle" />
         <input
@@ -61,6 +70,8 @@ export function Header({ title, subtitle }: { title: string; subtitle?: ReactNod
         <Plus size={15} strokeWidth={2.25} />
         <span className="hidden sm:inline">Nuevo Lead</span>
       </Button>
+      </>
+      )}
     </header>
   );
 }

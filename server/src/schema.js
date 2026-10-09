@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS leads (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS leads_status_position_idx ON leads (status, position);
 
 CREATE TABLE IF NOT EXISTS notes (
   id         SERIAL PRIMARY KEY,
@@ -73,4 +72,83 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 CREATE INDEX IF NOT EXISTS events_created_idx ON events (created_at);
+
+-- ---- v3: multi-workspace accounts, onboarding survey, platform admin ---------
+
+CREATE TABLE IF NOT EXISTS workspaces (
+  id          SERIAL PRIMARY KEY,
+  name        TEXT        NOT NULL,
+  -- Identifies the workspace on POST /api/webhooks/lead. gen_random_uuid() is CSPRNG-backed.
+  webhook_key TEXT        NOT NULL UNIQUE
+              DEFAULT replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', ''),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE users          ADD COLUMN IF NOT EXISTS workspace_id  INTEGER REFERENCES workspaces (id) ON DELETE CASCADE;
+ALTER TABLE users          ADD COLUMN IF NOT EXISTS phone         TEXT;
+ALTER TABLE users          ADD COLUMN IF NOT EXISTS job_title     TEXT;
+ALTER TABLE users          ADD COLUMN IF NOT EXISTS is_admin      BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE users          ADD COLUMN IF NOT EXISTS banned_at     TIMESTAMPTZ;
+ALTER TABLE users          ADD COLUMN IF NOT EXISTS ban_reason    TEXT;
+ALTER TABLE users          ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+ALTER TABLE leads          ADD COLUMN IF NOT EXISTS workspace_id  INTEGER REFERENCES workspaces (id) ON DELETE CASCADE;
+-- Nullable: a request with an unknown key has no workspace.
+ALTER TABLE webhook_events ADD COLUMN IF NOT EXISTS workspace_id  INTEGER REFERENCES workspaces (id) ON DELETE CASCADE;
+ALTER TABLE events         ADD COLUMN IF NOT EXISTS workspace_id  INTEGER REFERENCES workspaces (id) ON DELETE CASCADE;
+
+DO $$
+DECLARE ws INTEGER;
+BEGIN
+  -- Data from the single-workspace era moves into one workspace.
+  IF EXISTS (SELECT 1 FROM users WHERE workspace_id IS NULL)
+     OR EXISTS (SELECT 1 FROM leads WHERE workspace_id IS NULL) THEN
+    INSERT INTO workspaces (name) VALUES ('Mi espacio') RETURNING id INTO ws;
+    UPDATE users SET workspace_id = ws WHERE workspace_id IS NULL;
+    UPDATE leads SET workspace_id = ws WHERE workspace_id IS NULL;
+    UPDATE webhook_events SET workspace_id = ws WHERE workspace_id IS NULL;
+  END IF;
+  DELETE FROM events WHERE workspace_id IS NULL;
+
+  -- Someone must be able to open the admin panel: promote the oldest account.
+  IF NOT EXISTS (SELECT 1 FROM users WHERE is_admin) THEN
+    UPDATE users SET is_admin = true WHERE id = (SELECT min(id) FROM users);
+  END IF;
+
+  -- Tighten constraints once (skipped afterwards to avoid a table lock on every boot).
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'leads' AND column_name = 'workspace_id' AND is_nullable = 'YES') THEN
+    ALTER TABLE leads ALTER COLUMN workspace_id SET NOT NULL;
+    ALTER TABLE users ALTER COLUMN workspace_id SET NOT NULL;
+    ALTER TABLE events ALTER COLUMN workspace_id SET NOT NULL;
+  END IF;
+END $$;
+
+DROP INDEX IF EXISTS leads_status_position_idx;
+CREATE INDEX IF NOT EXISTS leads_ws_status_position_idx ON leads (workspace_id, status, position);
+CREATE INDEX IF NOT EXISTS users_workspace_idx ON users (workspace_id);
+CREATE INDEX IF NOT EXISTS events_ws_idx ON events (workspace_id, id);
+CREATE INDEX IF NOT EXISTS webhook_events_ws_idx ON webhook_events (workspace_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS survey_responses (
+  user_id           INTEGER     PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
+  heard_from        TEXT        NOT NULL,
+  heard_from_detail TEXT,
+  company_size      TEXT        NOT NULL,
+  company_about     TEXT        NOT NULL,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Who did what in the admin panel. Emails are copied so entries survive deletions.
+CREATE TABLE IF NOT EXISTS admin_actions (
+  id             SERIAL PRIMARY KEY,
+  admin_id       INTEGER     REFERENCES users (id) ON DELETE SET NULL,
+  admin_email    TEXT,
+  target_user_id INTEGER     REFERENCES users (id) ON DELETE SET NULL,
+  target_email   TEXT,
+  action         TEXT        NOT NULL,
+  details        JSONB,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS admin_actions_target_idx ON admin_actions (target_user_id, created_at DESC);
 `;

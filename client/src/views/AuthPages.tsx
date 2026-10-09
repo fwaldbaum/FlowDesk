@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Lock } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Info } from 'lucide-react';
 import { safeNext, useAuth } from '../auth/AuthContext';
 import { LogoMark } from '../components/Logo';
 import { Button } from '../components/ui';
@@ -79,7 +79,7 @@ function FormError({ message }: { message: string | null }) {
 }
 
 export function LoginPage() {
-  const { status, login, setupRequired } = useAuth();
+  const { status, login } = useAuth();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -108,14 +108,10 @@ export function LoginPage() {
       title="Inicia sesión"
       subtitle="Accede a tu tablero de leads"
       footer={
-        setupRequired ? (
-          <>
-            ¿Primera vez aquí?{' '}
-            <Link to="/registro" className="font-medium text-accent-soft hover:text-fg">Crea tu espacio</Link>
-          </>
-        ) : (
-          <>¿No tienes cuenta? Pide acceso al administrador de tu espacio.</>
-        )
+        <>
+          ¿No tienes cuenta?{' '}
+          <Link to="/registro" className="font-medium text-accent-soft hover:text-fg">Crea una gratis</Link>
+        </>
       }
     >
       <form onSubmit={submit} className="space-y-4">
@@ -146,42 +142,42 @@ export function LoginPage() {
   );
 }
 
+const ROLE_SUGGESTIONS = [
+  'Fundador/a o CEO',
+  'Gerente general',
+  'Ventas',
+  'Marketing',
+  'Operaciones',
+  'Atención al cliente',
+  'Freelance / Independiente',
+];
+
+const PERSONAL_DOMAINS = new Set([
+  'gmail.com', 'googlemail.com', 'hotmail.com', 'hotmail.es', 'outlook.com', 'outlook.es', 'live.com',
+  'msn.com', 'yahoo.com', 'yahoo.es', 'icloud.com', 'me.com', 'aol.com', 'protonmail.com', 'proton.me',
+]);
+
 export function RegisterPage() {
-  const { status, register, setupRequired } = useAuth();
+  const { status, register } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ name: '', email: '', phone: '', job_title: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (status === 'authenticated') return <Navigate to="/app" replace />;
 
-  if (status !== 'loading' && !setupRequired) {
-    return (
-      <AuthLayout
-        title="Registro cerrado"
-        subtitle="Este espacio de FlowDesk ya tiene propietario"
-        footer={<Link to="/login" className="font-medium text-accent-soft hover:text-fg">Ir a iniciar sesión</Link>}
-      >
-        <div className="flex items-start gap-3 text-[13px] leading-relaxed text-muted">
-          <Lock size={16} className="mt-0.5 shrink-0 text-subtle" />
-          <p>
-            Para proteger los datos de tus clientes, las nuevas cuentas las crea el propietario desde{' '}
-            <span className="text-fg">Configuración → Equipo</span>. Pídele que te dé acceso.
-          </p>
-        </div>
-      </AuthLayout>
-    );
-  }
+  const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+  const domain = form.email.split('@')[1]?.toLowerCase().trim();
+  const personalEmail = Boolean(domain && PERSONAL_DOMAINS.has(domain));
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      await register(name, email, password);
-      navigate('/app', { replace: true });
+      await register(form);
+      navigate('/bienvenida', { replace: true });
     } catch (err) {
       setError((err as Error).message);
       setBusy(false);
@@ -190,8 +186,8 @@ export function RegisterPage() {
 
   return (
     <AuthLayout
-      title="Crea tu espacio de trabajo"
-      subtitle="Serás el propietario y podrás invitar a tu equipo"
+      title="Crea tu cuenta"
+      subtitle="Empieza a ordenar tus leads en menos de un minuto"
       footer={
         <>
           ¿Ya tienes cuenta?{' '}
@@ -201,45 +197,84 @@ export function RegisterPage() {
     >
       <form onSubmit={submit} className="space-y-4">
         <div>
-          <label className="label" htmlFor="reg-name">Nombre</label>
+          <label className="label" htmlFor="reg-name">Nombre completo</label>
           <input
             id="reg-name"
             className="input"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={form.name}
+            onChange={set('name')}
             autoComplete="name"
-            placeholder="Tu nombre"
+            placeholder="María González"
             autoFocus
             required
           />
         </div>
         <div>
-          <label className="label" htmlFor="reg-email">Email</label>
+          <label className="label" htmlFor="reg-email">Correo de empresa</label>
           <input
             id="reg-email"
             type="email"
             className="input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={form.email}
+            onChange={set('email')}
             autoComplete="email"
-            placeholder="tu@empresa.com"
+            placeholder="maria@tuempresa.com"
             required
           />
+          {personalEmail && (
+            <p className="mt-1.5 flex items-center gap-1.5 text-2xs text-amber-300/90">
+              <Info size={12} /> Te recomendamos usar el correo de tu empresa.
+            </p>
+          )}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="label" htmlFor="reg-phone">Teléfono</label>
+            <input
+              id="reg-phone"
+              type="tel"
+              className="input"
+              value={form.phone}
+              onChange={set('phone')}
+              autoComplete="tel"
+              placeholder="+56 9 1234 5678"
+              required
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="reg-role">Tu rol en la empresa</label>
+            <input
+              id="reg-role"
+              className="input"
+              list="reg-roles"
+              value={form.job_title}
+              onChange={set('job_title')}
+              autoComplete="organization-title"
+              placeholder="Ej: Fundador/a"
+              required
+            />
+            <datalist id="reg-roles">
+              {ROLE_SUGGESTIONS.map((r) => <option key={r} value={r} />)}
+            </datalist>
+          </div>
         </div>
         <div>
           <label className="label" htmlFor="reg-password">Contraseña</label>
           <PasswordInput
             id="reg-password"
-            value={password}
-            onChange={setPassword}
+            value={form.password}
+            onChange={(v) => setForm((f) => ({ ...f, password: v }))}
             autoComplete="new-password"
             placeholder="Mínimo 8 caracteres"
           />
         </div>
         <FormError message={error} />
-        <Button type="submit" variant="primary" className="h-9 w-full" disabled={busy || password.length < 8}>
+        <Button type="submit" variant="primary" className="h-9 w-full" disabled={busy || form.password.length < 8}>
           {busy ? 'Creando cuenta…' : 'Crear cuenta'}
         </Button>
+        <p className="text-center text-2xs leading-relaxed text-subtle">
+          Tu cuenta tendrá su propio espacio privado: solo tú y las personas que invites verán tus leads.
+        </p>
       </form>
     </AuthLayout>
   );

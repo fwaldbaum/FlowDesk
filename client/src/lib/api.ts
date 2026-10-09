@@ -1,4 +1,7 @@
-import type { Lead, LeadInput, Note, Status, User, WebhookEvent } from './types';
+import type {
+  AdminAction, AdminStats, AdminUser, Lead, LeadInput, Note, RegisterInput, Status, SurveyInput, User,
+  WebhookEvent,
+} from './types';
 
 export class ApiError extends Error {
   constructor(message: string, public status: number, public details?: { field: string; message: string }[]) {
@@ -31,12 +34,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 const json = (method: string, body: unknown): RequestInit => ({ method, body: JSON.stringify(body) });
 
 export const api = {
-  authStatus: () => request<{ setupRequired: boolean }>('/auth/status'),
   me: () => request<{ user: User | null }>('/auth/me'),
   login: (email: string, password: string) =>
     request<{ user: User }>('/auth/login', json('POST', { email, password })),
-  register: (name: string, email: string, password: string) =>
-    request<{ user: User }>('/auth/register', json('POST', { name, email, password })),
+  register: (input: RegisterInput) => request<{ user: User }>('/auth/register', json('POST', input)),
+  submitSurvey: (input: SurveyInput) => request<{ user: User }>('/auth/onboarding', json('POST', input)),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
   changePassword: (current: string, next: string) =>
     request<void>('/auth/password', json('POST', { current, next })),
@@ -64,6 +66,25 @@ export const api = {
     request<{ id: number; type: string; payload: unknown }[]>(`/events?after=${after}`),
 
   webhookEvents: () => request<WebhookEvent[]>('/webhooks/events'),
-  webhookConfig: () => request<{ secretRequired: boolean }>('/webhooks/config'),
+  webhookConfig: () => request<{ key: string }>('/webhooks/config'),
+  rotateWebhookKey: () => request<{ key: string }>('/webhooks/rotate', { method: 'POST' }),
   sendTestWebhook: () => request<{ ok: boolean; lead: Lead }>('/webhooks/test', { method: 'POST' }),
+
+  admin: {
+    stats: () => request<AdminStats>('/admin/stats'),
+    users: (q: string, filter: string) =>
+      request<AdminUser[]>(`/admin/users?${new URLSearchParams({ q, filter })}`),
+    user: (id: number) => request<AdminUser & { actions: AdminAction[] }>(`/admin/users/${id}`),
+    update: (id: number, patch: Partial<Pick<AdminUser, 'name' | 'email' | 'phone' | 'job_title'>>) =>
+      request<AdminUser>(`/admin/users/${id}`, json('PATCH', patch)),
+    ban: (id: number, reason: string) => request<AdminUser>(`/admin/users/${id}/ban`, json('POST', { reason })),
+    unban: (id: number) => request<AdminUser>(`/admin/users/${id}/unban`, { method: 'POST' }),
+    resetPassword: (id: number, password: string) =>
+      request<AdminUser>(`/admin/users/${id}/password`, json('POST', { password })),
+    logout: (id: number) => request<AdminUser>(`/admin/users/${id}/logout`, { method: 'POST' }),
+    setAdmin: (id: number, isAdmin: boolean) =>
+      request<AdminUser>(`/admin/users/${id}/admin`, json('POST', { is_admin: isAdmin })),
+    remove: (id: number) =>
+      request<{ deleted: boolean; deleted_workspace: boolean }>(`/admin/users/${id}`, { method: 'DELETE' }),
+  },
 };

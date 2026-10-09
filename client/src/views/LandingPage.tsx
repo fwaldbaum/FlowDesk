@@ -12,10 +12,9 @@ import type { Status } from '../lib/types';
 
 /** Primary call to action adapts to where the visitor is in the funnel. */
 function usePrimaryCta() {
-  const { status, setupRequired } = useAuth();
+  const { status } = useAuth();
   if (status === 'authenticated') return { to: '/app', label: 'Ir al tablero' };
-  if (setupRequired) return { to: '/registro', label: 'Crear mi espacio' };
-  return { to: '/login', label: 'Iniciar sesión' };
+  return { to: '/registro', label: 'Crear cuenta gratis' };
 }
 
 function CtaLink({ to, children, variant = 'primary', className }: {
@@ -35,7 +34,7 @@ function CtaLink({ to, children, variant = 'primary', className }: {
 }
 
 function Nav() {
-  const { status, setupRequired } = useAuth();
+  const { status } = useAuth();
   const authed = status === 'authenticated';
   return (
     <header className="sticky top-0 z-30 border-b border-line/60 bg-canvas/80 backdrop-blur-md">
@@ -58,9 +57,7 @@ function Nav() {
               <Link to="/login" className="px-2 text-[13px] font-medium text-muted transition-colors hover:text-fg">
                 Iniciar sesión
               </Link>
-              {setupRequired && (
-                <CtaLink to="/registro" className="h-8 px-3 text-[13px]">Empezar</CtaLink>
-              )}
+              <CtaLink to="/registro" className="h-8 px-3 text-[13px]">Crear cuenta</CtaLink>
             </>
           )}
         </div>
@@ -232,7 +229,7 @@ const FEATURES = [
   {
     icon: ShieldCheck,
     title: 'Acceso seguro',
-    body: 'Cuentas para tu equipo, sesiones protegidas y un webhook que puedes blindar con clave secreta.',
+    body: 'Un espacio privado por empresa, cuentas para tu equipo y un webhook con clave propia.',
   },
 ];
 
@@ -424,7 +421,7 @@ export function LandingPage() {
               Ordena tu pipeline hoy
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-muted">
-              Crea tu espacio, conecta tu primer formulario y empieza a dar seguimiento a cada oportunidad.
+              Crea tu cuenta, conecta tu primer formulario y empieza a dar seguimiento a cada oportunidad.
             </p>
             <div className="mt-8 flex justify-center">
               <CtaLink to={cta.to}>
