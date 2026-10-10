@@ -94,6 +94,7 @@ export const api = {
 
   admin: {
     stats: () => request<AdminStats>('/admin/stats'),
+    testEmail: () => request<{ ok: true; to: string }>('/admin/email/test', { method: 'POST' }),
     users: (q: string, filter: string) =>
       request<AdminUser[]>(`/admin/users?${new URLSearchParams({ q, filter })}`),
     user: (id: number) => request<AdminUser & { actions: AdminAction[] }>(`/admin/users/${id}`),

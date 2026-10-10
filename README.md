@@ -160,7 +160,9 @@ Sin proveedor la verificación no se exige (para no bloquear a nadie) y el panel
 | Brevo | 300 correos/día | No (verificas un remitente) | `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_PORT=587`, usuario y clave SMTP de Brevo, `EMAIL_FROM` = remitente verificado |
 | Resend | 3.000 correos/mes | Sí | `RESEND_API_KEY`, `EMAIL_FROM` en tu dominio |
 
-La contraseña de aplicación de Gmail se crea en myaccount.google.com/apppasswords (requiere verificación en dos pasos).
+La contraseña de aplicación de Gmail se crea en myaccount.google.com/apppasswords (requiere verificación en dos pasos);
+puede pegarse con o sin espacios. Para comprobar la configuración, usa **Enviar correo de prueba** en el panel de
+administración: envía un correo a tu dirección o muestra el error exacto del proveedor.
 Las cuentas creadas antes de esta función quedan como verificadas.
 
 ## Vista Hoy, WhatsApp, importación y formulario

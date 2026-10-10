@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { MailWarning, RefreshCw, Search, Users, X } from 'lucide-react';
+import { MailCheck, MailWarning, RefreshCw, Search, Send, Users, X } from 'lucide-react';
+import { Button } from '../components/ui';
 import { AnimatePresence } from 'motion/react';
 import { CountUp } from '../components/motion';
 import { Header } from '../components/Header';
@@ -144,6 +145,7 @@ export function AdminView() {
               </p>
             </div>
           )}
+          {stats?.email_enabled && stats.email_provider && <EmailStatus provider={stats.email_provider} />}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             <StatTile label="Usuarios" value={stats?.users} />
             <StatTile label="Nuevos" value={stats?.new_7d} hint="últimos 7 días" />
@@ -285,5 +287,37 @@ export function AdminView() {
       )}
       </AnimatePresence>
     </>
+  );
+}
+
+function EmailStatus({ provider }: { provider: NonNullable<AdminStats['email_provider']> }) {
+  const [state, setState] = useState<{ status: 'idle' | 'sending' | 'ok' | 'error'; message?: string }>({ status: 'idle' });
+  const send = async () => {
+    setState({ status: 'sending' });
+    try {
+      const r = await api.admin.testEmail();
+      setState({ status: 'ok', message: `Enviado a ${r.to}. Revisa tu bandeja (y spam).` });
+    } catch (err) {
+      setState({ status: 'error', message: (err as Error).message });
+    }
+  };
+  const label = { smtp: 'SMTP', resend: 'Resend', console: 'Consola (desarrollo)' }[provider.type];
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface px-4 py-3 sm:flex-row sm:items-center">
+      <MailCheck size={16} className="shrink-0 text-emerald-400" />
+      <div className="min-w-0 flex-1 text-[13px]">
+        <p className="text-fg">
+          Correo activo · <span className="text-muted">{label}: {provider.detail}</span>
+        </p>
+        {state.message && (
+          <p className={clsx('mt-0.5 break-words text-xs', state.status === 'error' ? 'text-red-300' : 'text-emerald-300')}>
+            {state.message}
+          </p>
+        )}
+      </div>
+      <Button size="sm" onClick={send} disabled={state.status === 'sending'}>
+        <Send size={13} /> {state.status === 'sending' ? 'Enviando…' : 'Enviar correo de prueba'}
+      </Button>
+    </div>
   );
 }

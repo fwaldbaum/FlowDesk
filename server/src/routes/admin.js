@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { query, withTransaction } from '../db.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { disconnectUser, disconnectWorkspace } from '../realtime.js';
-import { hashPassword } from '../services/auth.js';
-import { emailEnabled } from '../services/email.js';
+import { appUrl, hashPassword } from '../services/auth.js';
+import { emailEnabled, emailProvider, sendEmail, testEmailMessage } from '../services/email.js';
 import {
   adminFlagSchema, adminPasswordSchema, adminUserUpdateSchema, banSchema, COMPANY_SIZES, HEARD_FROM,
 } from '../validation.js';
@@ -89,9 +89,22 @@ adminRouter.get('/admin/stats', async (_req, res) => {
   res.json({
     ...totals,
     email_enabled: emailEnabled,
+    email_provider: emailProvider,
     heard_from: await breakdown('heard_from', HEARD_FROM),
     company_size: await breakdown('company_size', COMPANY_SIZES),
   });
+});
+
+/** Sends a test email to the admin's own address and reports the provider's error verbatim. */
+adminRouter.post('/admin/email/test', async (req, res) => {
+  if (!emailEnabled) return res.status(400).json({ error: 'No hay un proveedor de correo configurado.' });
+  try {
+    await sendEmail({ to: req.user.email, ...testEmailMessage({ name: req.user.name, link: `${appUrl(req)}/app` }) });
+    res.json({ ok: true, to: req.user.email });
+  } catch (err) {
+    console.error('[email] test failed:', err.message);
+    res.status(502).json({ error: `No se pudo enviar: ${err.message}` });
+  }
 });
 
 adminRouter.get('/admin/users', async (req, res) => {

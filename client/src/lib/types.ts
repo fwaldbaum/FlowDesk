@@ -121,6 +121,7 @@ export interface AdminAction {
 
 export interface AdminStats {
   email_enabled: boolean;
+  email_provider: { type: 'smtp' | 'resend' | 'console'; detail: string } | null;
   users: number;
   new_7d: number;
   banned: number;

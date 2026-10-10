@@ -17,6 +17,19 @@ const FROM =
 
 export const emailEnabled = Boolean(SMTP_HOST) || Boolean(RESEND_KEY) || CONSOLE;
 
+/** Which transport is active, for the admin panel (no secrets). */
+export const emailProvider = CONSOLE
+  ? { type: 'console', detail: 'Log del servidor' }
+  : SMTP_HOST
+    ? { type: 'smtp', detail: `${SMTP_HOST} · ${process.env.SMTP_USER ?? 'sin usuario'}` }
+    : RESEND_KEY
+      ? { type: 'resend', detail: 'Resend' }
+      : null;
+
+// Google shows app passwords as "abcd efgh ijkl mnop"; the spaces aren't part of it.
+const smtpPass = () =>
+  /gmail\.com$/i.test(SMTP_HOST ?? '') ? process.env.SMTP_PASS?.replace(/\s+/g, '') : process.env.SMTP_PASS;
+
 let smtp = null;
 function smtpTransport() {
   if (!smtp) {
@@ -26,7 +39,7 @@ function smtpTransport() {
       port,
       // 465 is implicit TLS; other ports upgrade with STARTTLS.
       secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : port === 465,
-      auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+      auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER.trim(), pass: smtpPass() } : undefined,
       connectionTimeout: 10_000,
       greetingTimeout: 10_000,
     });
@@ -98,6 +111,21 @@ export function verifyEmailMessage({ name, link }) {
       footnote: 'Si no creaste una cuenta en FlowDesk, puedes ignorar este mensaje.',
     }),
     text: `Hola ${name.split(' ')[0]}, confirma tu correo en FlowDesk (válido por 24 horas):\n${link}\n\nSi no creaste una cuenta, ignora este mensaje.`,
+  };
+}
+
+export function testEmailMessage({ name, link }) {
+  const first = escapeHtml(name.split(' ')[0]);
+  return {
+    subject: 'Correo de prueba de FlowDesk',
+    html: layout({
+      heading: `Hola ${first}, el correo funciona`,
+      body: 'Si estás leyendo esto, FlowDesk ya puede enviar los correos de verificación y de recuperación de contraseña.',
+      cta: 'Abrir FlowDesk',
+      link,
+      footnote: 'Enviado desde el panel de administración.',
+    }),
+    text: `Hola ${name.split(' ')[0]}, el correo de FlowDesk funciona. ${link}`,
   };
 }
 
