@@ -74,29 +74,80 @@ export async function sendEmail({ to, subject, html, text }) {
   }
 }
 
-/** Minimal, client-safe HTML layout (tables + inline styles) in the FlowDesk palette. */
-function layout({ heading, body, cta, link, footnote }) {
-  return `<!doctype html><html lang="es"><body style="margin:0;background:#0B0F17;font-family:Inter,-apple-system,Segoe UI,Roboto,sans-serif">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0B0F17;padding:40px 16px">
-<tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#161B26;border:1px solid #262D3D;border-radius:12px">
-<tr><td style="padding:32px 32px 8px">
-<div style="font-size:17px;color:#F3F4F6;letter-spacing:-0.01em"><b>Flow</b>Desk</div>
-</td></tr>
-<tr><td style="padding:16px 32px 0">
-<h1 style="margin:0 0 12px;font-size:20px;line-height:28px;color:#F3F4F6;font-weight:600">${heading}</h1>
-<p style="margin:0;font-size:14px;line-height:22px;color:#9AA3B2">${body}</p>
-</td></tr>
-<tr><td style="padding:24px 32px">
-<a href="${link}" style="display:inline-block;background:#4F46E5;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:11px 20px;border-radius:8px">${cta}</a>
-</td></tr>
-<tr><td style="padding:0 32px 32px">
-<p style="margin:0 0 8px;font-size:12px;line-height:18px;color:#687185">Si el botón no funciona, copia este enlace en tu navegador:</p>
-<p style="margin:0 0 16px;font-size:12px;line-height:18px;color:#818CF8;word-break:break-all">${link}</p>
-<p style="margin:0;font-size:12px;line-height:18px;color:#687185">${footnote}</p>
+const FONT = "Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
+
+/**
+ * Email layout mirroring the app's auth screens: logo header, card with an indigo top
+ * bar, round status icon, pill, full-width button and a code-style fallback link.
+ * Tables + inline styles only (Gmail/Outlook); icons are PNGs served from the app.
+ */
+function layout({ preheader, icon, heading, body, pill, cta, link, footnote }) {
+  const base = new URL(link).origin;
+  return `<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light"><meta name="supported-color-schemes" content="dark light">
+<title>${heading}</title>
+</head>
+<body style="margin:0;padding:0;background:#0B0F17;-webkit-text-size-adjust:100%">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#0B0F17">${preheader}&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0B0F17" style="background:#0B0F17">
+<tr><td align="center" style="padding:40px 16px 48px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:460px">
+
+    <!-- Logo -->
+    <tr><td align="center" style="padding:0 0 28px">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="vertical-align:middle;padding-right:10px"><img src="${base}/email/logo.png" width="28" height="28" alt="" style="display:block;border:0"></td>
+        <td style="vertical-align:middle;font-family:${FONT};font-size:18px;letter-spacing:-0.2px;color:#F3F4F6"><b>Flow</b>Desk</td>
+      </tr></table>
+    </td></tr>
+
+    <!-- Card -->
+    <tr><td bgcolor="#161B26" style="background:#161B26;border:1px solid #262D3D;border-radius:16px;overflow:hidden">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td height="3" bgcolor="#4F46E5" style="height:3px;line-height:3px;font-size:0;background:#4F46E5;background-image:linear-gradient(90deg,#3B82F6,#6366F1);border-radius:16px 16px 0 0">&nbsp;</td></tr>
+        <tr><td align="center" style="padding:36px 32px 0">
+          <img src="${base}/email/${icon}.png" width="56" height="56" alt="" style="display:block;border:0">
+        </td></tr>
+        <tr><td align="center" style="padding:20px 32px 0;font-family:${FONT}">
+          <h1 style="margin:0;font-size:22px;line-height:30px;font-weight:600;letter-spacing:-0.3px;color:#F3F4F6">${heading}</h1>
+          <p style="margin:10px 0 0;font-size:14px;line-height:22px;color:#9AA3B2">${body}</p>
+        </td></tr>
+        ${pill ? `<tr><td align="center" style="padding:16px 32px 0">
+          <span style="display:inline-block;padding:4px 12px;border:1px solid #343C50;border-radius:999px;background:#1C2230;font-family:${FONT};font-size:12px;line-height:18px;color:#9AA3B2">${pill}</span>
+        </td></tr>` : ''}
+        <tr><td style="padding:28px 32px 0">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td align="center" bgcolor="#4F46E5" style="border-radius:10px;background:#4F46E5">
+              <a href="${link}" target="_blank" style="display:block;padding:13px 20px;font-family:${FONT};font-size:15px;font-weight:600;line-height:20px;color:#FFFFFF;text-decoration:none;border-radius:10px">${cta}</a>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:28px 32px 0"><div style="height:1px;line-height:1px;font-size:0;background:#262D3D">&nbsp;</div></td></tr>
+        <tr><td style="padding:20px 32px 0;font-family:${FONT}">
+          <p style="margin:0 0 8px;font-size:12px;line-height:18px;color:#687185">¿El botón no funciona? Copia este enlace en tu navegador:</p>
+          <div style="padding:10px 12px;border:1px solid #262D3D;border-radius:8px;background:#0B0F17;font-family:${MONO};font-size:12px;line-height:18px;word-break:break-all">
+            <a href="${link}" target="_blank" style="color:#818CF8;text-decoration:none">${link}</a>
+          </div>
+        </td></tr>
+        <tr><td style="padding:20px 32px 32px;font-family:${FONT}">
+          <p style="margin:0;font-size:12px;line-height:18px;color:#687185">${footnote}</p>
+        </td></tr>
+      </table>
+    </td></tr>
+
+    <!-- Footer -->
+    <tr><td align="center" style="padding:24px 16px 0;font-family:${FONT}">
+      <p style="margin:0;font-size:12px;line-height:18px;color:#687185"><b style="color:#9AA3B2">Flow</b><span style="color:#9AA3B2">Desk</span> · CRM para emprendedores y pequeñas empresas</p>
+      <p style="margin:6px 0 0;font-size:11px;line-height:16px;color:#4B5263">Este es un correo automático, no hace falta responderlo.</p>
+    </td></tr>
+
+  </table>
 </td></tr>
 </table>
-</td></tr></table></body></html>`;
+</body></html>`;
 }
 
 export function verifyEmailMessage({ name, link }) {
@@ -104,9 +155,12 @@ export function verifyEmailMessage({ name, link }) {
   return {
     subject: 'Confirma tu correo en FlowDesk',
     html: layout({
+      preheader: 'Un último paso para activar tu cuenta de FlowDesk.',
+      icon: 'icon-mail',
       heading: `Hola ${first}, confirma tu correo`,
-      body: 'Para proteger tu cuenta necesitamos confirmar que este correo es tuyo. El enlace es válido por 24 horas.',
-      cta: 'Confirmar correo',
+      body: 'Para proteger tu cuenta necesitamos confirmar que este correo es tuyo. Es un solo clic.',
+      pill: 'Válido por 24 horas',
+      cta: 'Confirmar mi correo',
       link,
       footnote: 'Si no creaste una cuenta en FlowDesk, puedes ignorar este mensaje.',
     }),
@@ -119,8 +173,11 @@ export function testEmailMessage({ name, link }) {
   return {
     subject: 'Correo de prueba de FlowDesk',
     html: layout({
+      preheader: 'La configuración de correo de FlowDesk funciona.',
+      icon: 'icon-check',
       heading: `Hola ${first}, el correo funciona`,
-      body: 'Si estás leyendo esto, FlowDesk ya puede enviar los correos de verificación y de recuperación de contraseña.',
+      body: 'FlowDesk ya puede enviar los correos de verificación y de recuperación de contraseña.',
+      pill: null,
       cta: 'Abrir FlowDesk',
       link,
       footnote: 'Enviado desde el panel de administración.',
@@ -134,8 +191,11 @@ export function resetPasswordMessage({ name, link }) {
   return {
     subject: 'Restablece tu contraseña de FlowDesk',
     html: layout({
+      preheader: 'Elige una nueva contraseña para tu cuenta de FlowDesk.',
+      icon: 'icon-key',
       heading: `Hola ${first}, restablece tu contraseña`,
-      body: 'Recibimos una solicitud para cambiar la contraseña de tu cuenta. El enlace es válido por 1 hora y solo se puede usar una vez.',
+      body: 'Recibimos una solicitud para cambiar la contraseña de tu cuenta. Por seguridad, al cambiarla cerraremos tus otras sesiones.',
+      pill: 'Válido por 1 hora · un solo uso',
       cta: 'Elegir nueva contraseña',
       link,
       footnote: 'Si no lo pediste tú, ignora este mensaje: tu contraseña actual sigue funcionando.',
