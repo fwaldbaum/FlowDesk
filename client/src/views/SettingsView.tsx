@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import clsx from 'clsx';
-import { Check, Copy, ExternalLink, KeyRound, MessageCircle, RefreshCw, Send, Trash2, UserPlus } from 'lucide-react';
+import { ExternalLink, KeyRound, MessageCircle, RefreshCw, Send, Trash2, UserPlus } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { Header } from '../components/Header';
 import { LeadCaptureForm } from '../components/LeadCaptureForm';
@@ -11,35 +11,7 @@ import { formatDateTime, timeAgo } from '../lib/format';
 import { fillTemplate, TEMPLATE_VARIABLES } from '../lib/contact';
 import type { FormSettings, User, WebhookEvent } from '../lib/types';
 import { useStore } from '../store/AppStore';
-
-async function copyText(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    // Clipboard API is unavailable on plain-HTTP origins; fall back to a hidden textarea.
-    const el = Object.assign(document.createElement('textarea'), { value: text });
-    document.body.append(el);
-    el.select();
-    document.execCommand('copy');
-    el.remove();
-  }
-}
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <IconButton
-      label={copied ? 'Copiado' : 'Copiar'}
-      onClick={async () => {
-        await copyText(text);
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 1500);
-      }}
-    >
-      {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-    </IconButton>
-  );
-}
+import { CodeBlock, CopyButton } from '../components/copy';
 
 function Section({ title, description, children, aside }: {
   title: string;
@@ -58,18 +30,6 @@ function Section({ title, description, children, aside }: {
       </div>
       <div className="px-5 py-4">{children}</div>
     </section>
-  );
-}
-
-function CodeBlock({ code, label }: { code: string; label: string }) {
-  return (
-    <div className="overflow-hidden rounded-lg border border-line bg-canvas">
-      <div className="flex items-center justify-between border-b border-line py-1 pl-3 pr-1">
-        <span className="text-2xs font-medium uppercase tracking-wide text-subtle">{label}</span>
-        <CopyButton text={code} />
-      </div>
-      <pre className="overflow-x-auto px-3 py-3 font-mono text-xs leading-relaxed text-fg/90">{code}</pre>
-    </div>
   );
 }
 

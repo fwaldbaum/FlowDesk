@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
-import { LogOut, Settings, ShieldCheck, SquareKanban, Sun, Users } from 'lucide-react';
+import { LogOut, Plug, Settings, ShieldCheck, SquareKanban, Sun, Users } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { useStore } from '../store/AppStore';
 import { Logo, LogoMark } from './Logo';
@@ -12,6 +12,7 @@ const NAV = [
   { to: '/app/hoy', label: 'Hoy', icon: Sun, end: false },
   { to: '/app', label: 'Tablero', icon: SquareKanban, end: true },
   { to: '/app/contactos', label: 'Contactos', icon: Users },
+  { to: '/app/integraciones', label: 'Integraciones', icon: Plug },
   { to: '/app/configuracion', label: 'Configuración', icon: Settings },
 ];
 

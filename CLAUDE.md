@@ -68,7 +68,8 @@ cloud de Claude).
   mismo `handle(type, payload)` idempotente), toasts, resumen de "Hoy" y ajustes del espacio.
 - `views/`: `LandingPage`, `AuthPages` (login, registro, verificación, olvido, reset), `OnboardingPage`, `TodayView`,
   `BoardView` (Kanban con dnd-kit; mover = `POST /leads/:id/move {status, beforeId}`), `ContactsView`
-  (importar/exportar CSV), `SettingsView` (formulario, WhatsApp, webhook, equipo, cuenta), `AdminView` +
+  (importar/exportar CSV), `SettingsView` (formulario, WhatsApp, webhook, equipo, cuenta), `IntegrationsView` (guía TikTok Lead Ads → Make → webhook,
+  con estado en vivo de los leads con `source` «TikTok Ads»), `AdminView` +
   `AdminUserPanel`, `PublicFormPage`.
 - `components/motion.tsx`: presets de animación compartidos (`spring`, `panelMotion`, `dialogMotion`, `Reveal`,
   `CountUp`…). `MotionConfig reducedMotion="user"` está en `main.tsx`.

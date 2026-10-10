@@ -8,6 +8,7 @@ import { Toasts } from './components/Toasts';
 import { AdminView } from './views/AdminView';
 import { BoardView } from './views/BoardView';
 import { ContactsView } from './views/ContactsView';
+import { IntegrationsView } from './views/IntegrationsView';
 import { SettingsView } from './views/SettingsView';
 import { TodayView } from './views/TodayView';
 import { ease } from './components/motion';
@@ -28,6 +29,7 @@ export function App() {
           <Route index element={<BoardView />} />
           <Route path="hoy" element={<TodayView />} />
           <Route path="contactos" element={<ContactsView />} />
+          <Route path="integraciones" element={<IntegrationsView />} />
           <Route path="configuracion" element={<SettingsView />} />
           <Route
             path="admin"
