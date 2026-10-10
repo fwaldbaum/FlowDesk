@@ -5,6 +5,7 @@ import { ArrowLeft, CircleCheck, CircleX, Eye, EyeOff, Info, LoaderCircle, MailO
 import { safeNext, useAuth } from '../auth/AuthContext';
 import { AuthShowcase } from '../components/AuthShowcase';
 import { LogoMark } from '../components/Logo';
+import { SessionLoader } from '../components/SessionLoader';
 import { ease, spring } from '../components/motion';
 import { Button } from '../components/ui';
 import { api } from '../lib/api';
@@ -103,6 +104,18 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false);
   const next = safeNext(params.get('next'));
 
+  // `busy` is set before the request, so an authenticated status with busy=true means
+  // this form just signed in: show the hand-off instead of redirecting straight away.
+  if (status === 'authenticated' && busy) {
+    return (
+      <SessionLoader
+        title="Hola de nuevo"
+        steps={['Sesión iniciada', 'Sincronizando tus leads', 'Abriendo tu tablero']}
+        prepare={() => import('../AppRoot')}
+        onDone={() => navigate(next, { replace: true })}
+      />
+    );
+  }
   if (status === 'authenticated') return <Navigate to={next} replace />;
 
   const submit = async (e: FormEvent) => {
@@ -111,7 +124,6 @@ export function LoginPage() {
     setError(null);
     try {
       await login(email, password);
-      navigate(next, { replace: true });
     } catch (err) {
       setError((err as Error).message);
       setBusy(false);
@@ -182,6 +194,16 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  if (status === 'authenticated' && busy) {
+    return (
+      <SessionLoader
+        title="Creando tu espacio de trabajo"
+        steps={['Cuenta creada', 'Preparando tu espacio privado', 'Configurando tu tablero']}
+        prepare={() => Promise.all([import('./OnboardingPage'), import('../AppRoot')])}
+        onDone={() => navigate('/bienvenida', { replace: true })}
+      />
+    );
+  }
   if (status === 'authenticated') return <Navigate to="/app" replace />;
 
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
@@ -195,7 +217,6 @@ export function RegisterPage() {
     setError(null);
     try {
       await register(form);
-      navigate('/bienvenida', { replace: true });
     } catch (err) {
       setError((err as Error).message);
       setBusy(false);
