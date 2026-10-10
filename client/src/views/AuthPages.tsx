@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ArrowLeft, CircleCheck, CircleX, Eye, EyeOff, Info, LoaderCircle, MailOpen } from 'lucide-react';
 import { safeNext, useAuth } from '../auth/AuthContext';
+import { AuthShowcase } from '../components/AuthShowcase';
 import { LogoMark } from '../components/Logo';
 import { ease, spring } from '../components/motion';
 import { Button } from '../components/ui';
@@ -15,32 +16,38 @@ function AuthLayout({ title, subtitle, children, footer }: {
   footer?: ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-full flex-col bg-canvas">
-      <div aria-hidden className="bg-grid pointer-events-none absolute inset-x-0 top-0 h-[480px]" />
-      <div className="relative flex h-14 items-center px-4 md:px-6">
-        <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted transition-colors hover:text-fg">
-          <ArrowLeft size={14} /> Volver al inicio
-        </Link>
+    <div className="relative grid min-h-full bg-canvas lg:grid-cols-[minmax(0,1fr)_minmax(0,46%)]">
+      <div className="relative flex min-w-0 flex-col">
+        <div aria-hidden className="bg-grid pointer-events-none absolute inset-x-0 top-0 h-[480px] lg:hidden" />
+        <div className="relative flex h-14 items-center justify-between px-4 md:px-6">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted transition-colors hover:text-fg">
+            <ArrowLeft size={14} /> Volver al inicio
+          </Link>
+        </div>
+
+        <main className="relative flex flex-1 items-start justify-center px-4 pb-16 pt-[8vh] lg:items-center lg:pt-0">
+          <motion.div
+            className="w-full max-w-[380px]"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease }}
+          >
+            <div className="mb-8 flex flex-col items-center text-center">
+              <Link to="/" aria-label="FlowDesk, inicio" className="mb-6">
+                <LogoMark size={40} />
+              </Link>
+              <h1 className="text-xl font-semibold tracking-tight text-fg">{title}</h1>
+              <p className="mt-1.5 text-sm text-muted">{subtitle}</p>
+            </div>
+            <div className="rounded-xl border border-line bg-surface p-6 shadow-overlay">{children}</div>
+            {footer && <div className="mt-6 text-center text-[13px] text-muted">{footer}</div>}
+          </motion.div>
+        </main>
       </div>
 
-      <main className="relative flex flex-1 items-start justify-center px-4 pb-16 pt-[8vh]">
-        <motion.div
-          className="w-full max-w-[380px]"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease }}
-        >
-          <div className="mb-8 flex flex-col items-center text-center">
-            <Link to="/" aria-label="FlowDesk, inicio" className="mb-6">
-              <LogoMark size={40} />
-            </Link>
-            <h1 className="text-xl font-semibold tracking-tight text-fg">{title}</h1>
-            <p className="mt-1.5 text-sm text-muted">{subtitle}</p>
-          </div>
-          <div className="rounded-xl border border-line bg-surface p-6 shadow-overlay">{children}</div>
-          {footer && <div className="mt-6 text-center text-[13px] text-muted">{footer}</div>}
-        </motion.div>
-      </main>
+      <aside aria-hidden className="relative hidden border-l border-line bg-surface/30 lg:sticky lg:top-0 lg:block lg:h-screen">
+        <AuthShowcase />
+      </aside>
     </div>
   );
 }

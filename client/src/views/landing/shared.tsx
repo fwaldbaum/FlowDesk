@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { useInView, useReducedMotion } from 'motion/react';
@@ -104,4 +104,20 @@ export function MiniWindow({ children, className, title }: { children: ReactNode
       {children}
     </div>
   );
+}
+
+/** Writes the pointer position into --mx/--my so CSS can draw a spotlight that follows it. */
+export function spotlightHandlers() {
+  return {
+    onPointerMove: (e: PointerEvent<HTMLElement>) => {
+      if (e.pointerType !== 'mouse') return;
+      const r = e.currentTarget.getBoundingClientRect();
+      e.currentTarget.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      e.currentTarget.style.setProperty('--my', `${e.clientY - r.top}px`);
+    },
+    onPointerLeave: (e: PointerEvent<HTMLElement>) => {
+      e.currentTarget.style.setProperty('--mx', '-999px');
+      e.currentTarget.style.setProperty('--my', '-999px');
+    },
+  };
 }

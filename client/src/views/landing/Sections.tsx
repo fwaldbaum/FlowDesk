@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, Briefcase, Building2, Check, Lightbulb, Plus, Users, X } from 'lucide-react';
 import { Logo, LogoMark } from '../../components/Logo';
 import { ease, Reveal, spring } from '../../components/motion';
-import { CtaLink, Eyebrow, SectionHeading, usePrimaryCta } from './shared';
+import { CtaLink, Eyebrow, SectionHeading, spotlightHandlers, usePrimaryCta } from './shared';
 
 // ---- Before / after ------------------------------------------------------------
 
@@ -233,8 +233,13 @@ export function FinalCta() {
   return (
     <section className="px-4 py-24 md:px-6 md:py-32">
       <Reveal>
-        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-line bg-surface/60 px-6 py-16 text-center md:py-24">
+        <div
+          className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-line bg-surface/60 px-6 py-16 text-center md:py-24"
+          {...spotlightHandlers()}
+        >
           <div aria-hidden className="bg-grid absolute inset-0" />
+          <div aria-hidden className="bg-grid-spot absolute inset-0" />
+          <div aria-hidden className="absolute inset-x-24 top-0 h-px bg-gradient-to-r from-transparent via-accent-soft/60 to-transparent" />
           <div aria-hidden className="absolute -bottom-40 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(79,70,229,0.3),transparent)]" />
           <div className="relative">
             <motion.div
@@ -277,6 +282,7 @@ export function Footer() {
       title: 'Producto',
       links: [
         { label: 'Funciones', href: '#funciones' },
+        { label: 'Demo', href: '#demo' },
         { label: 'Cómo funciona', href: '#como-funciona' },
         { label: 'Para quién', href: '#para-quien' },
         { label: 'Preguntas', href: '#preguntas' },

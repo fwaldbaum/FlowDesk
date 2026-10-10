@@ -2,6 +2,7 @@ import { Bento } from './landing/Bento';
 import { Hero } from './landing/Hero';
 import { HowItWorks } from './landing/HowItWorks';
 import { Nav } from './landing/Nav';
+import { Playground } from './landing/Playground';
 import { Audience, Compare, Faq, FinalCta, Footer } from './landing/Sections';
 
 export function LandingPage() {
@@ -11,6 +12,7 @@ export function LandingPage() {
       <main>
         <Hero />
         <Bento />
+        <Playground />
         <HowItWorks />
         <Compare />
         <Audience />

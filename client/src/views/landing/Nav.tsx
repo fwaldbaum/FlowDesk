@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useScroll, useSpring } from 'motion/react';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { Logo } from '../../components/Logo';
@@ -10,6 +10,7 @@ import { CtaLink } from './shared';
 
 const LINKS = [
   { href: '#funciones', label: 'Funciones' },
+  { href: '#demo', label: 'Demo' },
   { href: '#como-funciona', label: 'Cómo funciona' },
   { href: '#para-quien', label: 'Para quién' },
   { href: '#preguntas', label: 'Preguntas' },
@@ -20,6 +21,8 @@ export function Nav() {
   const authed = status === 'authenticated';
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 200, damping: 40 });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -76,6 +79,15 @@ export function Nav() {
           {open ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
+
+      <motion.div
+        aria-hidden
+        style={{ scaleX: progress }}
+        className={clsx(
+          'absolute inset-x-0 -bottom-px h-px origin-left bg-gradient-to-r from-accent/0 via-accent-soft to-accent-soft transition-opacity duration-300',
+          scrolled && !open ? 'opacity-100' : 'opacity-0',
+        )}
+      />
 
       <AnimatePresence>
         {open && (

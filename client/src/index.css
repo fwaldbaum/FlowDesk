@@ -67,3 +67,12 @@ html {
   -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 30%, transparent 100%);
   mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 30%, transparent 100%);
 }
+
+/* Brighter copy of .bg-grid revealed only around the pointer (see spotlightHandlers). */
+.bg-grid-spot {
+  background-image: linear-gradient(to right, rgb(129 140 248 / 0.28) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(129 140 248 / 0.28) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(240px circle at var(--mx, -999px) var(--my, -999px), #000, transparent 75%);
+  mask-image: radial-gradient(240px circle at var(--mx, -999px) var(--my, -999px), #000, transparent 75%);
+}
