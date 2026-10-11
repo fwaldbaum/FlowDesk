@@ -7,3 +7,4 @@ client/dist/
 .vercel/
 video/out/
 video/public/audio/
+video/public/story/
