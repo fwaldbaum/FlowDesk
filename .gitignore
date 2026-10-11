@@ -6,3 +6,4 @@ client/dist/
 *.log
 .vercel/
 video/out/
+video/public/audio/

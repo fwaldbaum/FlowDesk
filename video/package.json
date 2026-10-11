@@ -8,11 +8,13 @@
     "studio": "remotion studio",
     "render": "remotion render FlowDeskPromo out/flowdesk-promo.mp4",
     "still": "remotion still FlowDeskPromo out/poster.png --frame=150",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "render:tiktok": "remotion render FlowDeskTikTok out/flowdesk-tiktok.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",
     "@remotion/fonts": "4.0.534",
+    "lucide-react": "0.453.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "remotion": "4.0.534"
