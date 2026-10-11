@@ -6,6 +6,7 @@ import { AD3_DURATION, TikTokAd3 } from './tiktok3/Ad3';
 import { AD4_DURATION, TikTokAd4 } from './tiktok4/Ad4';
 import { AD5_DURATION, TikTokAd5 } from './tiktok5/Ad5';
 import { AD6_DURATION, TikTokAd6 } from './tiktok6/Ad6';
+import { AD7_DURATION, TikTokAd7 } from './tiktok7/Ad7';
 
 export function RemotionRoot() {
   return (
@@ -17,6 +18,7 @@ export function RemotionRoot() {
       <Composition id="FlowDeskTikTok4" component={TikTokAd4} durationInFrames={AD4_DURATION} fps={30} width={1080} height={1920} />
       <Composition id="FlowDeskTikTok5" component={TikTokAd5} durationInFrames={AD5_DURATION} fps={30} width={1080} height={1920} />
       <Composition id="FlowDeskTikTok6" component={TikTokAd6} durationInFrames={AD6_DURATION} fps={30} width={1080} height={1920} />
+      <Composition id="FlowDeskTikTok7" component={TikTokAd7} durationInFrames={AD7_DURATION} fps={30} width={1080} height={1920} />
     </>
   );
 }
