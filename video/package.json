@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "render:tiktok": "remotion render FlowDeskTikTok out/flowdesk-tiktok.mp4",
     "render:tiktok2": "remotion render FlowDeskTikTok2 out/flowdesk-tiktok-2.mp4",
-    "render:tiktok3": "remotion render FlowDeskTikTok3 out/flowdesk-tiktok-3.mp4"
+    "render:tiktok3": "remotion render FlowDeskTikTok3 out/flowdesk-tiktok-3.mp4",
+    "render:tiktok4": "remotion render FlowDeskTikTok4 out/flowdesk-tiktok-4.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",
