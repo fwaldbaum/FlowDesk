@@ -16,11 +16,11 @@ export const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as 
  * 1 right on a beat, decaying to 0 before the next one. `offset` is the absolute frame where the
  * current sequence starts, so scenes can pulse in sync with the song.
  */
-export function usePulse(offset: number, every = 1) {
+export function usePulse(offset: number, every = 1, beats: readonly number[] = BEATS) {
   const frame = useCurrentFrame() + offset;
   let last = -Infinity;
-  for (let i = 0; i < BEATS.length; i += every) {
-    const f = BEATS[i]! * FPS;
+  for (let i = 0; i < beats.length; i += every) {
+    const f = beats[i]! * FPS;
     if (f > frame) break;
     last = f;
   }

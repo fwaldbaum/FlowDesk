@@ -9,7 +9,8 @@
     "render": "remotion render FlowDeskPromo out/flowdesk-promo.mp4",
     "still": "remotion still FlowDeskPromo out/poster.png --frame=150",
     "typecheck": "tsc --noEmit",
-    "render:tiktok": "remotion render FlowDeskTikTok out/flowdesk-tiktok.mp4"
+    "render:tiktok": "remotion render FlowDeskTikTok out/flowdesk-tiktok.mp4",
+    "render:tiktok2": "remotion render FlowDeskTikTok2 out/flowdesk-tiktok-2.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",
