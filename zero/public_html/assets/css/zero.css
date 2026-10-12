@@ -192,6 +192,10 @@ a.app-tile:hover .app-icon { transform: translateY(-3px); box-shadow: var(--shad
   font-size: 28px; font-weight: 700; letter-spacing: .02em; color: var(--blue-deep);
   background: linear-gradient(145deg, var(--blue-50), var(--blue-100)); border: 1px solid var(--blue-100);
 }
+.avatar-photo {
+  width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; object-fit: cover;
+  border: 4px solid #fff; box-shadow: 0 0 0 1px var(--blue-100), var(--shadow);
+}
 .founder h3 { margin-top: 20px; font-size: 20px; }
 .founder .role { margin-top: 4px; color: var(--blue); font-weight: 600; font-size: 14px; }
 
