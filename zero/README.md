@@ -41,7 +41,7 @@ zero/public_html/          <- todo esto va a public_html en cPanel
    - `mail.from`: el remitente de los correos;
    - `sso_secret`: una clave larga, explicada en *Conectar con FlowDesk* más abajo.
 5. **HTTPS**: cPanel → *SSL/TLS Status* → *Run AutoSSL*. El `.htaccess` ya redirige todo a `https://`.
-6. **Correo**: cPanel → *Cuentas de correo* → crea `no-reply@zerosolutions.cl` (y `contacto@zerosolutions.cl`).
+6. **Correo**: cPanel → *Cuentas de correo* → crea `noreply@zerosolutions.cl` (remitente) y `hola@zerosolutions.cl` (contacto público).
    Luego, en *Email Deliverability*, repara SPF y DKIM si aparecen en rojo, para que los correos no lleguen a spam.
 
 ## Conectar con FlowDesk (inicio de sesión único)

@@ -20,10 +20,10 @@ return [
     // 'log' writes emails to app/storage/mail.log instead of sending them (local testing).
     'mail' => [
         'transport' => 'mail',
-        'from' => 'ZERO Solutions <no-reply@zerosolutions.cl>',
+        'from' => 'ZERO Solutions <noreply@zerosolutions.cl>',
     ],
 
-    'contact_email' => 'contacto@zerosolutions.cl',
+    'contact_email' => 'hola@zerosolutions.cl',
 
     // Single sign-on into the apps. The secret must be identical to ZERO_SSO_SECRET in the app's
     // server. Generate one with: php -r "echo bin2hex(random_bytes(32));"

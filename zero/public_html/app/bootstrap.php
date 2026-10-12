@@ -8,7 +8,7 @@ if (!is_file($configFile)) {
     http_response_code(500);
     exit('Falta app/config.php: copia app/config.example.php como app/config.php y completa los datos.');
 }
-$GLOBALS['zero_config'] = require $configFile;
+$GLOBALS['zero_config'] = (require $configFile) + ['contact_email' => 'hola@zerosolutions.cl'];
 
 date_default_timezone_set('America/Santiago');
 mb_internal_encoding('UTF-8');

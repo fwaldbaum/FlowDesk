@@ -5,7 +5,7 @@ declare(strict_types=1);
 function send_mail(string $to, string $subject, string $html, string $text): bool
 {
     $mail = config('mail', []);
-    $from = $mail['from'] ?? 'ZERO Solutions <no-reply@zerosolutions.cl>';
+    $from = $mail['from'] ?? 'ZERO Solutions <noreply@zerosolutions.cl>';
 
     if (($mail['transport'] ?? 'mail') === 'log') {
         $entry = sprintf("[%s] to=%s subject=\"%s\"\n%s\n\n", gmdate('c'), $to, $subject, $text);
@@ -16,7 +16,7 @@ function send_mail(string $to, string $subject, string $html, string $text): boo
     $boundary = 'zero_' . bin2hex(random_bytes(12));
     $headers = [
         'From: ' . $from,
-        'Reply-To: ' . config('contact_email', 'contacto@zerosolutions.cl'),
+        'Reply-To: ' . config('contact_email', 'hola@zerosolutions.cl'),
         'MIME-Version: 1.0',
         'Content-Type: multipart/alternative; boundary="' . $boundary . '"',
     ];
