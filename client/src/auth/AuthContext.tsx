@@ -14,6 +14,8 @@ interface Auth {
   login: (email: string, password: string) => Promise<User>;
   register: (input: RegisterInput) => Promise<User>;
   submitSurvey: (input: SurveyInput) => Promise<void>;
+  /** Marks the welcome video as seen (optimistically). */
+  dismissWelcome: () => void;
   /** Re-reads the session (e.g. after confirming the email in another tab). */
   refresh: () => Promise<void>;
   logout: () => Promise<void>;
@@ -60,14 +62,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ status: 'authenticated', user });
   }, []);
 
+  const dismissWelcome = useCallback(() => {
+    setState((s) => (s.status === 'authenticated' ? { ...s, user: { ...s.user, needs_welcome: false } } : s));
+    api.dismissWelcome().catch(() => {});
+  }, []);
+
   const logout = useCallback(async () => {
     await api.logout().catch(() => {});
     expire();
   }, [expire]);
 
   const value = useMemo<Auth>(
-    () => ({ ...state, login, register, submitSurvey, refresh, logout, expire }),
-    [state, login, register, submitSurvey, refresh, logout, expire],
+    () => ({ ...state, login, register, submitSurvey, dismissWelcome, refresh, logout, expire }),
+    [state, login, register, submitSurvey, dismissWelcome, refresh, logout, expire],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

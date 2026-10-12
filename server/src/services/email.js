@@ -50,23 +50,34 @@ function smtpTransport() {
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-export async function sendEmail({ to, subject, html, text }) {
+/**
+ * `attachments` are { filename, url, contentType } fetched by the provider (nodemailer streams
+ * the URL; Resend downloads it), so large files never sit in the function's memory.
+ */
+export async function sendEmail({ to, subject, html, text, attachments = [] }) {
   if (SMTP_HOST && !CONSOLE) {
     try {
-      await smtpTransport().sendMail({ from: FROM, to, subject, html, text });
+      await smtpTransport().sendMail({
+        from: FROM, to, subject, html, text,
+        attachments: attachments.map((a) => ({ filename: a.filename, href: a.url, contentType: a.contentType })),
+      });
     } catch (err) {
       throw Object.assign(new Error(`SMTP: ${err.message}`), { code: 'EMAIL_SEND_FAILED' });
     }
     return;
   }
   if (CONSOLE || !RESEND_KEY) {
-    console.log(`[email] to=${to} subject="${subject}"\n${text}\n`);
+    const files = attachments.map((a) => `\n[adjunto] ${a.filename} <- ${a.url}`).join('');
+    console.log(`[email] to=${to} subject="${subject}"\n${text}${files}\n`);
     return;
   }
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to: [to], subject, html, text }),
+    body: JSON.stringify({
+      from: FROM, to: [to], subject, html, text,
+      ...(attachments.length && { attachments: attachments.map((a) => ({ filename: a.filename, path: a.url })) }),
+    }),
   });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
@@ -82,7 +93,7 @@ const MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
  * bar, round status icon, pill, full-width button and a code-style fallback link.
  * Tables + inline styles only (Gmail/Outlook); icons are PNGs served from the app.
  */
-function layout({ preheader, icon, heading, body, pill, cta, link, footnote }) {
+function layout({ preheader, icon, heading, body, media, pill, cta, link, footnote }) {
   const base = new URL(link).origin;
   return `<!doctype html>
 <html lang="es"><head>
@@ -115,6 +126,11 @@ function layout({ preheader, icon, heading, body, pill, cta, link, footnote }) {
           <h1 style="margin:0;font-size:22px;line-height:30px;font-weight:600;letter-spacing:-0.3px;color:#F3F4F6">${heading}</h1>
           <p style="margin:10px 0 0;font-size:14px;line-height:22px;color:#9AA3B2">${body}</p>
         </td></tr>
+        ${media ? `<tr><td style="padding:24px 32px 0">
+          <a href="${media.href}" target="_blank" style="display:block;text-decoration:none">
+            <img src="${media.src}" width="396" alt="${media.alt}" style="display:block;width:100%;max-width:396px;height:auto;border:1px solid #262D3D;border-radius:10px">
+          </a>
+        </td></tr>` : ''}
         ${pill ? `<tr><td align="center" style="padding:16px 32px 0">
           <span style="display:inline-block;padding:4px 12px;border:1px solid #343C50;border-radius:999px;background:#1C2230;font-family:${FONT};font-size:12px;line-height:18px;color:#9AA3B2">${pill}</span>
         </td></tr>` : ''}
@@ -201,5 +217,25 @@ export function resetPasswordMessage({ name, link }) {
       footnote: 'Si no lo pediste tú, ignora este mensaje: tu contraseña actual sigue funcionando.',
     }),
     text: `Hola ${name.split(' ')[0]}, restablece tu contraseña de FlowDesk (válido por 1 hora, un solo uso):\n${link}\n\nSi no lo pediste, ignora este mensaje.`,
+  };
+}
+
+export function welcomeMessage({ name, appLink, videoUrl, posterUrl }) {
+  const first = escapeHtml(name.split(' ')[0]);
+  return {
+    subject: 'Te damos la bienvenida a FlowDesk',
+    html: layout({
+      preheader: 'Tu cuenta está lista. Te adjuntamos un video de un minuto con lo mejor de FlowDesk.',
+      icon: 'icon-play',
+      heading: `Hola ${first}, tu cuenta está lista`,
+      body: 'Te adjuntamos un video de un minuto con lo mejor de FlowDesk: el tablero, la vista Hoy, WhatsApp en un clic, tu formulario web y las integraciones.',
+      media: { src: posterUrl, href: videoUrl, alt: 'Video de bienvenida a FlowDesk' },
+      pill: 'Video adjunto · 1 minuto',
+      cta: 'Crear mi primer lead',
+      link: appLink,
+      footnote: `¿No ves el adjunto? <a href="${videoUrl}" target="_blank" style="color:#818CF8;text-decoration:none">Mira el video aquí</a>.`,
+    }),
+    text: `Hola ${name.split(' ')[0]}, tu cuenta de FlowDesk está lista.\n\nTe adjuntamos un video de un minuto con lo mejor de FlowDesk. También puedes verlo aquí: ${videoUrl}\n\nEmpieza aquí: ${appLink}`,
+    attachments: [{ filename: 'Bienvenida a FlowDesk.mp4', url: videoUrl, contentType: 'video/mp4' }],
   };
 }

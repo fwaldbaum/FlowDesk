@@ -62,6 +62,8 @@ export interface User {
   needs_onboarding: boolean;
   email_verified: boolean;
   needs_verification: boolean;
+  /** New accounts see the welcome video once. */
+  needs_welcome: boolean;
   created_at: string;
 }
 

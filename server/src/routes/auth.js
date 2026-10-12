@@ -7,7 +7,7 @@ import {
   deleteSession, getSession, hashPassword, isConfiguredAdmin, loadUser, parseCookies, publicUser,
   SESSION_COOKIE, SESSION_TTL_MS, verifyPassword,
 } from '../services/auth.js';
-import { emailEnabled, resetPasswordMessage, sendEmail, verifyEmailMessage } from '../services/email.js';
+import { emailEnabled, resetPasswordMessage, sendEmail, verifyEmailMessage, welcomeMessage } from '../services/email.js';
 import {
   emailOnlySchema, loginSchema, memberSchema, passwordChangeSchema, passwordResetSchema, registerSchema,
   surveySchema, tokenSchema,
@@ -22,6 +22,19 @@ const signupsPerIp = createRateLimiter({ max: 10, windowMs: 60 * 60 * 1000 });
 const verifyResends = createRateLimiter({ max: 3, windowMs: WINDOW });
 const resetsPerEmail = createRateLimiter({ max: 3, windowMs: 60 * 60 * 1000 });
 const resetsPerIp = createRateLimiter({ max: 20, windowMs: 60 * 60 * 1000 });
+
+async function sendWelcome(req, user) {
+  const base = appUrl(req);
+  await sendEmail({
+    to: user.email,
+    ...welcomeMessage({
+      name: user.name,
+      appLink: `${base}/app`,
+      videoUrl: `${base}/media/flowdesk-tour.mp4`,
+      posterUrl: `${base}/email/welcome-video.jpg`,
+    }),
+  });
+}
 
 async function sendVerification(req, user) {
   const token = await createEmailToken(user.id, 'verify');
@@ -170,10 +183,17 @@ authRouter.post('/auth/verify', async (req, res) => {
     return res.status(400).json({ error: 'El enlace no es válido o ya expiró. Pide uno nuevo desde FlowDesk.' });
   }
   const { rows: [user] } = await query(
-    'UPDATE users SET email_verified_at = coalesce(email_verified_at, now()) WHERE id = $1 RETURNING email',
+    `UPDATE users u SET email_verified_at = coalesce(old.email_verified_at, now())
+       FROM users old WHERE u.id = $1 AND old.id = u.id
+     RETURNING u.name, u.email, u.role, old.email_verified_at IS NULL AS first_time`,
     [userId],
   );
   if (isConfiguredAdmin(user.email)) await query('UPDATE users SET is_admin = true WHERE id = $1', [userId]);
+  // The welcome email (with the tour video attached) waits for a proven inbox, so a typo'd or
+  // someone else's address never receives a video attachment. Awaited: serverless freezes on reply.
+  if (user.first_time && user.role === 'owner') {
+    await sendWelcome(req, user).catch((err) => console.error('[email] welcome failed:', err.message));
+  }
   res.json({ ok: true });
 });
 
@@ -241,6 +261,12 @@ authRouter.post('/auth/onboarding', requireAuth, async (req, res) => {
     [req.user.id, data.heard_from, data.heard_from === 'other' ? data.heard_from_detail : null,
       data.company_size, data.company_about],
   );
+  res.json({ user: publicUser(await loadUser(req.user.id)) });
+});
+
+/** The welcome video popup was closed; it only shows once per account. */
+authRouter.post('/auth/welcome', requireAuth, async (req, res) => {
+  await query('UPDATE users SET welcome_seen_at = coalesce(welcome_seen_at, now()) WHERE id = $1', [req.user.id]);
   res.json({ user: publicUser(await loadUser(req.user.id)) });
 });
 

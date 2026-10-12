@@ -49,6 +49,7 @@ export const api = {
   resetPassword: (token: string, password: string) =>
     request<void>('/auth/reset', json('POST', { token, password })),
   submitSurvey: (input: SurveyInput) => request<{ user: User }>('/auth/onboarding', json('POST', input)),
+  dismissWelcome: () => request<{ user: User }>('/auth/welcome', { method: 'POST' }),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
   changePassword: (current: string, next: string) =>
     request<void>('/auth/password', json('POST', { current, next })),

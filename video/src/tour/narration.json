@@ -1,0 +1,967 @@
+{
+ "intro": {
+  "text": "Hola, te damos la bienvenida a FlowDesk. En un minuto te mostramos lo mejor que puedes hacer.",
+  "duration": 5.099,
+  "words": [
+   {
+    "w": "Hola,",
+    "start": 0.0,
+    "end": 0.2
+   },
+   {
+    "w": "te",
+    "start": 0.36,
+    "end": 0.44
+   },
+   {
+    "w": "damos",
+    "start": 0.44,
+    "end": 0.7
+   },
+   {
+    "w": "la",
+    "start": 0.7,
+    "end": 0.86
+   },
+   {
+    "w": "bienvenida",
+    "start": 0.86,
+    "end": 1.4
+   },
+   {
+    "w": "a",
+    "start": 1.4,
+    "end": 1.5
+   },
+   {
+    "w": "FlowDesk.",
+    "start": 1.5,
+    "end": 2.2
+   },
+   {
+    "w": "En",
+    "start": 2.48,
+    "end": 2.54
+   },
+   {
+    "w": "un",
+    "start": 2.54,
+    "end": 2.64
+   },
+   {
+    "w": "minuto",
+    "start": 2.64,
+    "end": 3.04
+   },
+   {
+    "w": "te",
+    "start": 3.04,
+    "end": 3.16
+   },
+   {
+    "w": "mostramos",
+    "start": 3.16,
+    "end": 3.6
+   },
+   {
+    "w": "lo",
+    "start": 3.6,
+    "end": 3.8
+   },
+   {
+    "w": "mejor",
+    "start": 3.8,
+    "end": 4.1
+   },
+   {
+    "w": "que",
+    "start": 4.1,
+    "end": 4.3
+   },
+   {
+    "w": "puedes",
+    "start": 4.3,
+    "end": 4.58
+   },
+   {
+    "w": "hacer.",
+    "start": 4.58,
+    "end": 4.9
+   }
+  ]
+ },
+ "board": {
+  "text": "Todo parte en el tablero. Cada lead es una tarjeta: arrástrala a su etapa y FlowDesk suma solo cuánto tienes en juego.",
+  "duration": 6.827,
+  "words": [
+   {
+    "w": "Todo",
+    "start": 0.0,
+    "end": 0.14
+   },
+   {
+    "w": "parte",
+    "start": 0.14,
+    "end": 0.48
+   },
+   {
+    "w": "en",
+    "start": 0.48,
+    "end": 0.66
+   },
+   {
+    "w": "el",
+    "start": 0.66,
+    "end": 0.76
+   },
+   {
+    "w": "tablero.",
+    "start": 0.76,
+    "end": 1.28
+   },
+   {
+    "w": "Cada",
+    "start": 1.5,
+    "end": 1.7
+   },
+   {
+    "w": "lead",
+    "start": 1.7,
+    "end": 1.94
+   },
+   {
+    "w": "es",
+    "start": 1.94,
+    "end": 2.14
+   },
+   {
+    "w": "una",
+    "start": 2.14,
+    "end": 2.26
+   },
+   {
+    "w": "tarjeta:",
+    "start": 2.26,
+    "end": 2.92
+   },
+   {
+    "w": "arrástrala",
+    "start": 3.1,
+    "end": 3.68
+   },
+   {
+    "w": "a",
+    "start": 3.68,
+    "end": 3.74
+   },
+   {
+    "w": "su",
+    "start": 3.74,
+    "end": 3.84
+   },
+   {
+    "w": "etapa",
+    "start": 3.84,
+    "end": 4.22
+   },
+   {
+    "w": "y",
+    "start": 4.22,
+    "end": 4.38
+   },
+   {
+    "w": "FlowDesk",
+    "start": 4.38,
+    "end": 5.0
+   },
+   {
+    "w": "suma",
+    "start": 5.0,
+    "end": 5.32
+   },
+   {
+    "w": "solo",
+    "start": 5.32,
+    "end": 5.52
+   },
+   {
+    "w": "cuánto",
+    "start": 5.52,
+    "end": 5.74
+   },
+   {
+    "w": "tienes",
+    "start": 5.74,
+    "end": 6.16
+   },
+   {
+    "w": "en",
+    "start": 6.16,
+    "end": 6.4
+   },
+   {
+    "w": "juego.",
+    "start": 6.4,
+    "end": 6.62
+   }
+  ]
+ },
+ "newlead": {
+  "text": "¿Llegó un cliente nuevo? Lo agregas en segundos: nombre, empresa, valor y de dónde vino.",
+  "duration": 4.843,
+  "words": [
+   {
+    "w": "¿Llegó",
+    "start": 0.0,
+    "end": 0.22
+   },
+   {
+    "w": "un",
+    "start": 0.22,
+    "end": 0.3
+   },
+   {
+    "w": "cliente",
+    "start": 0.3,
+    "end": 0.72
+   },
+   {
+    "w": "nuevo?",
+    "start": 0.72,
+    "end": 0.92
+   },
+   {
+    "w": "Lo",
+    "start": 1.34,
+    "end": 1.44
+   },
+   {
+    "w": "agregas",
+    "start": 1.44,
+    "end": 1.86
+   },
+   {
+    "w": "en",
+    "start": 1.86,
+    "end": 2.0
+   },
+   {
+    "w": "segundos:",
+    "start": 2.0,
+    "end": 2.48
+   },
+   {
+    "w": "nombre,",
+    "start": 2.78,
+    "end": 3.08
+   },
+   {
+    "w": "empresa,",
+    "start": 3.22,
+    "end": 3.56
+   },
+   {
+    "w": "valor",
+    "start": 3.74,
+    "end": 4.02
+   },
+   {
+    "w": "y",
+    "start": 4.02,
+    "end": 4.2
+   },
+   {
+    "w": "de",
+    "start": 4.2,
+    "end": 4.28
+   },
+   {
+    "w": "dónde",
+    "start": 4.28,
+    "end": 4.44
+   },
+   {
+    "w": "vino.",
+    "start": 4.44,
+    "end": 4.7
+   }
+  ]
+ },
+ "detail": {
+  "text": "Abre cualquier lead para ver su historial, dejar notas y programar recordatorios. Y con un clic le escribes por WhatsApp, con el mensaje ya listo.",
+  "duration": 8.107,
+  "words": [
+   {
+    "w": "Abre",
+    "start": 0.0,
+    "end": 0.18
+   },
+   {
+    "w": "cualquier",
+    "start": 0.18,
+    "end": 0.48
+   },
+   {
+    "w": "lead",
+    "start": 0.48,
+    "end": 0.86
+   },
+   {
+    "w": "para",
+    "start": 0.86,
+    "end": 1.08
+   },
+   {
+    "w": "ver",
+    "start": 1.08,
+    "end": 1.26
+   },
+   {
+    "w": "su",
+    "start": 1.26,
+    "end": 1.4
+   },
+   {
+    "w": "historial,",
+    "start": 1.4,
+    "end": 1.9
+   },
+   {
+    "w": "dejar",
+    "start": 2.16,
+    "end": 2.34
+   },
+   {
+    "w": "notas",
+    "start": 2.34,
+    "end": 2.88
+   },
+   {
+    "w": "y",
+    "start": 2.88,
+    "end": 2.98
+   },
+   {
+    "w": "programar",
+    "start": 2.98,
+    "end": 3.46
+   },
+   {
+    "w": "recordatorios.",
+    "start": 3.46,
+    "end": 4.36
+   },
+   {
+    "w": "Y",
+    "start": 4.36,
+    "end": 4.82
+   },
+   {
+    "w": "con",
+    "start": 4.82,
+    "end": 4.98
+   },
+   {
+    "w": "un",
+    "start": 4.98,
+    "end": 5.1
+   },
+   {
+    "w": "clic",
+    "start": 5.1,
+    "end": 5.34
+   },
+   {
+    "w": "le",
+    "start": 5.34,
+    "end": 5.54
+   },
+   {
+    "w": "escribes",
+    "start": 5.54,
+    "end": 5.94
+   },
+   {
+    "w": "por",
+    "start": 5.94,
+    "end": 6.16
+   },
+   {
+    "w": "WhatsApp,",
+    "start": 6.16,
+    "end": 6.58
+   },
+   {
+    "w": "con",
+    "start": 6.58,
+    "end": 6.9
+   },
+   {
+    "w": "el",
+    "start": 6.9,
+    "end": 7.02
+   },
+   {
+    "w": "mensaje",
+    "start": 7.02,
+    "end": 7.44
+   },
+   {
+    "w": "ya",
+    "start": 7.44,
+    "end": 7.62
+   },
+   {
+    "w": "listo.",
+    "start": 7.62,
+    "end": 8.04
+   }
+  ]
+ },
+ "today": {
+  "text": "Cada mañana, la vista Hoy te dice a quién llamar: tus pendientes, los leads nuevos y los que se están enfriando.",
+  "duration": 5.845,
+  "words": [
+   {
+    "w": "Cada",
+    "start": 0.0,
+    "end": 0.12
+   },
+   {
+    "w": "mañana,",
+    "start": 0.12,
+    "end": 0.48
+   },
+   {
+    "w": "la",
+    "start": 0.48,
+    "end": 0.82
+   },
+   {
+    "w": "vista",
+    "start": 0.82,
+    "end": 1.06
+   },
+   {
+    "w": "Hoy",
+    "start": 1.06,
+    "end": 1.28
+   },
+   {
+    "w": "te",
+    "start": 1.28,
+    "end": 1.42
+   },
+   {
+    "w": "dice",
+    "start": 1.42,
+    "end": 1.7
+   },
+   {
+    "w": "a",
+    "start": 1.7,
+    "end": 1.84
+   },
+   {
+    "w": "quién",
+    "start": 1.84,
+    "end": 1.96
+   },
+   {
+    "w": "llamar:",
+    "start": 1.96,
+    "end": 2.52
+   },
+   {
+    "w": "tus",
+    "start": 2.76,
+    "end": 2.88
+   },
+   {
+    "w": "pendientes,",
+    "start": 2.88,
+    "end": 3.52
+   },
+   {
+    "w": "los",
+    "start": 3.72,
+    "end": 3.82
+   },
+   {
+    "w": "leads",
+    "start": 3.82,
+    "end": 4.02
+   },
+   {
+    "w": "nuevos",
+    "start": 4.02,
+    "end": 4.38
+   },
+   {
+    "w": "y",
+    "start": 4.38,
+    "end": 4.64
+   },
+   {
+    "w": "los",
+    "start": 4.64,
+    "end": 4.76
+   },
+   {
+    "w": "que",
+    "start": 4.76,
+    "end": 4.86
+   },
+   {
+    "w": "se",
+    "start": 4.86,
+    "end": 4.98
+   },
+   {
+    "w": "están",
+    "start": 4.98,
+    "end": 5.22
+   },
+   {
+    "w": "enfriando.",
+    "start": 5.22,
+    "end": 5.72
+   }
+  ]
+ },
+ "settings": {
+  "text": "Crea un formulario para tu sitio web, con tus colores y los campos que necesitas.",
+  "duration": 4.523,
+  "words": [
+   {
+    "w": "Crea",
+    "start": 0.0,
+    "end": 0.26
+   },
+   {
+    "w": "un",
+    "start": 0.26,
+    "end": 0.34
+   },
+   {
+    "w": "formulario",
+    "start": 0.34,
+    "end": 0.96
+   },
+   {
+    "w": "para",
+    "start": 0.96,
+    "end": 1.14
+   },
+   {
+    "w": "tu",
+    "start": 1.14,
+    "end": 1.32
+   },
+   {
+    "w": "sitio",
+    "start": 1.32,
+    "end": 1.6
+   },
+   {
+    "w": "web,",
+    "start": 1.6,
+    "end": 1.94
+   },
+   {
+    "w": "con",
+    "start": 1.94,
+    "end": 2.3
+   },
+   {
+    "w": "tus",
+    "start": 2.3,
+    "end": 2.48
+   },
+   {
+    "w": "colores",
+    "start": 2.48,
+    "end": 2.96
+   },
+   {
+    "w": "y",
+    "start": 2.96,
+    "end": 3.1
+   },
+   {
+    "w": "los",
+    "start": 3.1,
+    "end": 3.24
+   },
+   {
+    "w": "campos",
+    "start": 3.24,
+    "end": 3.68
+   },
+   {
+    "w": "que",
+    "start": 3.68,
+    "end": 3.78
+   },
+   {
+    "w": "necesitas.",
+    "start": 3.78,
+    "end": 4.4
+   }
+  ]
+ },
+ "live": {
+  "text": "Cuando alguien lo completa, el lead aparece al instante en tu tablero.",
+  "duration": 3.691,
+  "words": [
+   {
+    "w": "Cuando",
+    "start": 0.0,
+    "end": 0.16
+   },
+   {
+    "w": "alguien",
+    "start": 0.16,
+    "end": 0.52
+   },
+   {
+    "w": "lo",
+    "start": 0.52,
+    "end": 0.68
+   },
+   {
+    "w": "completa,",
+    "start": 0.68,
+    "end": 1.2
+   },
+   {
+    "w": "el",
+    "start": 1.58,
+    "end": 1.66
+   },
+   {
+    "w": "lead",
+    "start": 1.66,
+    "end": 1.84
+   },
+   {
+    "w": "aparece",
+    "start": 1.84,
+    "end": 2.18
+   },
+   {
+    "w": "al",
+    "start": 2.18,
+    "end": 2.44
+   },
+   {
+    "w": "instante",
+    "start": 2.44,
+    "end": 2.94
+   },
+   {
+    "w": "en",
+    "start": 2.94,
+    "end": 3.08
+   },
+   {
+    "w": "tu",
+    "start": 3.08,
+    "end": 3.18
+   },
+   {
+    "w": "tablero.",
+    "start": 3.18,
+    "end": 3.66
+   }
+  ]
+ },
+ "integrations": {
+  "text": "Si vendes con anuncios, tienes veinte guías paso a paso para conectar TikTok, Instagram, Facebook, Google, WhatsApp y más.",
+  "duration": 6.677,
+  "words": [
+   {
+    "w": "Si",
+    "start": 0.0,
+    "end": 0.1
+   },
+   {
+    "w": "vendes",
+    "start": 0.1,
+    "end": 0.4
+   },
+   {
+    "w": "con",
+    "start": 0.4,
+    "end": 0.56
+   },
+   {
+    "w": "anuncios,",
+    "start": 0.56,
+    "end": 1.18
+   },
+   {
+    "w": "tienes",
+    "start": 1.38,
+    "end": 1.54
+   },
+   {
+    "w": "veinte",
+    "start": 1.54,
+    "end": 1.76
+   },
+   {
+    "w": "guías",
+    "start": 1.76,
+    "end": 2.14
+   },
+   {
+    "w": "paso",
+    "start": 2.14,
+    "end": 2.4
+   },
+   {
+    "w": "a",
+    "start": 2.4,
+    "end": 2.5
+   },
+   {
+    "w": "paso",
+    "start": 2.5,
+    "end": 2.7
+   },
+   {
+    "w": "para",
+    "start": 2.7,
+    "end": 2.9
+   },
+   {
+    "w": "conectar",
+    "start": 2.9,
+    "end": 3.34
+   },
+   {
+    "w": "TikTok,",
+    "start": 3.34,
+    "end": 3.58
+   },
+   {
+    "w": "Instagram,",
+    "start": 4.02,
+    "end": 4.38
+   },
+   {
+    "w": "Facebook,",
+    "start": 4.74,
+    "end": 5.04
+   },
+   {
+    "w": "Google,",
+    "start": 5.32,
+    "end": 5.52
+   },
+   {
+    "w": "WhatsApp",
+    "start": 5.74,
+    "end": 6.02
+   },
+   {
+    "w": "y",
+    "start": 6.02,
+    "end": 6.32
+   },
+   {
+    "w": "más.",
+    "start": 6.32,
+    "end": 6.48
+   }
+  ]
+ },
+ "contacts": {
+  "text": "¿Ya tienes una lista de clientes? Impórtala desde Excel en un archivo CSV, y expórtala cuando quieras.",
+  "duration": 6.037,
+  "words": [
+   {
+    "w": "¿Ya",
+    "start": 0.0,
+    "end": 0.12
+   },
+   {
+    "w": "tienes",
+    "start": 0.12,
+    "end": 0.4
+   },
+   {
+    "w": "una",
+    "start": 0.4,
+    "end": 0.58
+   },
+   {
+    "w": "lista",
+    "start": 0.58,
+    "end": 0.78
+   },
+   {
+    "w": "de",
+    "start": 0.78,
+    "end": 0.92
+   },
+   {
+    "w": "clientes?",
+    "start": 1.78,
+    "end": 2.28
+   },
+   {
+    "w": "Impórtala",
+    "start": 2.28,
+    "end": 2.46
+   },
+   {
+    "w": "desde",
+    "start": 2.46,
+    "end": 2.8
+   },
+   {
+    "w": "Excel",
+    "start": 2.8,
+    "end": 2.96
+   },
+   {
+    "w": "en",
+    "start": 2.96,
+    "end": 3.04
+   },
+   {
+    "w": "un",
+    "start": 3.04,
+    "end": 3.44
+   },
+   {
+    "w": "archivo",
+    "start": 3.44,
+    "end": 3.7
+   },
+   {
+    "w": "CSV,",
+    "start": 4.2,
+    "end": 4.46
+   },
+   {
+    "w": "y",
+    "start": 4.46,
+    "end": 4.7
+   },
+   {
+    "w": "expórtala",
+    "start": 4.7,
+    "end": 5.26
+   },
+   {
+    "w": "cuando",
+    "start": 5.26,
+    "end": 5.44
+   },
+   {
+    "w": "quieras.",
+    "start": 5.44,
+    "end": 5.96
+   }
+  ]
+ },
+ "outro": {
+  "text": "Eso es FlowDesk. Ahora te toca a ti: crea tu primer lead y empieza a vender más ordenado.",
+  "duration": 5.184,
+  "words": [
+   {
+    "w": "Eso",
+    "start": 0.0,
+    "end": 0.16
+   },
+   {
+    "w": "es",
+    "start": 0.16,
+    "end": 0.3
+   },
+   {
+    "w": "FlowDesk.",
+    "start": 0.3,
+    "end": 0.96
+   },
+   {
+    "w": "Ahora",
+    "start": 1.08,
+    "end": 1.24
+   },
+   {
+    "w": "te",
+    "start": 1.24,
+    "end": 1.44
+   },
+   {
+    "w": "toca",
+    "start": 1.44,
+    "end": 1.72
+   },
+   {
+    "w": "a",
+    "start": 1.72,
+    "end": 1.88
+   },
+   {
+    "w": "ti:",
+    "start": 1.88,
+    "end": 2.0
+   },
+   {
+    "w": "crea",
+    "start": 2.28,
+    "end": 2.58
+   },
+   {
+    "w": "tu",
+    "start": 2.58,
+    "end": 2.72
+   },
+   {
+    "w": "primer",
+    "start": 2.72,
+    "end": 3.0
+   },
+   {
+    "w": "lead",
+    "start": 3.0,
+    "end": 3.32
+   },
+   {
+    "w": "y",
+    "start": 3.32,
+    "end": 3.52
+   },
+   {
+    "w": "empieza",
+    "start": 3.52,
+    "end": 3.88
+   },
+   {
+    "w": "a",
+    "start": 3.88,
+    "end": 4.04
+   },
+   {
+    "w": "vender",
+    "start": 4.04,
+    "end": 4.26
+   },
+   {
+    "w": "más",
+    "start": 4.26,
+    "end": 4.56
+   },
+   {
+    "w": "ordenado.",
+    "start": 4.56,
+    "end": 5.08
+   }
+  ]
+ }
+}

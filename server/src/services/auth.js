@@ -45,7 +45,7 @@ export async function createSession(userId) {
 /** Columns behind publicUser(); `u` is users, `w` is workspaces. */
 export const USER_SELECT = `
   u.id, u.name, u.email, u.phone, u.job_title, u.role, u.is_admin, u.workspace_id, u.created_at,
-  u.email_verified_at,
+  u.email_verified_at, u.welcome_seen_at,
   w.name AS workspace_name,
   (u.role = 'owner' AND NOT EXISTS (SELECT 1 FROM survey_responses sr WHERE sr.user_id = u.id))
     AS needs_onboarding`;
@@ -108,6 +108,7 @@ export const publicUser = (u) => ({
   // Verification is only enforced when the server can actually send email.
   needs_verification: emailEnabled && !u.email_verified_at,
   needs_onboarding: Boolean(u.needs_onboarding),
+  needs_welcome: !u.welcome_seen_at,
   created_at: u.created_at,
 });
 

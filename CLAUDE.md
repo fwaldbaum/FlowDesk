@@ -54,7 +54,7 @@ cloud de Claude).
   `poll` (por defecto en Vercel) guarda el evento en la tabla `events` y los clientes consultan
   `/api/events?after=` cada 3 s. **Hay que hacer `await` de broadcast** (en serverless la instancia se congela al
   responder).
-- `routes/`: `auth.js` (registro, login, verificación, olvido/restablecer, encuesta, equipo), `leads.js` (+ `/today`,
+- `routes/`: `auth.js` (registro, login, verificación, olvido/restablecer, encuesta, video de bienvenida, equipo), `leads.js` (+ `/today`,
   `/leads/import`, `/leads/:id/contact`), `webhooks.js`, `workspace.js` (ajustes y formulario público `/api/forms/:key`),
   `admin.js` (panel de plataforma con auditoría), `events.js`.
 - `validation.js`: todos los esquemas Zod, con mensajes en español.
@@ -90,6 +90,10 @@ cloud de Claude).
   `form_key` distinta, con honeypot (`website`) y rate limit.
 - Usuarios suspendidos (`banned_at`): sin sesión válida; el motivo se muestra solo tras una contraseña correcta.
 - Encuesta (`survey_responses`): obligatoria para owners; los miembros invitados no la responden.
+- Bienvenida: las cuentas nuevas ven una vez el video `client/public/media/flowdesk-tour.mp4` en un pop-up
+  (`WelcomeVideo`, `users.welcome_seen_at`, `POST /api/auth/welcome`). Al confirmar el correo por primera vez, el owner
+  recibe el correo de bienvenida con ese video adjunto (el proveedor lo descarga desde `APP_URL`). El video sale de
+  la composición `FlowDeskTour` de `video/` (grabaciones reales de la app con Playwright + voz Kokoro).
 
 ## Estilo y diseño (exigencias del dueño)
 

@@ -6,6 +6,7 @@ import { LeadSlideOver } from './components/LeadSlideOver';
 import { NewLeadModal } from './components/NewLeadModal';
 import { Sidebar } from './components/Sidebar';
 import { Toasts } from './components/Toasts';
+import { WelcomeVideo } from './components/WelcomeVideo';
 import { AdminView } from './views/AdminView';
 import { BoardView } from './views/BoardView';
 import { ContactsView } from './views/ContactsView';
@@ -53,6 +54,7 @@ export function App() {
       <LeadSlideOver />
       <NewLeadModal />
       <Toasts />
+      <WelcomeVideo />
     </div>
   );
 }

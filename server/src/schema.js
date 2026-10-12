@@ -180,4 +180,11 @@ ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS form_key TEXT
   DEFAULT replace(gen_random_uuid()::text, '-', '');
 ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS form_settings JSONB NOT NULL DEFAULT '{}'::jsonb;
 CREATE UNIQUE INDEX IF NOT EXISTS workspaces_form_key_idx ON workspaces (form_key);
+
+-- ---- v5: welcome video ---------------------------------------------------------
+
+-- Same trick as email_verified_at: accounts that existed before the welcome video count as
+-- having seen it; new rows start NULL so the app shows it once after sign-up.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS welcome_seen_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE users ALTER COLUMN welcome_seen_at DROP DEFAULT;
 `;
