@@ -28,7 +28,7 @@ document.querySelectorAll('[data-reveal-pass]').forEach((btn) => {
   });
 });
 
-const items = document.querySelectorAll('.reveal');
+const items = document.querySelectorAll('.reveal, .hook');
 if ('IntersectionObserver' in window) {
   const io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {

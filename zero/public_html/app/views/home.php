@@ -1,13 +1,13 @@
 <section class="hero">
   <div class="container">
     <a href="/productos/flowdesk" class="pill"><span>Conoce <b>FlowDesk</b>, el CRM para pymes</span><span class="pill-tag">Nuevo</span></a>
-    <h1>Software simple para <span class="accent">hacer crecer</span> tu negocio</h1>
+    <h1>Software simple para <span class="accent hook">hacer crecer</span> tu negocio</h1>
     <p class="lead">ZERO Solutions crea herramientas para emprendedores y pymes. Con una sola cuenta ZERO accedes a todas nuestras aplicaciones, empezando por FlowDesk.</p>
     <div class="hero-ctas">
       <a href="/registro" class="btn btn-primary btn-lg">Crear cuenta gratis <?= icon('arrow-right', 18, 'icon-arrow') ?></a>
       <a href="/productos/flowdesk" class="btn btn-secondary btn-lg">Conocer FlowDesk</a>
     </div>
-    <p class="hero-note">Gratis para empezar. Sin tarjeta de crédito.</p>
+    <p class="hero-note">Gratis para empezar. <span class="hook hook-thin">Sin tarjeta de crédito.</span></p>
 
     <div class="apps-row" aria-label="Aplicaciones ZERO">
       <a href="/productos/flowdesk" class="app-tile"><span class="app-icon"><?= app_mark('flowdesk', 34) ?></span>FlowDesk</a>
@@ -25,8 +25,8 @@
 <section class="section section-soft">
   <div class="container center">
     <span class="eyebrow">Cuenta ZERO</span>
-    <h2 class="h2">Una cuenta para todas tus aplicaciones</h2>
-    <p class="sub">Entra una vez y abre cualquier aplicación de ZERO sin volver a escribir tu contraseña.</p>
+    <h2 class="h2"><span class="hook">Una cuenta</span> para todas tus aplicaciones</h2>
+    <p class="sub">Entra una vez y abre cualquier aplicación de ZERO <span class="hook hook-thin">sin volver a escribir tu contraseña</span>.</p>
     <div class="grid-3" style="text-align:left">
       <div class="card card-hover reveal">
         <span class="feature-icon"><?= icon('layout-grid', 22) ?></span>
@@ -54,8 +54,8 @@
         <span class="app-icon"><?= app_mark('flowdesk', 30) ?></span>
         <div><b>FlowDesk</b><div class="tag">CRM y ventas</div></div>
       </div>
-      <h2 class="h2" style="margin-top:24px">Tus clientes, ordenados en un tablero</h2>
-      <p class="sub">Cada interesado es una tarjeta. Muévela de etapa, deja notas y recordatorios, y sabe siempre a quién llamar hoy.</p>
+      <h2 class="h2" style="margin-top:24px">Tus clientes, <span class="hook">ordenados</span> en un tablero</h2>
+      <p class="sub">Cada interesado es una tarjeta. Muévela de etapa, deja notas y recordatorios, y <span class="hook hook-thin">sabe siempre a quién llamar hoy</span>.</p>
       <ul class="checks">
         <li><?= icon('check', 18) ?><span><b>Tablero de ventas</b> que arrastras de etapa en etapa.</span></li>
         <li><?= icon('check', 18) ?><span><b>Vista Hoy</b> con tus pendientes y los clientes que se enfrían.</span></li>
@@ -77,7 +77,7 @@
 <section class="section section-soft">
   <div class="container center">
     <span class="eyebrow">Cómo funciona</span>
-    <h2 class="h2">Empieza en tres pasos</h2>
+    <h2 class="h2">Empieza en <span class="hook">tres pasos</span></h2>
     <div class="steps" style="text-align:left">
       <div class="step reveal"><span class="step-num">1</span><h3>Crea tu cuenta ZERO</h3><p>Solo tu nombre, tu correo y una contraseña.</p></div>
       <div class="step reveal"><span class="step-num">2</span><h3>Confirma tu correo</h3><p>Te enviamos un enlace para activar tu cuenta.</p></div>
@@ -89,7 +89,7 @@
 <section class="section">
   <div class="container center">
     <span class="eyebrow">Quiénes somos</span>
-    <h2 class="h2">Una empresa chilena que hace software que se entiende</h2>
+    <h2 class="h2">Una empresa chilena que hace <span class="hook">software que se entiende</span></h2>
     <p class="sub">ZERO Solutions fue fundada por Matías Waldbaum y Facundo Waldbaum para que cualquier negocio, sin importar su tamaño, tenga herramientas simples y bien hechas.</p>
     <?php partial('founders'); ?>
     <p style="margin-top:36px"><a href="/nosotros" class="link">Conoce nuestra historia <?= icon('arrow-right', 16) ?></a></p>
@@ -99,7 +99,7 @@
 <section class="section" style="padding-top:0">
   <div class="container">
     <div class="cta-band reveal">
-      <h2>Empieza hoy con ZERO</h2>
+      <h2>Empieza <span class="hook hook-light">hoy</span> con ZERO</h2>
       <p>Crea tu cuenta gratis y abre FlowDesk en minutos.</p>
       <div class="hero-ctas">
         <a href="/registro" class="btn btn-white btn-lg">Crear cuenta gratis</a>
