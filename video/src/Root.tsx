@@ -9,6 +9,7 @@ import { AD6_DURATION, TikTokAd6 } from './tiktok6/Ad6';
 import { AD7_DURATION, TikTokAd7 } from './tiktok7/Ad7';
 import { STORY_DURATION, StoryAd } from './story/StoryAd';
 import { RICH_DURATION, RichAd } from './rich/RichAd';
+import { RICH2_DURATION, Rich2Ad } from './rich/Rich2Ad';
 
 export function RemotionRoot() {
   return (
@@ -23,6 +24,7 @@ export function RemotionRoot() {
       <Composition id="FlowDeskTikTok7" component={TikTokAd7} durationInFrames={AD7_DURATION} fps={30} width={1080} height={1920} />
       <Composition id="FlowDeskStory" component={StoryAd} durationInFrames={STORY_DURATION} fps={30} width={1080} height={1920} />
       <Composition id="FlowDeskRich" component={RichAd} durationInFrames={RICH_DURATION} fps={30} width={1080} height={1920} />
+      <Composition id="FlowDeskRich2" component={Rich2Ad} durationInFrames={RICH2_DURATION} fps={30} width={1080} height={1920} />
     </>
   );
 }

@@ -17,7 +17,8 @@
     "render:tiktok6": "remotion render FlowDeskTikTok6 out/flowdesk-tiktok-6.mp4",
     "render:tiktok7": "remotion render FlowDeskTikTok7 out/flowdesk-tiktok-7.mp4",
     "render:story": "remotion render FlowDeskStory out/flowdesk-historia.mp4",
-    "render:rich": "remotion render FlowDeskRich out/flowdesk-millonario.mp4"
+    "render:rich": "remotion render FlowDeskRich out/flowdesk-millonario.mp4",
+    "render:rich2": "remotion render FlowDeskRich2 out/flowdesk-millonario-2.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",

@@ -15,7 +15,7 @@ export const RICH_DURATION = Math.round(RICH_SECONDS * FPS);
 const s = (t: number) => Math.round(t * FPS);
 
 const B = [0.09, 0.81, 1.53, 2.28, 3.0, 3.72, 4.44, 5.15, 5.87, 6.59, 7.31, 8.03, 8.75, 9.47, 10.19, 10.91, 11.63, 12.35, 13.07];
-const GOLD = '#F5C451';
+export const GOLD = '#F5C451';
 
 /** [absolute start, offset into lux2.mp4]; every cut lands on a beat. */
 const SHOTS: [number, number][] = [
@@ -41,8 +41,8 @@ const STEPS = [
   { n: 3, at: B[9]!, words: ['Cierra', 'ventas', 'todas', 'las', 'semanas.'], key: [1] },
 ];
 
-const glow: CSSProperties = { textShadow: '0 0 18px rgba(255,255,255,0.55), 0 6px 22px rgba(0,0,0,0.85)' };
-const goldGlow: CSSProperties = { color: GOLD, textShadow: '0 0 20px rgba(245,196,81,0.75), 0 6px 22px rgba(0,0,0,0.85)' };
+export const glow: CSSProperties = { textShadow: '0 0 18px rgba(255,255,255,0.55), 0 6px 22px rgba(0,0,0,0.85)' };
+export const goldGlow: CSSProperties = { color: GOLD, textShadow: '0 0 20px rgba(245,196,81,0.75), 0 6px 22px rgba(0,0,0,0.85)' };
 
 function Shot({ offset, duration }: { offset: number; duration: number }) {
   const frame = useCurrentFrame();
@@ -56,7 +56,7 @@ function Shot({ offset, duration }: { offset: number; duration: number }) {
 }
 
 /** Darkens the footage so white text always reads. */
-function Shade({ strength = 0.45 }: { strength?: number }) {
+export function Shade({ strength = 0.45 }: { strength?: number }) {
   return (
     <AbsoluteFill
       style={{
@@ -66,7 +66,7 @@ function Shade({ strength = 0.45 }: { strength?: number }) {
   );
 }
 
-function PopWords({ words, at, keys = [], size = 96, every = 3 }: { words: string[]; at: number; keys?: number[]; size?: number; every?: number }) {
+export function PopWords({ words, at, keys = [], size = 96, every = 3 }: { words: string[]; at: number; keys?: number[]; size?: number; every?: number }) {
   const frame = useCurrentFrame();
   return (
     <div style={{ textAlign: 'center', fontFamily, fontWeight: 900, fontSize: size, lineHeight: 1.05, letterSpacing: '-0.035em', textTransform: 'uppercase', padding: '0 60px' }}>
@@ -98,7 +98,7 @@ function Hook() {
   );
 }
 
-function Step({ n, words, keys }: { n: number; words: string[]; keys: number[] }) {
+export function Step({ n, words, keys }: { n: number; words: string[]; keys: number[] }) {
   const frame = useCurrentFrame();
   const chip = sp(frame, 0, { damping: 11, mass: 0.5 });
   return (
@@ -111,7 +111,7 @@ function Step({ n, words, keys }: { n: number; words: string[]; keys: number[] }
   );
 }
 
-function MiniBoard() {
+export function MiniBoard() {
   const frame = useCurrentFrame();
   const cards: [number, string, string][] = [
     [0, 'Valentina Rojas', '$1.800'],
@@ -148,7 +148,7 @@ function MiniBoard() {
   );
 }
 
-function Reveal() {
+export function Reveal() {
   const frame = useCurrentFrame();
   const board = sp(frame, 8, { damping: 16 });
   return (
@@ -166,7 +166,7 @@ function Reveal() {
   );
 }
 
-function Cta() {
+export function Cta() {
   const frame = useCurrentFrame();
   const logo = sp(frame, 0, { damping: 12, mass: 0.6 });
   const head = sp(frame, 6, { damping: 13 });
@@ -200,7 +200,7 @@ function Cta() {
   );
 }
 
-function Flash({ at, peak = 0.55 }: { at: number; peak?: number }) {
+export function Flash({ at, peak = 0.55 }: { at: number; peak?: number }) {
   const frame = useCurrentFrame();
   const o = interpolate(frame, [s(at), s(at) + 1, s(at) + 7], [0, peak, 0], clamp);
   return <AbsoluteFill style={{ backgroundColor: '#fff', opacity: o, pointerEvents: 'none' }} />;
