@@ -8,7 +8,8 @@ en el hosting compartido con cPanel.
 zero/public_html/          <- todo esto va a public_html en cPanel
 ├── index.php              enrutador: páginas, cuentas y entrada a las apps
 ├── .htaccess              URLs limpias, HTTPS forzado y cabeceras de seguridad
-├── assets/                CSS, JS e imágenes (logo y capturas de FlowDesk)
+├── assets/                CSS, JS e imágenes: logos en SVG (zero-mark, zero-word-dark/light),
+│                          favicon, og.jpg (vista al compartir) y capturas de FlowDesk
 └── app/                   código privado (bloqueado por .htaccess)
     ├── config.example.php plantilla de configuración -> copiar como config.php
     ├── bootstrap.php      base de datos (crea las tablas sola), sesión, CSRF, vistas

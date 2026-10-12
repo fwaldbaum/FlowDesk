@@ -6,9 +6,11 @@
 <meta property="og:title" content="<?= e($title ?? 'ZERO Solutions') ?>">
 <meta property="og:site_name" content="ZERO Solutions">
 <meta property="og:type" content="website">
+<meta property="og:image" content="<?= e(url('/assets/img/og.jpg')) ?>">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="/assets/css/zero.css?v=1">
+<link rel="stylesheet" href="/assets/css/zero.css?v=2">
 <script defer src="/assets/js/zero.js?v=1"></script>

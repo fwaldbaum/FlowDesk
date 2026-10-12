@@ -80,9 +80,10 @@ button, input { font: inherit; color: inherit; }
 .nav.scrolled { border-bottom-color: var(--line); }
 .nav-inner { display: flex; align-items: center; height: 68px; gap: 32px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; }
-.brand-mark { width: 32px; height: 32px; }
-.brand-word { font-weight: 800; font-size: 19px; letter-spacing: .16em; color: var(--ink); }
-.brand-word small { display: block; font-size: 9px; font-weight: 600; letter-spacing: .32em; color: var(--subtle); margin-top: -3px; }
+.brand-mark { width: 34px; height: 34px; }
+.brand-word { width: auto; height: 21px; }
+.auth-page .brand-mark { width: 42px; height: 42px; }
+.auth-page .brand-word { height: 26px; }
 .nav-links { display: flex; gap: 4px; }
 .nav-links a { padding: 8px 12px; border-radius: 8px; font-size: 15px; font-weight: 500; color: var(--muted); transition: color .15s, background-color .15s; }
 .nav-links a:hover, .nav-links a.active { color: var(--ink); background: var(--soft); }

@@ -42,6 +42,7 @@ function email_layout(string $preheader, string $heading, string $body, string $
     $font = "Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
     $h = e($heading);
     $l = e($link);
+    $logo = e(url('/assets/img/zero-logo-email.png'));
     return <<<HTML
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{$h}</title></head>
@@ -50,7 +51,7 @@ function email_layout(string $preheader, string $heading, string $body, string $
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F4F7FC">
 <tr><td align="center" style="padding:40px 16px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px">
-    <tr><td style="padding:0 0 24px;font-family:{$font};font-size:20px;font-weight:800;letter-spacing:2px;color:#0B1B3F">ZERO<span style="color:#2563EB">.</span></td></tr>
+    <tr><td style="padding:0 0 24px"><img src="{$logo}" width="160" height="48" alt="ZERO" style="display:block;border:0"></td></tr>
     <tr><td style="background:#FFFFFF;border:1px solid #E3E9F3;border-radius:16px;padding:36px 32px;font-family:{$font}">
       <h1 style="margin:0;font-size:22px;line-height:30px;font-weight:700;color:#0B1B3F">{$h}</h1>
       <p style="margin:12px 0 0;font-size:15px;line-height:24px;color:#4A5875">{$body}</p>
