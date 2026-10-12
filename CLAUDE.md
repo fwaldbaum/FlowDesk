@@ -76,6 +76,17 @@ cloud de Claude).
 - `lib/`: `api.ts` (cliente fetch tipado, maneja 401), `types.ts`, `csv.ts` (parser e importación), `contact.ts`
   (número y plantilla de WhatsApp), `format.ts`, `constants.ts`.
 
+### ZERO Solutions (`zero/`)
+- Sitio de la empresa (zerosolutions.cl) y **cuentas ZERO**, en **PHP 8.1+ y MySQL** porque el hosting es un cPanel
+  compartido sin Node. Va completo a `public_html`; `app/` está bloqueado por `.htaccess`, y `app/config.php` va fuera
+  de git. Guía de instalación en `zero/README.md`.
+- Estilo distinto al de FlowDesk: **blanco y azul** (`#2563EB`), minimalista. CSS propio en `assets/css/zero.css`,
+  sin build. También aquí: sin emojis (iconos Lucide en `app/icons.php`).
+- SSO: `/abrir/<app>` firma un pase HMAC de un solo uso (2 min, solo correos confirmados). FlowDesk lo verifica en
+  `GET /api/auth/zero` (`verifyZeroTicket`, nonce en `zero_sso_nonces`) con `ZERO_SSO_SECRET`, que debe ser igual a
+  `sso_secret` de ZERO.
+- Productos nuevos: agrégalos en `zero/public_html/app/apps.php`.
+
 ## Modelo de datos y reglas de negocio
 
 - **Multi-tenant**: `workspaces` 1—N `users` (`role` owner|member), `leads`, `webhook_events`, `events`. Cada registro
@@ -107,7 +118,7 @@ cloud de Claude).
 
 `DATABASE_URL` (o la que inyecte la integración), `ADMIN_EMAILS`, `APP_URL`, `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/
 `SMTP_PASS` (Gmail con contraseña de aplicación es la opción gratuita), `RESEND_API_KEY`, `EMAIL_FROM`,
-`EMAIL_TRANSPORT=console` (desarrollo), `REALTIME_MODE` (`socket`|`poll`), `NODE_ENV`, `TRUST_PROXY`, `PGSSL`.
+`EMAIL_TRANSPORT=console` (desarrollo), `ZERO_SSO_SECRET` (inicio de sesión desde cuentas ZERO), `REALTIME_MODE` (`socket`|`poll`), `NODE_ENV`, `TRUST_PROXY`, `PGSSL`.
 Detalle en `.env.example` y `README.md`.
 
 ## Al hacer cambios

@@ -94,13 +94,20 @@ function FormError({ message }: { message: string | null }) {
   );
 }
 
+/** Why a sign-in from a ZERO account (/api/auth/zero) bounced back to this page. */
+const ZERO_ERRORS: Record<string, string> = {
+  invalid: 'El acceso desde tu cuenta ZERO no es válido o expiró. Vuelve a abrir FlowDesk desde zerosolutions.cl.',
+  used: 'Ese acceso desde ZERO ya se usó. Vuelve a abrir FlowDesk desde tu cuenta ZERO.',
+  suspended: 'Tu cuenta de FlowDesk está suspendida. Contacta al soporte.',
+};
+
 export function LoginPage() {
   const { status, login } = useAuth();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() => ZERO_ERRORS[params.get('zero') ?? ''] ?? null);
   const [busy, setBusy] = useState(false);
   const next = safeNext(params.get('next'));
 

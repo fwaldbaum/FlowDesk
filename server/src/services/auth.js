@@ -1,4 +1,4 @@
-import { createHash, randomBytes, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { query } from '../db.js';
 import { emailEnabled } from './email.js';
@@ -181,4 +181,32 @@ export function appUrl(req) {
   if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, '');
   const host = req.get('x-forwarded-host') ?? req.get('host');
   return `${req.protocol}://${host}`;
+}
+
+// ---- Single sign-on from a ZERO account (zerosolutions.cl) -----------------
+
+/**
+ * Verifies a ZERO ticket: base64url(json).base64url(HMAC-SHA256) signed with ZERO_SSO_SECRET.
+ * ZERO only issues tickets for confirmed emails, so the email can be trusted. Returns the
+ * claims or null; the caller must still burn the nonce so a ticket works only once.
+ */
+export function verifyZeroTicket(ticket) {
+  const secret = process.env.ZERO_SSO_SECRET ?? '';
+  if (secret.length < 32 || typeof ticket !== 'string') return null;
+  const [payload, sig] = ticket.split('.');
+  if (!payload || !sig) return null;
+  const expected = createHmac('sha256', secret).update(payload).digest();
+  const given = Buffer.from(sig, 'base64url');
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
+  let claims;
+  try {
+    claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+  } catch {
+    return null;
+  }
+  const now = Math.floor(Date.now() / 1000);
+  const valid = claims?.iss === 'zero' && claims.aud === 'flowdesk'
+    && typeof claims.email === 'string' && typeof claims.nonce === 'string' && claims.nonce.length >= 16
+    && Number.isInteger(claims.exp) && claims.exp > now && claims.exp - now <= 300;
+  return valid ? claims : null;
 }

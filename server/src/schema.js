@@ -187,4 +187,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS workspaces_form_key_idx ON workspaces (form_ke
 -- having seen it; new rows start NULL so the app shows it once after sign-up.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS welcome_seen_at TIMESTAMPTZ DEFAULT now();
 ALTER TABLE users ALTER COLUMN welcome_seen_at DROP DEFAULT;
+
+-- ---- v6: single sign-on from ZERO accounts -------------------------------------
+
+-- Each ZERO ticket works once; rows are pruned after they expire.
+CREATE TABLE IF NOT EXISTS zero_sso_nonces (
+  nonce       TEXT        PRIMARY KEY,
+  expires_at  TIMESTAMPTZ NOT NULL
+);
 `;

@@ -11,3 +11,6 @@ video/public/story/
 video/public/rich/
 video/public/rich2/
 video/public/tour/
+zero/public_html/app/config.php
+zero/public_html/app/storage/*
+!zero/public_html/app/storage/.htaccess

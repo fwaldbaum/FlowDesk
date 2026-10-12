@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
 import { query, withTransaction } from '../db.js';
 import { requireAuth, requireOwner, requireSession } from '../middleware/auth.js';
@@ -5,7 +6,7 @@ import { disconnectSession, disconnectUser } from '../realtime.js';
 import {
   appUrl, burnPasswordCheck, consumeEmailToken, createEmailToken, createRateLimiter, createSession,
   deleteSession, getSession, hashPassword, isConfiguredAdmin, loadUser, parseCookies, publicUser,
-  SESSION_COOKIE, SESSION_TTL_MS, verifyPassword,
+  SESSION_COOKIE, SESSION_TTL_MS, verifyPassword, verifyZeroTicket,
 } from '../services/auth.js';
 import { emailEnabled, resetPasswordMessage, sendEmail, verifyEmailMessage, welcomeMessage } from '../services/email.js';
 import {
@@ -112,6 +113,64 @@ authRouter.post('/auth/register', async (req, res) => {
   const { token } = await createSession(userId);
   setSessionCookie(req, res, token);
   res.status(201).json({ user: publicUser(user) });
+});
+
+/**
+ * Single sign-on from zerosolutions.cl: the ZERO account page redirects here with a signed,
+ * single-use ticket. Links to the FlowDesk account with the same (ZERO-confirmed) email, or
+ * creates one with its own workspace.
+ */
+authRouter.get('/auth/zero', async (req, res) => {
+  const fail = (reason) => res.redirect(302, `/login?zero=${reason}`);
+  const claims = verifyZeroTicket(req.query.ticket);
+  if (!claims) return fail('invalid');
+  const parsed = emailOnlySchema.safeParse({ email: claims.email });
+  if (!parsed.success) return fail('invalid');
+  const { email } = parsed.data;
+
+  const { rowCount } = await query(
+    'INSERT INTO zero_sso_nonces (nonce, expires_at) VALUES ($1, to_timestamp($2)) ON CONFLICT DO NOTHING',
+    [claims.nonce, claims.exp],
+  );
+  if (!rowCount) return fail('used');
+  query('DELETE FROM zero_sso_nonces WHERE expires_at < now()').catch(() => {});
+
+  const { rows: [existing] } = await query('SELECT id, banned_at FROM users WHERE email = $1', [email]);
+  if (existing?.banned_at) return fail('suspended');
+
+  let userId = existing?.id;
+  if (userId) {
+    await query(
+      `UPDATE users SET last_login_at = now(), email_verified_at = coalesce(email_verified_at, now()),
+              is_admin = is_admin OR $2 WHERE id = $1`,
+      [userId, isConfiguredAdmin(email)],
+    );
+  } else {
+    const name = String(claims.name ?? '').trim().slice(0, 120) || email.split('@')[0];
+    // Random password: the account signs in through ZERO (or "forgot password" to set one).
+    const passwordHash = await hashPassword(randomUUID());
+    userId = await withTransaction(async (db) => {
+      const { rows: [ws] } = await db.query('INSERT INTO workspaces (name) VALUES ($1) RETURNING id', [
+        workspaceNameFor(name, email),
+      ]);
+      const { rows: [{ any_admin: anyAdmin }] } = await db.query(
+        'SELECT EXISTS (SELECT 1 FROM users WHERE is_admin) AS any_admin',
+      );
+      const { rows: [user] } = await db.query(
+        `INSERT INTO users (workspace_id, name, email, password_hash, role, is_admin, email_verified_at, last_login_at)
+         VALUES ($1, $2, $3, $4, 'owner', $5, now(), now()) RETURNING id`,
+        [ws.id, name, email, passwordHash, !anyAdmin || isConfiguredAdmin(email)],
+      );
+      return user.id;
+    });
+    if (emailEnabled) {
+      await sendWelcome(req, { name, email }).catch((err) => console.error('[email] welcome failed:', err.message));
+    }
+  }
+
+  const { token } = await createSession(userId);
+  setSessionCookie(req, res, token);
+  res.redirect(302, '/app');
 });
 
 authRouter.post('/auth/login', async (req, res) => {
