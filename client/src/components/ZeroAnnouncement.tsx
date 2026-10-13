@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Gauge, KeyRound, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import { hasMovedToZero, ZERO_URL } from '../lib/zero';
 import { LogoMark } from './Logo';
 import { dialogMotion, overlayMotion } from './motion';
 import { Button, IconButton } from './ui';
 
-const ZERO_URL = 'https://zerosolutions.cl';
 const SEEN_KEY = 'fd_zero_announcement_v1';
 
 const seen = () => {
@@ -91,6 +91,12 @@ export function ZeroAnnouncement({ suppress = false }: { suppress?: boolean }) {
                 Junto a ZERO decidimos unirnos: FlowDesk ahora es parte de ZERO Solutions, una empresa chilena que crea
                 software simple para emprendedores y pymes.
               </p>
+              {!hasMovedToZero() && (
+                <p className="mx-auto mt-3 max-w-sm text-center text-xs text-subtle">
+                  Desde el 14 de octubre a las 8:00, la página de FlowDesk te llevará a zerosolutions.cl. Tu cuenta y
+                  tu tablero siguen funcionando igual.
+                </p>
+              )}
             </div>
 
             <ul className="grid gap-4 px-6 py-5 sm:grid-cols-2">

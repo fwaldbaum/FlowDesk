@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { MotionConfig } from 'motion/react';
 import { AuthProvider, RequireAuth } from './auth/AuthContext';
+import { MovedToZero } from './components/MovedToZero';
+import { hasMovedToZero } from './lib/zero';
 import './index.css';
 
 /** Route-level code splitting: each page downloads only what it needs. */
@@ -36,7 +38,7 @@ createRoot(document.getElementById('root')!).render(
                 <AuthProvider>
                   <Suspense fallback={blank}>
                     <Routes>
-                      <Route path="/" element={<LandingPage />} />
+                      <Route path="/" element={hasMovedToZero() ? <MovedToZero /> : <LandingPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/registro" element={<RegisterPage />} />
                       <Route path="/olvide" element={<ForgotPasswordPage />} />

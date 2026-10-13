@@ -88,6 +88,9 @@ cloud de Claude).
 - Productos nuevos: agrégalos en `zero/public_html/app/apps.php`.
 - En FlowDesk, `ZeroAnnouncement` (portada y `/app`, no en `/f/:key`) anuncia la unión con ZERO una vez por navegador
   (`localStorage` `fd_zero_announcement_v1`); las cuentas nuevas no lo ven. Logos de ZERO en `client/public/brand/`.
+- Desde `ZERO_MOVE_AT` (`client/src/lib/zero.ts`, 14-oct-2026 08:00 Chile) la portada `/` redirige a zerosolutions.cl
+  (`MovedToZero`). La app, el login, el registro, `/api/auth/zero` y `/f/:key` siguen funcionando. Para posponerlo,
+  cambia esa fecha.
 
 ## Modelo de datos y reglas de negocio
 
