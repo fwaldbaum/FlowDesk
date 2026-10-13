@@ -4,6 +4,7 @@ import { HowItWorks } from './landing/HowItWorks';
 import { Nav } from './landing/Nav';
 import { Playground } from './landing/Playground';
 import { Audience, Compare, Faq, FinalCta, Footer } from './landing/Sections';
+import { ZeroAnnouncement } from '../components/ZeroAnnouncement';
 
 export function LandingPage() {
   return (
@@ -20,6 +21,7 @@ export function LandingPage() {
         <FinalCta />
       </main>
       <Footer />
+      <ZeroAnnouncement />
     </div>
   );
 }

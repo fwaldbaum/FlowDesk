@@ -1,12 +1,13 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { RequireAdmin } from './auth/AuthContext';
+import { RequireAdmin, useAuth } from './auth/AuthContext';
 import { LeadSlideOver } from './components/LeadSlideOver';
 import { NewLeadModal } from './components/NewLeadModal';
 import { Sidebar } from './components/Sidebar';
 import { Toasts } from './components/Toasts';
 import { WelcomeVideo } from './components/WelcomeVideo';
+import { ZeroAnnouncement } from './components/ZeroAnnouncement';
 import { AdminView } from './views/AdminView';
 import { BoardView } from './views/BoardView';
 import { ContactsView } from './views/ContactsView';
@@ -21,6 +22,7 @@ const IntegrationGuide = lazy(() => integrations().then((m) => ({ default: m.Int
 
 export function App() {
   const location = useLocation();
+  const { user } = useAuth();
   return (
     <div className="flex h-full overflow-hidden">
       <Sidebar />
@@ -55,6 +57,7 @@ export function App() {
       <NewLeadModal />
       <Toasts />
       <WelcomeVideo />
+      <ZeroAnnouncement suppress={Boolean(user?.needs_welcome)} />
     </div>
   );
 }

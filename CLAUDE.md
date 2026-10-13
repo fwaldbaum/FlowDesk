@@ -86,6 +86,8 @@ cloud de Claude).
   `GET /api/auth/zero` (`verifyZeroTicket`, nonce en `zero_sso_nonces`) con `ZERO_SSO_SECRET`, que debe ser igual a
   `sso_secret` de ZERO.
 - Productos nuevos: agrégalos en `zero/public_html/app/apps.php`.
+- En FlowDesk, `ZeroAnnouncement` (portada y `/app`, no en `/f/:key`) anuncia la unión con ZERO una vez por navegador
+  (`localStorage` `fd_zero_announcement_v1`); las cuentas nuevas no lo ven. Logos de ZERO en `client/public/brand/`.
 
 ## Modelo de datos y reglas de negocio
 
