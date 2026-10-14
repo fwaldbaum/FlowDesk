@@ -10,6 +10,7 @@ const FLOW_PAID = 2;
 const FLOW_REJECTED = 3;
 const FLOW_CANCELLED = 4;
 
+/** getCode() is Flow's HTTP status (0 when Flow couldn't be reached); getMessage() is Flow's own message. */
 final class FlowError extends RuntimeException
 {
 }
@@ -17,8 +18,10 @@ final class FlowError extends RuntimeException
 function flow_config(): array
 {
     $c = config('flow', []) + ['api_key' => '', 'secret_key' => '', 'sandbox' => true, 'api_url' => ''];
-    $c['api_key'] = trim((string) $c['api_key']);
-    $c['secret_key'] = trim((string) $c['secret_key']);
+    // Pasted keys often carry spaces or line breaks, and 'false' typed in quotes would read as true.
+    $c['api_key'] = preg_replace('/\s+/', '', (string) $c['api_key']);
+    $c['secret_key'] = preg_replace('/\s+/', '', (string) $c['secret_key']);
+    $c['sandbox'] = filter_var($c['sandbox'], FILTER_VALIDATE_BOOLEAN);
     $c['api_url'] = rtrim((string) ($c['api_url'] ?: ($c['sandbox'] ? 'https://sandbox.flow.cl/api' : 'https://www.flow.cl/api')), '/');
     return $c;
 }
@@ -63,12 +66,12 @@ function flow_call(string $method, string $service, array $params): array
     curl_close($ch);
 
     if ($body === false) {
-        throw new FlowError("No pudimos conectar con Flow ({$netError}).");
+        throw new FlowError("sin conexión ({$netError})", 0);
     }
     $data = json_decode((string) $body, true);
     if ($status !== 200 || !is_array($data)) {
         $detail = is_array($data) ? ($data['message'] ?? '') : substr((string) $body, 0, 200);
-        throw new FlowError("Flow respondió {$status} en {$service}: {$detail}");
+        throw new FlowError(trim("{$service} {$status} {$detail}"), $status);
     }
     return $data;
 }
@@ -78,7 +81,7 @@ function flow_create_payment(array $order): array
 {
     $data = flow_call('POST', 'payment/create', $order);
     if (empty($data['url']) || empty($data['token'])) {
-        throw new FlowError('Flow no devolvió la dirección de pago.');
+        throw new FlowError('payment/create sin url de pago', 200);
     }
     return [$data['url'] . '?token=' . rawurlencode($data['token']), (string) $data['token'], (int) ($data['flowOrder'] ?? 0)];
 }
@@ -86,4 +89,15 @@ function flow_create_payment(array $order): array
 function flow_payment_status(string $token): array
 {
     return flow_call('GET', 'payment/getStatus', ['token' => $token]);
+}
+
+/** What to tell the person when Flow refuses or can't be reached, with Flow's own detail for support. */
+function flow_problem(FlowError $err): string
+{
+    $hint = match (true) {
+        $err->getCode() === 0 => 'No pudimos conectar con Flow. Inténtalo de nuevo en unos minutos.',
+        $err->getCode() === 401 => 'Flow no aceptó las claves de la tienda: revisa api_key, secret_key y sandbox en config.php.',
+        default => 'Flow rechazó el pago.',
+    };
+    return $hint . ' Detalle: ' . mb_substr($err->getMessage(), 0, 160);
 }

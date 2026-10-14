@@ -41,15 +41,20 @@ $flowdesk = app_tier((int) $user['id'], 'flowdesk');
             <dt>Renovación</dt><dd>Manual: te avisamos antes de que venza, sin cobros automáticos.</dd>
           </dl>
           <?php if (!$user['email_verified_at']): ?>
-            <p class="hint" style="margin-top:18px">Confirma tu correo para poder contratar un plan.</p>
+            <div class="alert alert-info" style="margin-top:22px">
+              <?= icon('mail', 18) ?>
+              <span style="flex:1">Para pagar, primero confirma tu correo <b><?= e($user['email']) ?></b> con el enlace que te enviamos (revisa también spam).</span>
+              <form method="post" action="/verificar/reenviar"><?= csrf_field() ?><input type="hidden" name="next" value="<?= e($_SERVER['REQUEST_URI'] ?? '/cuenta/plan') ?>"><button class="btn btn-secondary btn-sm">Reenviar correo</button></form>
+            </div>
+          <?php else: ?>
+            <form method="post" action="/pagar" style="margin-top:22px">
+              <?= csrf_field() ?>
+              <input type="hidden" name="plan" value="<?= e($checkout['key']) ?>">
+              <input type="hidden" name="periodo" value="<?= $period === 'year' ? 'anual' : 'mes' ?>">
+              <button class="btn btn-primary"><?= icon('credit-card', 17) ?> Pagar <?= e(clp($plan['price'][$period])) ?> con Flow</button>
+              <a href="/precios" class="btn btn-ghost">Ver otros planes</a>
+            </form>
           <?php endif; ?>
-          <form method="post" action="/pagar" style="margin-top:22px">
-            <?= csrf_field() ?>
-            <input type="hidden" name="plan" value="<?= e($checkout['key']) ?>">
-            <input type="hidden" name="periodo" value="<?= $period === 'year' ? 'anual' : 'mes' ?>">
-            <button class="btn btn-primary" <?= $user['email_verified_at'] ? '' : 'disabled' ?>><?= icon('credit-card', 17) ?> Pagar <?= e(clp($plan['price'][$period])) ?> con Flow</button>
-            <a href="/precios" class="btn btn-ghost">Ver otros planes</a>
-          </form>
           <p class="hint" style="margin-top:14px">Te llevamos a Flow para pagar con tarjeta, transferencia u otros medios. Al volver, tu plan se activa al instante.</p>
         <?php endif; ?>
       </div>

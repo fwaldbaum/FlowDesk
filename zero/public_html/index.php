@@ -256,11 +256,11 @@ function resend_verification_action(): void
     }
     if (too_many('verify:' . $user['id'], 3, 900)) {
         flash('error', 'Ya te enviamos varios correos. Revisa tu bandeja (y spam) o espera 15 minutos.');
-        redirect('/cuenta');
+        redirect(safe_next($_POST['next'] ?? null));
     }
     send_verification($user);
     flash('success', "Te enviamos un nuevo correo a {$user['email']}.");
-    redirect('/cuenta');
+    redirect(safe_next($_POST['next'] ?? null));
 }
 
 /** Always answers the same way so it can't reveal which emails have accounts. */
@@ -418,7 +418,7 @@ function pay_action(): void
         flash('error', 'Los pagos todavía no están habilitados. Escríbenos a ' . config('contact_email') . ' y te ayudamos.');
         redirect($back);
     }
-    if (too_many('pay:' . $user['id'], 10, 3600)) {
+    if (too_many('pay:' . $user['id'], 30, 3600)) {
         flash('error', 'Iniciaste demasiados pagos seguidos. Espera unos minutos e inténtalo de nuevo.');
         redirect($back);
     }
@@ -426,7 +426,7 @@ function pay_action(): void
         redirect(start_checkout($user, $planKey, $period));
     } catch (FlowError $err) {
         error_log('[zero] flow checkout: ' . $err->getMessage());
-        flash('error', 'No pudimos abrir el pago con Flow. Inténtalo de nuevo en unos minutos.');
+        flash('error', flow_problem($err));
         redirect($back);
     }
 }
