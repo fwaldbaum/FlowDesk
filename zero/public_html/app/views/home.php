@@ -22,6 +22,8 @@
   </div>
 </section>
 
+<?php partial('clients'); ?>
+
 <section class="section section-soft">
   <div class="container center">
     <span class="eyebrow">Cuenta ZERO</span>
