@@ -56,7 +56,7 @@ cloud de Claude).
   responder).
 - `routes/`: `auth.js` (registro, login, verificación, olvido/restablecer, encuesta, video de bienvenida, equipo), `leads.js` (+ `/today`,
   `/leads/import`, `/leads/:id/contact`), `webhooks.js`, `workspace.js` (ajustes y formulario público `/api/forms/:key`),
-  `admin.js` (panel de plataforma con auditoría), `events.js`.
+  `admin.js` (panel de plataforma con auditoría), `events.js`, `zero.js` (planes pagados en ZERO, público y firmado).
 - `validation.js`: todos los esquemas Zod, con mensajes en español.
 
 ### Cliente (`client/src`)
@@ -86,6 +86,13 @@ cloud de Claude).
   `GET /api/auth/zero` (`verifyZeroTicket`, nonce en `zero_sso_nonces`) con `ZERO_SSO_SECRET`, que debe ser igual a
   `sso_secret` de ZERO.
 - Productos nuevos: agrégalos en `zero/public_html/app/apps.php`.
+- **Planes y pagos** se venden en ZERO (`/precios`, `/cuenta/plan`) con **Flow** (flow.cl): `app/plans.php` (precios
+  CLP con IVA, `covers` por app), `app/flow.php` (firma HMAC de la API v3), `app/billing.php` (periodos prepagados,
+  `zero_payments`/`zero_subscriptions`, crédito en días al subir de plan), `app/cron.php` (recordatorios). Un pago
+  confirmado se aplica una sola vez y se avisa a FlowDesk en `POST /api/zero/plan` (firma `X-Zero-Signature` sobre el
+  cuerpo exacto); el ticket SSO también trae `plan`. En FlowDesk: `workspaces.plan` (`free|pro|max`) y
+  `plan_expires_at` (v7); `applyZeroPlan` solo avanza (más tier o más tiempo). **Los límites por plan aún no se
+  aplican** en FlowDesk.
 - En FlowDesk, `ZeroAnnouncement` (portada y `/app`, no en `/f/:key`) anuncia la unión con ZERO una vez por navegador
   (`localStorage` `fd_zero_announcement_v1`); las cuentas nuevas no lo ven. Logos de ZERO en `client/public/brand/`.
 - **FlowDesk se publica en zerosolutions.cl/flowdesk** (portada) y `/flowdesk/app` (panel) mediante el proxy PHP
@@ -149,4 +156,4 @@ Detalle en `.env.example` y `README.md`.
 - No hay tests automatizados en el repo.
 - Ideas acordadas para el futuro: responsable por lead, etiquetas y campos personalizados, motivo de pérdida,
   reportes (embudo y rendimiento por origen), automatizaciones, integración con Meta Lead Ads o WhatsApp Business,
-  planes de pago (Stripe o Mercado Pago), modo claro y PWA.
+  límites por plan (Gratis/Pro/Max), modo claro y PWA.

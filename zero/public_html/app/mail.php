@@ -102,3 +102,46 @@ function reset_password_message(string $name, string $link): array
         'text' => "Hola " . first_name($name) . ", restablece tu contraseña de ZERO (válido por 1 hora):\n{$link}\n\nSi no lo pediste, ignora este mensaje.",
     ];
 }
+
+function payment_receipt_message(string $name, string $planName, array $payment, string $endsAt): array
+{
+    $first = e(first_name($name));
+    $period = PLAN_PERIODS[$payment['period']]['label'];
+    $amount = clp((int) $payment['amount']);
+    $until = local_time($endsAt, 'j M Y');
+    $link = url('/cuenta/plan');
+    return [
+        'subject' => "Recibimos tu pago de {$planName}",
+        'html' => email_layout(
+            "Tu plan {$planName} está activo hasta el {$until}.",
+            "Gracias, {$first}. Tu plan está activo",
+            'Recibimos tu pago de <b>' . e($amount) . '</b> por <b>' . e($planName) . '</b> (' . e(mb_strtolower($period)) . '). '
+                . 'Tu plan queda activo hasta el <b>' . e($until) . '</b>.',
+            'Ver mi plan',
+            $link,
+            "Orden {$payment['commerce_order']}. Si tienes dudas sobre este cobro, responde este correo.",
+        ),
+        'text' => "Hola " . first_name($name) . ", recibimos tu pago de {$amount} por {$planName} ({$period}).\n"
+            . "Tu plan queda activo hasta el {$until}.\n\nVer mi plan: {$link}\nOrden {$payment['commerce_order']}.",
+    ];
+}
+
+function renewal_reminder_message(string $name, string $planName, string $endsAt, string $link): array
+{
+    $first = e(first_name($name));
+    $until = local_time($endsAt, 'j M Y');
+    return [
+        'subject' => "Tu plan {$planName} vence el {$until}",
+        'html' => email_layout(
+            "Renueva {$planName} para seguir sin interrupciones.",
+            "Hola {$first}, tu plan vence pronto",
+            'Tu plan <b>' . e($planName) . '</b> vence el <b>' . e($until) . '</b>. Renuévalo para mantener todo lo que incluye. '
+                . 'Si no lo renuevas, tus datos quedan intactos y tu cuenta pasa al plan gratis.',
+            'Renovar mi plan',
+            $link,
+            'No hacemos cobros automáticos: solo pagas si renuevas.',
+        ),
+        'text' => "Hola " . first_name($name) . ", tu plan {$planName} vence el {$until}.\nRenuévalo aquí: {$link}\n\n"
+            . "Si no lo renuevas, tus datos quedan intactos y tu cuenta pasa al plan gratis.",
+    ];
+}

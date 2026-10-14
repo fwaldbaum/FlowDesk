@@ -9,6 +9,7 @@
     <nav class="nav-links" aria-label="Principal">
       <a href="/productos" class="<?= $nav === 'productos' ? 'active' : '' ?>">Productos</a>
       <a href="/flowdesk/">FlowDesk</a>
+      <a href="/precios" class="<?= $nav === 'precios' ? 'active' : '' ?>">Precios</a>
       <a href="/nosotros" class="<?= $nav === 'nosotros' ? 'active' : '' ?>">Nosotros</a>
     </nav>
     <div class="nav-actions">
@@ -24,6 +25,7 @@
   <div class="mobile-menu">
     <a href="/productos">Productos</a>
     <a href="/flowdesk/">FlowDesk</a>
+    <a href="/precios">Precios</a>
     <a href="/nosotros">Nosotros</a>
     <?php if ($user): ?>
       <a href="/cuenta" class="btn btn-primary btn-block">Mi cuenta</a>
@@ -48,6 +50,7 @@
         <ul>
           <li><a href="/productos/flowdesk">FlowDesk</a></li>
           <li><a href="/productos">Todos los productos</a></li>
+          <li><a href="/precios">Precios</a></li>
         </ul>
       </div>
       <div>

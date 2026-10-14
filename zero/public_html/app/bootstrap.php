@@ -109,7 +109,7 @@ function local_time(?string $utc, string $format = 'j M Y, H:i'): string
  */
 function migrate(PDO $pdo): void
 {
-    $version = 1;
+    $version = 2;
     try {
         $current = (int) $pdo->query("SELECT v FROM zero_meta WHERE k = 'schema'")->fetchColumn();
         if ($current >= $version) {
@@ -164,6 +164,45 @@ function migrate(PDO $pdo): void
         last_opened_at DATETIME NOT NULL,
         PRIMARY KEY (user_id, app),
         CONSTRAINT zero_app_access_user_fk FOREIGN KEY (user_id) REFERENCES zero_users (id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    // ---- v2: paid plans through Flow ----
+    $pdo->exec("CREATE TABLE IF NOT EXISTS zero_payments (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id INT UNSIGNED NOT NULL,
+        plan VARCHAR(40) NOT NULL,
+        period VARCHAR(8) NOT NULL,
+        amount INT UNSIGNED NOT NULL,
+        currency CHAR(3) NOT NULL DEFAULT 'CLP',
+        commerce_order VARCHAR(40) NOT NULL,
+        flow_token VARCHAR(120) NULL,
+        flow_order BIGINT UNSIGNED NULL,
+        status VARCHAR(12) NOT NULL,
+        media VARCHAR(60) NULL,
+        credit_seconds INT UNSIGNED NOT NULL DEFAULT 0,
+        period_end DATETIME NULL,
+        detail VARCHAR(255) NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        paid_at DATETIME NULL,
+        UNIQUE KEY zero_payments_order (commerce_order),
+        UNIQUE KEY zero_payments_token (flow_token),
+        KEY zero_payments_user (user_id, created_at),
+        CONSTRAINT zero_payments_user_fk FOREIGN KEY (user_id) REFERENCES zero_users (id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    // One row per account and plan; ends_at moves forward with each payment.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS zero_subscriptions (
+        user_id INT UNSIGNED NOT NULL,
+        plan VARCHAR(40) NOT NULL,
+        period VARCHAR(8) NOT NULL,
+        amount INT UNSIGNED NOT NULL,
+        started_at DATETIME NOT NULL,
+        ends_at DATETIME NOT NULL,
+        replaced_by VARCHAR(40) NULL,
+        reminded_for DATETIME NULL,
+        updated_at DATETIME NOT NULL,
+        PRIMARY KEY (user_id, plan),
+        CONSTRAINT zero_subscriptions_user_fk FOREIGN KEY (user_id) REFERENCES zero_users (id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $stmt = $pdo->prepare("INSERT INTO zero_meta (k, v) VALUES ('schema', ?) ON DUPLICATE KEY UPDATE v = VALUES(v)");
@@ -299,5 +338,8 @@ function icon(string $name, int $size = 20, string $class = ''): string
 }
 
 require APP_DIR . '/apps.php';
+require APP_DIR . '/plans.php';
+require APP_DIR . '/flow.php';
+require APP_DIR . '/billing.php';
 require APP_DIR . '/accounts.php';
 require APP_DIR . '/mail.php';

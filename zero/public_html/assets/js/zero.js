@@ -42,3 +42,22 @@ if ('IntersectionObserver' in window) {
 } else {
   items.forEach((el) => el.classList.add('in'));
 }
+
+// Pricing: switch every card between monthly and yearly prices and checkout links.
+const periodToggle = document.querySelector('.period-toggle');
+if (periodToggle) {
+  periodToggle.hidden = false;
+  const show = (period) => {
+    periodToggle.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.period === period)));
+    document.querySelectorAll('[data-plan] [data-month]').forEach((el) => {
+      const value = el.dataset[period];
+      if (el.tagName === 'A') el.href = value;
+      else el.textContent = value;
+    });
+    document.querySelectorAll('[data-plan] .per').forEach((el) => { el.textContent = period === 'year' ? '/ mes, pago anual' : '/ mes'; });
+  };
+  periodToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-period]');
+    if (btn) show(btn.dataset.period);
+  });
+}

@@ -6,7 +6,7 @@ import { disconnectSession, disconnectUser } from '../realtime.js';
 import {
   appUrl, burnPasswordCheck, consumeEmailToken, createEmailToken, createRateLimiter, createSession,
   deleteSession, getSession, hashPassword, isConfiguredAdmin, loadUser, parseCookies, publicUser,
-  SESSION_COOKIE, SESSION_TTL_MS, verifyPassword, verifyZeroTicket,
+  SESSION_COOKIE, SESSION_TTL_MS, applyZeroPlan, verifyPassword, verifyZeroTicket,
 } from '../services/auth.js';
 import { emailEnabled, resetPasswordMessage, sendEmail, verifyEmailMessage, welcomeMessage } from '../services/email.js';
 import {
@@ -166,6 +166,14 @@ authRouter.get('/auth/zero', async (req, res) => {
     if (emailEnabled) {
       await sendWelcome(req, { name, email }).catch((err) => console.error('[email] welcome failed:', err.message));
     }
+  }
+
+  // The ticket also carries the plan paid at ZERO, so FlowDesk catches up even if ZERO's push failed.
+  if (claims.plan) {
+    await withTransaction(async (db) => {
+      const { rows: [u] } = await db.query('SELECT workspace_id FROM users WHERE id = $1', [userId]);
+      await applyZeroPlan(db, u.workspace_id, claims.plan);
+    }).catch((err) => console.error('[zero] plan from ticket failed:', err.message));
   }
 
   const { token } = await createSession(userId);

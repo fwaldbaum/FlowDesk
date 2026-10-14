@@ -143,6 +143,7 @@ function sso_ticket(array $user, string $app): string
         'iat' => time(),
         'exp' => time() + 120,
         'nonce' => bin2hex(random_bytes(16)),
+        'plan' => app_plan_claim((int) $user['id'], $app),
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     $sig = b64url(hash_hmac('sha256', $payload, (string) config('sso_secret'), true));
     return "{$payload}.{$sig}";

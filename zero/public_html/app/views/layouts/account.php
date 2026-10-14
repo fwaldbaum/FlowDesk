@@ -8,6 +8,7 @@
     <?php partial('logo'); ?>
     <nav class="acct-tabs" aria-label="Cuenta">
       <a href="/cuenta" class="<?= $section === 'apps' ? 'active' : '' ?>"><?= icon('layout-grid', 17) ?><span>Aplicaciones</span></a>
+      <a href="/cuenta/plan" class="<?= $section === 'plan' ? 'active' : '' ?>"><?= icon('credit-card', 17) ?><span>Plan</span></a>
       <a href="/cuenta/ajustes" class="<?= $section === 'ajustes' ? 'active' : '' ?>"><?= icon('settings', 17) ?><span>Ajustes</span></a>
     </nav>
     <div class="user-chip">

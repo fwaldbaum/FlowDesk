@@ -12,6 +12,7 @@ import { eventsRouter } from './routes/events.js';
 import { leadsRouter } from './routes/leads.js';
 import { publicWebhooksRouter, webhooksRouter } from './routes/webhooks.js';
 import { publicFormsRouter, workspaceRouter } from './routes/workspace.js';
+import { zeroRouter } from './routes/zero.js';
 import { zeroSecret } from './services/auth.js';
 import { formatZodError } from './validation.js';
 
@@ -38,7 +39,13 @@ app.use((req, _res, next) => {
   }
   next();
 });
-app.use(express.json({ limit: '256kb' }));
+app.use(express.json({
+  limit: '256kb',
+  // ZERO signs its server-to-server calls over the exact bytes it sent.
+  verify: (req, _res, buf) => {
+    if (req.url.startsWith('/api/zero/')) req.rawBody = buf;
+  },
+}));
 app.use(express.urlencoded({ extended: false, limit: '256kb' }));
 
 // Diagnostics without credentials: open /api/health to see why the DB is unavailable.
@@ -68,6 +75,7 @@ app.use('/api', async (_req, res, next) => {
 app.use('/api', authRouter);
 app.use('/api', publicWebhooksRouter);
 app.use('/api', publicFormsRouter);
+app.use('/api', zeroRouter);
 // Everything below requires a signed-in user.
 app.use('/api', requireAuth);
 app.use('/api', leadsRouter);

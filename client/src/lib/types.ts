@@ -64,8 +64,13 @@ export interface User {
   needs_verification: boolean;
   /** New accounts see the welcome video once. */
   needs_welcome: boolean;
+  /** Workspace plan, bought on zerosolutions.cl; 'free' once it expires. */
+  plan: Plan;
+  plan_expires_at: string | null;
   created_at: string;
 }
+
+export type Plan = 'free' | 'pro' | 'max';
 
 export interface RegisterInput {
   name: string;

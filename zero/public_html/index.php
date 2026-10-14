@@ -21,7 +21,8 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 $method = $_SERVER['REQUEST_METHOD'];
 $path = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/', '/') ?: '/';
 
-if ($method === 'POST') {
+// Flow calls these from its own servers and checkout page, so they can't carry our CSRF token.
+if ($method === 'POST' && !str_starts_with($path, '/pagos/flow/')) {
     verify_csrf();
 }
 
@@ -50,6 +51,13 @@ function route(string $method, string $path): void
             return;
         case 'GET /productos/flowdesk':
             render('flowdesk', ['title' => 'FlowDesk · CRM para pymes · ZERO Solutions', 'nav' => 'productos']);
+            return;
+        case 'GET /precios':
+            render('pricing', [
+                'title' => 'Precios · ZERO Solutions',
+                'nav' => 'precios',
+                'description' => 'Planes de FlowDesk y ZERO Plus, mensuales o anuales, en pesos chilenos con IVA incluido.',
+            ]);
             return;
         case 'GET /nosotros':
             render('about', ['title' => 'Sobre nosotros · ZERO Solutions', 'nav' => 'nosotros']);
@@ -110,6 +118,19 @@ function route(string $method, string $path): void
         case 'GET /cuenta/ajustes':
             $user = require_login();
             render('account/settings', ['title' => 'Ajustes · ZERO', 'layout' => 'account', 'user' => $user, 'section' => 'ajustes']);
+            return;
+        case 'GET /cuenta/plan':
+            billing_page();
+            return;
+        case 'POST /pagar':
+            pay_action();
+            return;
+        case 'POST /pagos/flow/confirmacion':
+            flow_confirmation_action();
+            return;
+        case 'GET /pagos/flow/retorno':
+        case 'POST /pagos/flow/retorno':
+            flow_return_action();
             return;
         case 'POST /cuenta/perfil':
             profile_action();
@@ -334,4 +355,112 @@ function open_app_action(string $id): void
     }
     record_app_open((int) $user['id'], $id);
     redirect(rtrim($app['url'], '/') . '/api/auth/zero?ticket=' . rawurlencode(sso_ticket($user, $id)), 302);
+}
+
+// ---- Plans and payments -----------------------------------------------------------------
+
+/** The checkout a /precios link asks for, validated: [plan id, period] or null. */
+function requested_plan(array $input): ?array
+{
+    $plan = (string) ($input['plan'] ?? '');
+    $period = ['mes' => 'month', 'anual' => 'year', 'month' => 'month', 'year' => 'year'][(string) ($input['periodo'] ?? 'mes')] ?? null;
+    return zero_plan($plan) && $period ? [$plan, $period] : null;
+}
+
+function billing_page(): void
+{
+    $user = require_login();
+    $checkout = null;
+    if ($req = requested_plan($_GET)) {
+        [$planKey, $period] = $req;
+        $checkout = [
+            'key' => $planKey,
+            'plan' => zero_plan($planKey),
+            'period' => $period,
+            'covered' => covering_subscription((int) $user['id'], $planKey),
+            'credit_days' => intdiv(upgrade_credit_seconds((int) $user['id'], $planKey, $period), 86400),
+        ];
+    }
+    $order = null;
+    if (!empty($_GET['orden'])) {
+        $order = q('SELECT * FROM zero_payments WHERE commerce_order = ? AND user_id = ?', [(string) $_GET['orden'], $user['id']])->fetch() ?: null;
+    }
+    render('account/billing', [
+        'title' => 'Mi plan · ZERO',
+        'layout' => 'account',
+        'user' => $user,
+        'section' => 'plan',
+        'subscriptions' => active_subscriptions((int) $user['id']),
+        'payments' => payment_history((int) $user['id']),
+        'checkout' => $checkout,
+        'order' => $order,
+    ]);
+}
+
+function pay_action(): void
+{
+    $user = require_login();
+    $req = requested_plan($_POST);
+    if (!$req) {
+        redirect('/precios');
+    }
+    [$planKey, $period] = $req;
+    $back = '/cuenta/plan?plan=' . rawurlencode($planKey) . '&periodo=' . ($period === 'year' ? 'anual' : 'mes');
+    if (!$user['email_verified_at']) {
+        flash('error', 'Confirma tu correo antes de contratar un plan. Revisa tu bandeja de entrada.');
+        redirect($back);
+    }
+    if ($covered = covering_subscription((int) $user['id'], $planKey)) {
+        flash('error', "Tu plan {$covered['name']} ya incluye todo lo de " . zero_plan($planKey)['name'] . '.');
+        redirect('/cuenta/plan');
+    }
+    if (!flow_enabled()) {
+        flash('error', 'Los pagos todavía no están habilitados. Escríbenos a ' . config('contact_email') . ' y te ayudamos.');
+        redirect($back);
+    }
+    if (too_many('pay:' . $user['id'], 10, 3600)) {
+        flash('error', 'Iniciaste demasiados pagos seguidos. Espera unos minutos e inténtalo de nuevo.');
+        redirect($back);
+    }
+    try {
+        redirect(start_checkout($user, $planKey, $period));
+    } catch (FlowError $err) {
+        error_log('[zero] flow checkout: ' . $err->getMessage());
+        flash('error', 'No pudimos abrir el pago con Flow. Inténtalo de nuevo en unos minutos.');
+        redirect($back);
+    }
+}
+
+/** Flow's server-to-server notice: check the real status with Flow and apply it. */
+function flow_confirmation_action(): void
+{
+    $token = (string) ($_POST['token'] ?? '');
+    try {
+        $payment = $token !== '' ? settle_payment($token) : null;
+    } catch (Throwable $err) {
+        error_log('[zero] flow confirmation: ' . $err->getMessage());
+        http_response_code(500); // Flow retries the notice
+        exit('error');
+    }
+    http_response_code($payment ? 200 : 404);
+    exit($payment ? 'ok' : 'unknown token');
+}
+
+/**
+ * Where Flow sends the buyer back (a cross-site POST, so the session cookie isn't there yet). Settle the
+ * payment here too in case the confirmation hasn't arrived, then show the result on the account page.
+ */
+function flow_return_action(): void
+{
+    $token = (string) ($_POST['token'] ?? $_GET['token'] ?? '');
+    $payment = null;
+    if ($token !== '') {
+        try {
+            $payment = settle_payment($token);
+        } catch (Throwable $err) {
+            error_log('[zero] flow return: ' . $err->getMessage());
+            $payment = q('SELECT * FROM zero_payments WHERE flow_token = ?', [$token])->fetch() ?: null;
+        }
+    }
+    redirect('/cuenta/plan' . ($payment ? '?orden=' . rawurlencode($payment['commerce_order']) : ''));
 }

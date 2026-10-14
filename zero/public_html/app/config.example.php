@@ -32,6 +32,14 @@ return [
         'flowdesk' => 'https://zerosolutions.cl/flowdesk',
     ],
 
+    // Payments with Flow (flow.cl): Mi cuenta > Datos de integración shows the apiKey and secretKey.
+    // Test first with 'sandbox' => true and the keys from sandbox.flow.cl, then switch to the real ones.
+    'flow' => [
+        'api_key' => '',
+        'secret_key' => '',
+        'sandbox' => true,
+    ],
+
     // Where FlowDesk actually runs (Vercel). zerosolutions.cl/flowdesk forwards every request there.
     'flowdesk_upstream' => 'https://flowdesk-ten-ruby.vercel.app',
 ];

@@ -15,6 +15,10 @@ zero/public_html/          <- todo esto va a public_html en cPanel
     ├── bootstrap.php      base de datos (crea las tablas sola), sesión, CSRF, vistas
     ├── accounts.php       cuentas, tokens de correo y pases de inicio de sesión (SSO)
     ├── apps.php           catálogo de aplicaciones: agrega aquí los próximos productos
+    ├── plans.php          planes y precios (FlowDesk Pro, FlowDesk Max, ZERO Plus)
+    ├── flow.php           cliente de la API de Flow (flow.cl)
+    ├── billing.php        compras, activación de planes y aviso a las apps
+    ├── cron.php           tarea diaria: recordatorios de renovación
     ├── mail.php           correos (confirmación y recuperación de contraseña)
     └── views/             páginas
 ```
@@ -25,6 +29,7 @@ zero/public_html/          <- todo esto va a public_html en cPanel
 - `/registro`, `/entrar`, `/recuperar`, `/restablecer`, `/verificar`
 - `/cuenta` (aplicaciones de la cuenta), `/cuenta/ajustes` (perfil, contraseña, cerrar sesiones)
 - `/abrir/flowdesk`: entra a FlowDesk con la cuenta ZERO
+- `/precios`, `/cuenta/plan` (planes, pago y comprobantes), `/pagos/flow/confirmacion` y `/pagos/flow/retorno` (los llama Flow)
 
 ## Instalar en cPanel
 
@@ -81,6 +86,29 @@ Sin `sso_secret`, el botón *Abrir FlowDesk* lleva al login normal de FlowDesk.
 1. En Vercel → *Settings → Domains*, agrega `flowdesk.zerosolutions.cl`.
 2. En cPanel → *Zone Editor*, agrega un registro **CNAME** `flowdesk` → `cname.vercel-dns.com`.
 3. Cambia `APP_URL` en Vercel y `apps.flowdesk` en `config.php` a `https://flowdesk.zerosolutions.cl`.
+
+## Pagos con Flow
+
+Cada compra es un periodo prepagado (mes o año) que se paga en Flow con tarjeta, transferencia u otros medios. Pagar
+de nuevo extiende el plan; subir de plan convierte los días que quedaban en días extra del plan nuevo. No hay cobros
+automáticos: 5 días antes del vencimiento llega un correo para renovar.
+
+1. Crea la cuenta de comercio en [flow.cl](https://www.flow.cl) y, para probar, otra en
+   [sandbox.flow.cl](https://sandbox.flow.cl).
+2. En Flow → *Mi cuenta → Integraciones* (o *Datos de integración*) copia el **apiKey** y el **secretKey**.
+3. En `app/config.php`:
+   ```php
+   'flow' => ['api_key' => '...', 'secret_key' => '...', 'sandbox' => true],
+   ```
+   Con `sandbox => true` los pagos son de prueba (usa las tarjetas de prueba que indica Flow). Cuando funcione, pon
+   las claves del comercio real y `'sandbox' => false`.
+4. cPanel → *Cron Jobs* → una vez al día (por ejemplo a las 10:00):
+   `/usr/local/bin/php /home3/<cuenta>/public_html/app/cron.php`
+5. Los precios y lo que incluye cada plan están en `app/plans.php` (CLP, IVA incluido).
+
+Al confirmarse un pago, ZERO avisa a FlowDesk (`POST /api/zero/plan`, firmado con `sso_secret`) y el espacio de la
+cuenta FlowDesk con el mismo correo pasa a Pro o Max hasta la fecha de término. Si FlowDesk no estaba disponible, el
+plan llega igual la próxima vez que la persona abra FlowDesk desde ZERO.
 
 ## Desarrollo local
 

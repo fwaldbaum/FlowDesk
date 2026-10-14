@@ -390,3 +390,52 @@ a.app-tile:hover .app-icon { transform: translateY(-3px); box-shadow: var(--shad
   * { transition: none !important; }
 }
 .no-js .reveal { opacity: 1; transform: none; }
+
+/* ---- Pricing ------------------------------------------------------------------ */
+.period-toggle { display: inline-flex; margin-top: 30px; padding: 4px; gap: 4px; background: var(--soft); border: 1px solid var(--line); border-radius: 12px; }
+.period-toggle[hidden] { display: none; }
+.period-toggle button { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border: 0; border-radius: 9px; background: none; font-size: 14.5px; font-weight: 600; color: var(--muted); cursor: pointer; transition: background-color .15s, color .15s, box-shadow .15s; }
+.period-toggle button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: var(--shadow-sm); }
+.period-toggle .save { font-size: 12px; font-weight: 600; color: var(--green); }
+
+.pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 1080px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px) { .pricing-grid { grid-template-columns: 1fr; } }
+.price-card { position: relative; display: flex; flex-direction: column; padding: 26px 24px; }
+.price-card.featured { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue), var(--shadow); }
+.price-card .ribbon { position: absolute; top: -11px; left: 24px; padding: 2px 10px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 12px; font-weight: 600; }
+.price-card .app-icon { width: 44px; height: 44px; border-radius: 12px; }
+.price-card h3 { margin-top: 16px; font-size: 19px; }
+.price-card .tagline { margin-top: 6px; min-height: 48px; font-size: 14.5px; color: var(--muted); }
+.price-card .price { display: flex; align-items: baseline; gap: 6px; margin-top: 18px; }
+.price-card .amount { font-size: 36px; font-weight: 800; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.price-card .per { color: var(--muted); font-size: 15px; }
+.price-card .price-note { min-height: 44px; margin: 6px 0 18px; font-size: 13.5px; color: var(--subtle); }
+.price-card .checks { margin-top: 22px; gap: 10px; font-size: 14.5px; }
+.price-card .checks li .icon { margin-top: 2px; }
+
+.pricing-faq { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 64px; padding-top: 40px; border-top: 1px solid var(--line); }
+@media (max-width: 860px) { .pricing-faq { grid-template-columns: 1fr; gap: 22px; } }
+.pricing-faq h4 { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.pricing-faq h4 .icon { color: var(--blue); }
+.pricing-faq p { margin-top: 8px; font-size: 14.5px; color: var(--muted); }
+
+/* ---- Account: plan --------------------------------------------------------------- */
+.checkout-panel { border-color: var(--blue-100); box-shadow: var(--shadow); }
+.period-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 520px; }
+.period-pick a { display: grid; gap: 2px; padding: 14px 16px; border: 1px solid var(--line-strong); border-radius: 12px; transition: border-color .15s, box-shadow .15s; }
+.period-pick a:hover { border-color: var(--blue); }
+.period-pick a.active { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); background: var(--blue-50); }
+.period-pick span { font-size: 14.5px; color: var(--ink-2); }
+.period-pick small { font-size: 12.5px; font-weight: 600; color: var(--green); }
+.hint-inline { margin-left: 6px; font-size: 13px; font-weight: 400; color: var(--subtle); }
+.plan-empty, .plan-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.plan-empty p, .plan-row p { margin-top: 4px; font-size: 14.5px; color: var(--muted); }
+.plan-row b { margin-right: 6px; }
+.plan-actions { display: flex; gap: 8px; }
+.plan-list .panel + .panel { margin-top: 12px; }
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.table th { padding: 14px 20px 10px; text-align: left; font-size: 12.5px; font-weight: 600; color: var(--subtle); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.table td { padding: 12px 20px; border-top: 1px solid var(--line); white-space: nowrap; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; color: var(--muted); }

@@ -195,4 +195,15 @@ CREATE TABLE IF NOT EXISTS zero_sso_nonces (
   nonce       TEXT        PRIMARY KEY,
   expires_at  TIMESTAMPTZ NOT NULL
 );
+
+-- ---- v7: paid plans sold through ZERO accounts --------------------------------
+
+-- zerosolutions.cl sells the plans (Flow payments) and tells FlowDesk the tier and its end date.
+-- Past the end date the workspace is back on 'free'; plan_expires_at NULL means granted by hand.
+ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS plan TEXT NOT NULL DEFAULT 'free';
+ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMPTZ;
+DO $$ BEGIN
+  ALTER TABLE workspaces ADD CONSTRAINT workspaces_plan_check CHECK (plan IN ('free', 'pro', 'max'));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 `;

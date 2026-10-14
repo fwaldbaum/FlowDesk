@@ -47,6 +47,9 @@ export const USER_SELECT = `
   u.id, u.name, u.email, u.phone, u.job_title, u.role, u.is_admin, u.workspace_id, u.created_at,
   u.email_verified_at, u.welcome_seen_at,
   w.name AS workspace_name,
+  CASE WHEN w.plan <> 'free' AND (w.plan_expires_at IS NULL OR w.plan_expires_at > now()) THEN w.plan ELSE 'free' END
+    AS plan,
+  w.plan_expires_at,
   (u.role = 'owner' AND NOT EXISTS (SELECT 1 FROM survey_responses sr WHERE sr.user_id = u.id))
     AS needs_onboarding`;
 
@@ -109,6 +112,8 @@ export const publicUser = (u) => ({
   needs_verification: emailEnabled && !u.email_verified_at,
   needs_onboarding: Boolean(u.needs_onboarding),
   needs_welcome: !u.welcome_seen_at,
+  plan: u.plan ?? 'free',
+  plan_expires_at: u.plan === 'free' ? null : (u.plan_expires_at ?? null),
   created_at: u.created_at,
 });
 
@@ -215,4 +220,38 @@ export function verifyZeroTicket(ticket) {
   const valid = claims.iss === 'zero' && claims.aud === 'flowdesk'
     && typeof claims.email === 'string' && typeof claims.nonce === 'string' && claims.nonce.length >= 16;
   return valid ? { claims } : { error: 'invalid' };
+}
+
+/** HMAC-SHA256 (hex) of a server-to-server body from ZERO, signed with the shared secret. */
+export function verifyZeroSignature(rawBody, signature) {
+  const secret = zeroSecret();
+  if (secret.length < 32 || !rawBody || typeof signature !== 'string') return false;
+  const expected = createHmac('sha256', secret).update(rawBody).digest();
+  const given = Buffer.from(signature, 'hex');
+  return given.length === expected.length && timingSafeEqual(given, expected);
+}
+
+const PLAN_RANK = { free: 0, pro: 1, max: 2 };
+
+/**
+ * Applies a paid plan sold by ZERO ({ tier, exp } in Unix seconds) to a workspace. Only moves forward:
+ * a higher tier, or the same tier for longer. A plan set without an end date (granted by hand) stays.
+ * Several people in one workspace may pay; the best plan wins. Returns true when it changed something.
+ */
+export async function applyZeroPlan(db, workspaceId, plan) {
+  if (!plan || !PLAN_RANK[plan.tier] || !Number.isInteger(plan.exp)) return false;
+  const exp = new Date(plan.exp * 1000);
+  if (exp <= new Date()) return false;
+  const { rows: [ws] } = await db.query('SELECT plan, plan_expires_at FROM workspaces WHERE id = $1 FOR UPDATE', [
+    workspaceId,
+  ]);
+  if (!ws) return false;
+  const active = ws.plan !== 'free' && (!ws.plan_expires_at || ws.plan_expires_at > new Date());
+  if (active) {
+    if (!ws.plan_expires_at) return false;
+    const diff = PLAN_RANK[plan.tier] - (PLAN_RANK[ws.plan] ?? 0);
+    if (diff < 0 || (diff === 0 && exp <= ws.plan_expires_at)) return false;
+  }
+  await db.query('UPDATE workspaces SET plan = $2, plan_expires_at = $3 WHERE id = $1', [workspaceId, plan.tier, exp]);
+  return true;
 }

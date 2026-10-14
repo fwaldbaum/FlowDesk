@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import clsx from 'clsx';
-import { ExternalLink, KeyRound, MessageCircle, RefreshCw, Send, Trash2, UserPlus } from 'lucide-react';
+import { ExternalLink, KeyRound, Sparkles, MessageCircle, RefreshCw, Send, Trash2, UserPlus } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { Header } from '../components/Header';
 import { LeadCaptureForm } from '../components/LeadCaptureForm';
 import { Avatar, Button, IconButton, StatusDot } from '../components/ui';
 import { api } from '../lib/api';
 import { STATUSES } from '../lib/constants';
-import { formatDateTime, timeAgo } from '../lib/format';
+import { formatDate, formatDateTime, timeAgo } from '../lib/format';
 import { fillTemplate, TEMPLATE_VARIABLES } from '../lib/contact';
 import type { FormSettings, User, WebhookEvent } from '../lib/types';
 import { useStore } from '../store/AppStore';
 import { CodeBlock, CopyButton } from '../components/copy';
 import { publicUrl } from '../lib/base';
+import { ZERO_PLAN_URL, ZERO_PRICING_URL } from '../lib/zero';
 
 function Section({ title, description, children, aside }: {
   title: string;
@@ -217,6 +218,7 @@ export function SettingsView() {
             )}
           </Section>
 
+          <PlanSection />
           <TeamSection />
           <AccountSection />
 
@@ -369,6 +371,44 @@ function TeamSection() {
           </div>
         </form>
       )}
+    </Section>
+  );
+}
+
+const PLAN_NAMES = { free: 'Gratis', pro: 'Pro', max: 'Max' } as const;
+
+function PlanSection() {
+  const { user } = useAuth();
+  if (!user) return null;
+  const paid = user.plan !== 'free';
+  return (
+    <Section
+      title="Plan"
+      description={
+        paid
+          ? `FlowDesk ${PLAN_NAMES[user.plan]}${user.plan_expires_at ? ` · activo hasta el ${formatDate(user.plan_expires_at)}` : ''}`
+          : 'FlowDesk Gratis'
+      }
+      aside={
+        <a
+          href={paid ? ZERO_PLAN_URL : ZERO_PRICING_URL}
+          target="_blank"
+          rel="noreferrer"
+          className={clsx(
+            'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors',
+            paid ? 'border border-line bg-raised text-fg hover:border-line-strong' : 'bg-accent text-white hover:bg-accent-hover',
+          )}
+        >
+          {paid ? 'Administrar plan' : <><Sparkles size={13} /> Mejorar plan</>}
+          <ExternalLink size={12} className="opacity-70" />
+        </a>
+      }
+    >
+      <p className="text-xs leading-relaxed text-muted">
+        {paid
+          ? 'Los planes se pagan y renuevan desde tu cuenta ZERO en zerosolutions.cl, con el mismo correo que usas aquí.'
+          : 'Con Pro o Max sumas usuarios, leads ilimitados e integraciones. Se contratan desde tu cuenta ZERO (mismo correo), con pago mensual o anual a través de Flow.'}
+      </p>
     </Section>
   );
 }
