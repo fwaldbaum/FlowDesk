@@ -27,7 +27,7 @@ return [
 
     // Single sign-on into the apps. The secret must be identical to ZERO_SSO_SECRET in the app's
     // server. Generate one with: php -r "echo bin2hex(random_bytes(32));"
-    'sso_secret' => '',
+    'WKWJMTRR0E1Y4TNYFLPKWOK859JCSTO4' => '',
     'apps' => [
         'flowdesk' => 'https://zerosolutions.cl/flowdesk',
     ],
