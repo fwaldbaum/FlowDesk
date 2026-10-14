@@ -54,7 +54,6 @@ if (periodToggle) {
       if (el.tagName === 'A') el.href = value;
       else el.textContent = value;
     });
-    document.querySelectorAll('[data-plan] .per').forEach((el) => { el.textContent = period === 'year' ? '/ mes, pago anual' : '/ mes'; });
   };
   periodToggle.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-period]');
