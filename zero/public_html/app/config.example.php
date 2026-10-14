@@ -29,6 +29,9 @@ return [
     // server. Generate one with: php -r "echo bin2hex(random_bytes(32));"
     'sso_secret' => '',
     'apps' => [
-        'flowdesk' => 'https://flowdesk-ten-ruby.vercel.app',
+        'flowdesk' => 'https://zerosolutions.cl/flowdesk',
     ],
+
+    // Where FlowDesk actually runs (Vercel). zerosolutions.cl/flowdesk forwards every request there.
+    'flowdesk_upstream' => 'https://flowdesk-ten-ruby.vercel.app',
 ];

@@ -3,6 +3,7 @@ import {
   type ReactNode,
 } from 'react';
 import { io } from 'socket.io-client';
+import { BASE } from '../lib/base';
 import { useAuth } from '../auth/AuthContext';
 import { api } from '../lib/api';
 import type { Lead, Note, Status, TodayData, Workspace } from '../lib/types';
@@ -277,7 +278,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     };
 
     const startSocket = () => {
-      const socket = io({ transports: ['websocket', 'polling'] });
+      const socket = io({ path: `${BASE}/socket.io`, transports: ['websocket', 'polling'] });
       let everConnected = false;
       socket.on('connect', () => {
         dispatch({ type: 'connection', value: 'online' });

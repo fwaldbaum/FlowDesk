@@ -12,6 +12,7 @@ import { fillTemplate, TEMPLATE_VARIABLES } from '../lib/contact';
 import type { FormSettings, User, WebhookEvent } from '../lib/types';
 import { useStore } from '../store/AppStore';
 import { CodeBlock, CopyButton } from '../components/copy';
+import { publicUrl } from '../lib/base';
 
 function Section({ title, description, children, aside }: {
   title: string;
@@ -42,7 +43,7 @@ export function SettingsView() {
   const [confirmRotate, setConfirmRotate] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const endpoint = `${window.location.origin}/api/webhooks/lead`;
+  const endpoint = `${publicUrl()}/api/webhooks/lead`;
   const keyValue = webhookKey ?? '…';
   const shownKey = revealKey ? keyValue : `${keyValue.slice(0, 6)}${'•'.repeat(18)}`;
   const urlWithKey = `${endpoint}?key=${keyValue}`;
@@ -465,7 +466,7 @@ function FormSection() {
 
   if (!workspace || !draft) return null;
 
-  const url = `${window.location.origin}/f/${workspace.form_key}`;
+  const url = `${publicUrl()}/f/${workspace.form_key}`;
   const embed = `<div id="flowdesk-form"></div>
 <script>
 (function () {

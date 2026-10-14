@@ -1,3 +1,4 @@
+import { BASE } from './base';
 import type {
   AdminAction, AdminStats, AdminUser, ContactChannel, FormSettings, ImportResult, Lead, LeadInput, Note,
   RegisterInput, Status, SurveyInput, TodayData, User, WebhookEvent, Workspace,
@@ -22,7 +23,7 @@ export function onUnauthorized(handler: (() => void) | null) {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${BASE}/api${path}`, {
     ...init,
     headers: init.body ? { 'Content-Type': 'application/json', ...init.headers } : init.headers,
   });

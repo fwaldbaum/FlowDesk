@@ -88,9 +88,16 @@ cloud de Claude).
 - Productos nuevos: agrégalos en `zero/public_html/app/apps.php`.
 - En FlowDesk, `ZeroAnnouncement` (portada y `/app`, no en `/f/:key`) anuncia la unión con ZERO una vez por navegador
   (`localStorage` `fd_zero_announcement_v1`); las cuentas nuevas no lo ven. Logos de ZERO en `client/public/brand/`.
-- Desde `ZERO_MOVE_AT` (`client/src/lib/zero.ts`, 14-oct-2026 08:00 Chile) la portada `/` redirige a zerosolutions.cl
-  (`MovedToZero`). La app, el login, el registro, `/api/auth/zero` y `/f/:key` siguen funcionando. Para posponerlo,
-  cambia esa fecha.
+- **FlowDesk se publica en zerosolutions.cl/flowdesk** (portada) y `/flowdesk/app` (panel) mediante el proxy PHP
+  `zero/public_html/app/flowdesk_proxy.php`, que reenvía todo a Vercel (`flowdesk_upstream` en `config.php`), reescribe
+  `Location` e `index.html` e inyecta `window.__FD_BASE__='/flowdesk'`. Por eso el cliente **no usa rutas absolutas**:
+  `BASE`/`withBase()`/`publicUrl()` de `client/src/lib/base.ts`, `basename` del router y `renderBuiltUrl` en
+  `vite.config.ts`. El servidor confía en `X-Zero-Client-IP`/`X-Zero-Host`/`X-Zero-Prefix` solo si `X-Zero-Proxy` es
+  igual a `ZERO_SSO_SECRET` (`req.publicBase` alimenta `appUrl()`). WebSockets no pasan por el proxy: en Vercel se usa
+  `poll`.
+- Desde `ZERO_MOVE_AT` (`client/src/lib/zero.ts`, 14-oct-2026 08:00 Chile) la portada `/` del dominio de Vercel redirige
+  a zerosolutions.cl/flowdesk (`MovedToZero`); nunca bajo el proxy. La app, el login, el registro y `/f/:key` siguen
+  funcionando en ambos dominios.
 
 ## Modelo de datos y reglas de negocio
 

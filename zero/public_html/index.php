@@ -8,6 +8,13 @@ if (PHP_SAPI === 'cli-server' && is_file(__DIR__ . parse_url($_SERVER['REQUEST_U
 
 require __DIR__ . '/app/bootstrap.php';
 
+// FlowDesk lives at /flowdesk: hand those requests to the proxy before sessions or CSRF.
+$rawPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+if ($rawPath === '/flowdesk' || str_starts_with($rawPath, '/flowdesk/')) {
+    require __DIR__ . '/app/flowdesk_proxy.php';
+    proxy_flowdesk('/flowdesk');
+}
+
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 

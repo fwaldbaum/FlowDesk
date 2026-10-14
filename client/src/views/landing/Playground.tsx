@@ -7,6 +7,7 @@ import { Reveal, softSpring } from '../../components/motion';
 import { STATUS_BY_ID } from '../../lib/constants';
 import { money } from '../../lib/format';
 import { SectionHeading } from './shared';
+import { publicUrl } from '../../lib/base';
 
 type Channel = 'form' | 'webhook';
 type Stage = 'new' | 'contacted' | 'proposal';
@@ -61,7 +62,7 @@ function Field({ icon: Icon, label, value, onChange, type = 'text', required, in
 
 /** Syntax-tinted cURL that mirrors the form, so both tabs describe the same lead. */
 function CurlSnippet({ name, company, email, value }: { name: string; company: string; email: string; value: string }) {
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tu-dominio';
+  const origin = typeof window !== 'undefined' ? publicUrl() : 'https://tu-dominio';
   const k = (t: string) => <span className="text-[#93C5FD]">"{t}"</span>;
   const s = (t: string) => <span className="text-[#86EFAC]">"{t}"</span>;
   const n = (t: string) => <span className="text-[#FCD34D]">{t || 0}</span>;

@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { MotionConfig } from 'motion/react';
 import { AuthProvider, RequireAuth } from './auth/AuthContext';
 import { MovedToZero } from './components/MovedToZero';
+import { BASE } from './lib/base';
 import { hasMovedToZero } from './lib/zero';
 import './index.css';
 
@@ -28,7 +29,7 @@ const blank = <div className="h-full bg-canvas" aria-busy="true" />;
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MotionConfig reducedMotion="user">
-      <BrowserRouter>
+      <BrowserRouter basename={BASE || undefined}>
         <Suspense fallback={blank}>
           <Routes>
             <Route path="/f/:key" element={<PublicFormPage />} />

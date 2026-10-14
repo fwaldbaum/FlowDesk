@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { ZodError } from 'zod';
+import { timingSafeEqual } from 'node:crypto';
 import { dbInfo, explainDbError, pool } from './db.js';
 import { migrate } from './migrate.js';
 import { requireAuth } from './middleware/auth.js';
@@ -21,6 +22,21 @@ app.set(
   'trust proxy',
   process.env.TRUST_PROXY ?? (process.env.VERCEL ? true : 'loopback, linklocal, uniquelocal'),
 );
+// zerosolutions.cl serves FlowDesk under /flowdesk through a PHP proxy. Requests that carry the shared
+// secret get the visitor's real IP (for rate limits) and the public base URL (for links in emails).
+const sameSecret = (a, b) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+app.use((req, _res, next) => {
+  const secret = process.env.ZERO_SSO_SECRET ?? '';
+  const sent = req.get('x-zero-proxy') ?? '';
+  if (secret.length >= 32 && sent && sameSecret(sent, secret)) {
+    const ip = req.get('x-zero-client-ip');
+    if (ip && /^[0-9a-f:.]{3,45}$/i.test(ip)) Object.defineProperty(req, 'ip', { value: ip, configurable: true });
+    const host = req.get('x-zero-host') ?? '';
+    const prefix = req.get('x-zero-prefix') ?? '';
+    if (/^[a-z0-9.-]+$/i.test(host) && /^\/[a-z0-9-]+$/i.test(prefix)) req.publicBase = `https://${host}${prefix}`;
+  }
+  next();
+});
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: false, limit: '256kb' }));
 

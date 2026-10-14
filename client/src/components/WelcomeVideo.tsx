@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Plus, Volume2, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAuth } from '../auth/AuthContext';
+import { withBase } from '../lib/base';
 import { useStore } from '../store/AppStore';
 import { dialogMotion, overlayMotion } from './motion';
 import { Button, IconButton } from './ui';
 
-const VIDEO = '/media/flowdesk-tour.mp4';
-const POSTER = '/media/flowdesk-tour.jpg';
+const VIDEO = withBase('/media/flowdesk-tour.mp4');
+const POSTER = withBase('/media/flowdesk-tour.jpg');
 
 /** One-time welcome popup with the product tour, shown right after a new account lands in the app. */
 export function WelcomeVideo() {

@@ -44,6 +44,24 @@ zero/public_html/          <- todo esto va a public_html en cPanel
 6. **Correo**: cPanel → *Cuentas de correo* → crea `noreply@zerosolutions.cl` (remitente) y `hola@zerosolutions.cl` (contacto público).
    Luego, en *Email Deliverability*, repara SPF y DKIM si aparecen en rojo, para que los correos no lleguen a spam.
 
+## FlowDesk en zerosolutions.cl/flowdesk
+
+FlowDesk sigue corriendo en Vercel (el hosting no tiene Node), pero se abre en **zerosolutions.cl/flowdesk** (portada)
+y **zerosolutions.cl/flowdesk/app** (panel). `app/flowdesk_proxy.php` reenvía cada visita a Vercel y devuelve la
+respuesta como si viniera de zerosolutions.cl. En `config.php`:
+
+```php
+'apps' => ['flowdesk' => 'https://zerosolutions.cl/flowdesk'],
+'flowdesk_upstream' => 'https://flowdesk-ten-ruby.vercel.app',
+'sso_secret' => '...',   // obligatorio: la misma clave que ZERO_SSO_SECRET en Vercel
+```
+
+Sin `sso_secret` (y su igual en Vercel), FlowDesk vería a todos los visitantes con la IP del hosting y los límites de
+intentos de login y registro se agotarían para todos a la vez.
+
+En Vercel conviene además poner `APP_URL=https://zerosolutions.cl/flowdesk`, para que los correos que no pasan por el
+proxy también enlacen ahí.
+
 ## Conectar con FlowDesk (inicio de sesión único)
 
 ZERO firma un pase de un solo uso que vence en 2 minutos. FlowDesk lo verifica en `/api/auth/zero` y entra a la
@@ -54,7 +72,7 @@ cuenta con el mismo correo, o crea una nueva. Solo se emiten pases para correos 
 2. Pégala en `app/config.php` → `'sso_secret' => '...'`.
 3. En Vercel → proyecto FlowDesk → *Settings → Environment Variables*, agrega `ZERO_SSO_SECRET` con **la misma
    clave** y vuelve a desplegar.
-4. En `config.php`, `apps.flowdesk` debe ser la dirección pública de FlowDesk.
+4. En `config.php`, `apps.flowdesk` debe ser `https://zerosolutions.cl/flowdesk`.
 
 Sin `sso_secret`, el botón *Abrir FlowDesk* lleva al login normal de FlowDesk.
 

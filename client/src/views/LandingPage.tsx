@@ -6,14 +6,15 @@ import { Playground } from './landing/Playground';
 import { Audience, Compare, Faq, FinalCta, Footer } from './landing/Sections';
 import { useEffect } from 'react';
 import { ZeroAnnouncement } from '../components/ZeroAnnouncement';
-import { ZERO_MOVE_AT, ZERO_URL } from '../lib/zero';
+import { BASE } from '../lib/base';
+import { ZERO_FLOWDESK_URL, ZERO_MOVE_AT } from '../lib/zero';
 
 export function LandingPage() {
   // A tab left open across the move still goes to ZERO at the right moment.
   useEffect(() => {
     const wait = ZERO_MOVE_AT - Date.now();
-    if (wait <= 0 || wait > 24 * 60 * 60 * 1000) return;
-    const timer = setTimeout(() => window.location.replace(ZERO_URL), wait);
+    if (BASE || wait <= 0 || wait > 24 * 60 * 60 * 1000) return;
+    const timer = setTimeout(() => window.location.replace(ZERO_FLOWDESK_URL), wait);
     return () => clearTimeout(timer);
   }, []);
 

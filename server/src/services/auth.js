@@ -176,8 +176,9 @@ export async function consumeEmailToken(token, purpose, db = { query }) {
   return row?.user_id ?? null;
 }
 
-/** Public base URL for links in emails. */
+/** Public base URL for links in emails: the zerosolutions.cl proxy's, else APP_URL, else the request host. */
 export function appUrl(req) {
+  if (req.publicBase) return req.publicBase;
   if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, '');
   const host = req.get('x-forwarded-host') ?? req.get('host');
   return `${req.protocol}://${host}`;

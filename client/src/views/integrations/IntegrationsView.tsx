@@ -12,6 +12,7 @@ import type { WebhookEvent } from '../../lib/types';
 import { useStore } from '../../store/AppStore';
 import { CATEGORIES, GUIDE_BY_ID, GUIDES, type Category, type Guide } from './guides';
 import { B, StepCard, WebhookContext } from './parts';
+import { publicUrl } from '../../lib/base';
 
 const progressKey = (id: string) => `fd:guide:${id}`;
 
@@ -203,7 +204,7 @@ export function IntegrationGuide() {
   const last = events?.find((e) => matches(guide, e));
 
   return (
-    <WebhookContext.Provider value={{ endpoint: `${window.location.origin}/api/webhooks/lead`, key }}>
+    <WebhookContext.Provider value={{ endpoint: `${publicUrl()}/api/webhooks/lead`, key }}>
       <Header title={guide.name} subtitle={`Guía de integración · ${guide.via}`} />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 md:px-6">

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Gauge, KeyRound, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { hasMovedToZero, ZERO_URL } from '../lib/zero';
+import { withBase } from '../lib/base';
+import { ZERO_MOVE_AT, ZERO_URL } from '../lib/zero';
 import { LogoMark } from './Logo';
 import { dialogMotion, overlayMotion } from './motion';
 import { Button, IconButton } from './ui';
@@ -79,8 +80,8 @@ export function ZeroAnnouncement({ suppress = false }: { suppress?: boolean }) {
                 </span>
                 <ArrowRight size={18} className="text-subtle" aria-hidden="true" />
                 <span className="flex h-12 items-center gap-2.5 rounded-xl border border-line bg-canvas px-3.5">
-                  <img src="/brand/zero-mark.svg" alt="" width={26} height={26} />
-                  <img src="/brand/zero-word-light.svg" alt="ZERO" height={15} className="h-[15px] w-auto" />
+                  <img src={withBase('/brand/zero-mark.svg')} alt="" width={26} height={26} />
+                  <img src={withBase('/brand/zero-word-light.svg')} alt="ZERO" height={15} className="h-[15px] w-auto" />
                 </span>
               </div>
               <p className="mt-5 text-center text-2xs font-semibold uppercase tracking-[0.14em] text-[#60A5FA]">Novedad</p>
@@ -91,7 +92,7 @@ export function ZeroAnnouncement({ suppress = false }: { suppress?: boolean }) {
                 Junto a ZERO decidimos unirnos: FlowDesk ahora es parte de ZERO Solutions, una empresa chilena que crea
                 software simple para emprendedores y pymes.
               </p>
-              {!hasMovedToZero() && (
+              {Date.now() < ZERO_MOVE_AT && (
                 <p className="mx-auto mt-3 max-w-sm text-center text-xs text-subtle">
                   Desde el 14 de octubre a las 8:00, la página de FlowDesk te llevará a zerosolutions.cl. Tu cuenta y
                   tu tablero siguen funcionando igual.
