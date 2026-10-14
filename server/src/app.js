@@ -12,6 +12,7 @@ import { eventsRouter } from './routes/events.js';
 import { leadsRouter } from './routes/leads.js';
 import { publicWebhooksRouter, webhooksRouter } from './routes/webhooks.js';
 import { publicFormsRouter, workspaceRouter } from './routes/workspace.js';
+import { zeroSecret } from './services/auth.js';
 import { formatZodError } from './validation.js';
 
 export const app = express();
@@ -26,7 +27,7 @@ app.set(
 // secret get the visitor's real IP (for rate limits) and the public base URL (for links in emails).
 const sameSecret = (a, b) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
 app.use((req, _res, next) => {
-  const secret = process.env.ZERO_SSO_SECRET ?? '';
+  const secret = zeroSecret();
   const sent = req.get('x-zero-proxy') ?? '';
   if (secret.length >= 32 && sent && sameSecret(sent, secret)) {
     const ip = req.get('x-zero-client-ip');

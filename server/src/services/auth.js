@@ -186,28 +186,33 @@ export function appUrl(req) {
 
 // ---- Single sign-on from a ZERO account (zerosolutions.cl) -----------------
 
+/** Shared with zerosolutions.cl; trimmed because a pasted value often carries a stray newline. */
+export const zeroSecret = () => (process.env.ZERO_SSO_SECRET ?? '').trim();
+
 /**
  * Verifies a ZERO ticket: base64url(json).base64url(HMAC-SHA256) signed with ZERO_SSO_SECRET.
- * ZERO only issues tickets for confirmed emails, so the email can be trusted. Returns the
- * claims or null; the caller must still burn the nonce so a ticket works only once.
+ * ZERO only issues tickets for confirmed emails, so the email can be trusted. Returns { claims }
+ * or { error } ('config' | 'invalid' | 'signature' | 'expired'); the caller must still burn the
+ * nonce so a ticket works only once.
  */
 export function verifyZeroTicket(ticket) {
-  const secret = process.env.ZERO_SSO_SECRET ?? '';
-  if (secret.length < 32 || typeof ticket !== 'string') return null;
+  const secret = zeroSecret();
+  if (secret.length < 32) return { error: 'config' };
+  if (typeof ticket !== 'string') return { error: 'invalid' };
   const [payload, sig] = ticket.split('.');
-  if (!payload || !sig) return null;
+  if (!payload || !sig) return { error: 'invalid' };
   const expected = createHmac('sha256', secret).update(payload).digest();
   const given = Buffer.from(sig, 'base64url');
-  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return { error: 'signature' };
   let claims;
   try {
     claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
   } catch {
-    return null;
+    return { error: 'invalid' };
   }
   const now = Math.floor(Date.now() / 1000);
-  const valid = claims?.iss === 'zero' && claims.aud === 'flowdesk'
-    && typeof claims.email === 'string' && typeof claims.nonce === 'string' && claims.nonce.length >= 16
-    && Number.isInteger(claims.exp) && claims.exp > now && claims.exp - now <= 300;
-  return valid ? claims : null;
+  if (!Number.isInteger(claims?.exp) || claims.exp <= now || claims.exp - now > 300) return { error: 'expired' };
+  const valid = claims.iss === 'zero' && claims.aud === 'flowdesk'
+    && typeof claims.email === 'string' && typeof claims.nonce === 'string' && claims.nonce.length >= 16;
+  return valid ? { claims } : { error: 'invalid' };
 }

@@ -96,7 +96,10 @@ function FormError({ message }: { message: string | null }) {
 
 /** Why a sign-in from a ZERO account (/api/auth/zero) bounced back to this page. */
 const ZERO_ERRORS: Record<string, string> = {
-  invalid: 'El acceso desde tu cuenta ZERO no es válido o expiró. Vuelve a abrir FlowDesk desde zerosolutions.cl.',
+  invalid: 'El acceso desde tu cuenta ZERO no es válido. Vuelve a abrir FlowDesk desde zerosolutions.cl.',
+  expired: 'El acceso desde tu cuenta ZERO expiró. Vuelve a abrir FlowDesk desde zerosolutions.cl.',
+  config: 'El acceso con tu cuenta ZERO no está disponible en este momento. Entra con tu correo y contraseña.',
+  signature: 'El acceso con tu cuenta ZERO no está disponible en este momento. Entra con tu correo y contraseña.',
   used: 'Ese acceso desde ZERO ya se usó. Vuelve a abrir FlowDesk desde tu cuenta ZERO.',
   suspended: 'Tu cuenta de FlowDesk está suspendida. Contacta al soporte.',
 };

@@ -122,8 +122,8 @@ authRouter.post('/auth/register', async (req, res) => {
  */
 authRouter.get('/auth/zero', async (req, res) => {
   const fail = (reason) => res.redirect(302, `/login?zero=${reason}`);
-  const claims = verifyZeroTicket(req.query.ticket);
-  if (!claims) return fail('invalid');
+  const { claims, error } = verifyZeroTicket(req.query.ticket);
+  if (!claims) return fail(error);
   const parsed = emailOnlySchema.safeParse({ email: claims.email });
   if (!parsed.success) return fail('invalid');
   const { email } = parsed.data;
