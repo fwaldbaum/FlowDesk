@@ -1,0 +1,55 @@
+/* /hallowing/config, on top of zero.css */
+.hw-admin { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; align-items: start; margin-top: 28px; }
+@media (max-width: 1100px) { .hw-admin { grid-template-columns: 1fr; } .hw-preview { order: -1; } }
+.hw-form .panel + .panel { margin-top: 16px; }
+.grid-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 18px; }
+.grid-fields .field:nth-child(2) { grid-row: span 1; }
+@media (max-width: 640px) { .grid-fields { grid-template-columns: 1fr; } }
+.hw-form textarea.input { height: auto; min-height: 44px; padding-top: 10px; padding-bottom: 10px; resize: vertical; font: inherit; }
+.hw-form .field + .field { margin-top: 0; }
+.range-field { margin-bottom: 18px; }
+.range-field label { display: flex; justify-content: space-between; gap: 12px; }
+.range-field output { font-weight: 700; color: var(--blue); font-variant-numeric: tabular-nums; }
+.range-field input[type="range"] { width: 100%; accent-color: var(--blue); }
+.checks-row { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 14px; }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--blue); }
+
+.items { display: grid; gap: 8px; margin-bottom: 14px; }
+.items-head, .item-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) 76px 48px auto; gap: 8px; align-items: center; }
+.items-head { font-size: 12px; font-weight: 600; color: var(--subtle); text-transform: uppercase; letter-spacing: .04em; }
+.item-row input[type="color"] { width: 44px; height: 40px; padding: 2px; border: 1px solid var(--line-strong); border-radius: 10px; background: #fff; cursor: pointer; }
+.item-row .input { height: 40px; }
+.pct { font-size: 13px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.row-actions { display: flex; gap: 2px; }
+.icon-btn { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.icon-btn:hover { background: var(--soft); color: var(--ink); }
+.icon-btn.danger:hover { color: var(--red); background: #fef2f2; }
+.icon-btn:disabled { opacity: .3; pointer-events: none; }
+.icon.flip { transform: rotate(180deg); }
+@media (max-width: 560px) {
+  .items-head { display: none; }
+  .item-row { grid-template-columns: 40px minmax(0, 1fr) 64px; }
+  .item-row .pct { display: none; }
+  .row-actions { grid-column: 1 / -1; justify-content: flex-end; margin-top: -4px; }
+}
+
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.swatch { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; font-size: 14.5px; }
+.swatch:hover { border-color: var(--line-strong); }
+.swatch input { width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: pointer; }
+.bg-current { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.bg-current img { width: 120px; height: 72px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+
+.save-bar { position: sticky; bottom: 0; z-index: 5; display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 14px 0;
+  background: linear-gradient(transparent, var(--soft) 30%); }
+
+.hw-preview { position: sticky; top: 88px; }
+.preview-frame { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #0d0221; box-shadow: var(--shadow); }
+.preview-bar { display: flex; align-items: center; gap: 6px; padding: 10px 12px; background: #fff; border-bottom: 1px solid var(--line); }
+.preview-bar span { width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); }
+.preview-bar small { margin-left: 8px; color: var(--subtle); font-size: 12px; }
+/* The page at a desktop size, scaled down to fit the column (--k set by the script). */
+.preview-viewport { position: relative; width: 100%; aspect-ratio: 1280 / 800; overflow: hidden; }
+.hw-preview iframe { position: absolute; top: 0; left: 0; width: 1280px; height: 800px; border: 0; transform: scale(var(--k, .33)); transform-origin: 0 0; }
+.hw-preview .reset { margin-top: 10px; text-align: center; }

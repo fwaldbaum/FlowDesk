@@ -109,7 +109,7 @@ function local_time(?string $utc, string $format = 'j M Y, H:i'): string
  */
 function migrate(PDO $pdo): void
 {
-    $version = 2;
+    $version = 3;
     try {
         $current = (int) $pdo->query("SELECT v FROM zero_meta WHERE k = 'schema'")->fetchColumn();
         if ($current >= $version) {
@@ -203,6 +203,13 @@ function migrate(PDO $pdo): void
         updated_at DATETIME NOT NULL,
         PRIMARY KEY (user_id, plan),
         CONSTRAINT zero_subscriptions_user_fk FOREIGN KEY (user_id) REFERENCES zero_users (id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    // ---- v3: editable settings (Halloween page) ----
+    $pdo->exec("CREATE TABLE IF NOT EXISTS zero_settings (
+        k VARCHAR(40) PRIMARY KEY,
+        v MEDIUMTEXT NOT NULL,
+        updated_at DATETIME NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $stmt = $pdo->prepare("INSERT INTO zero_meta (k, v) VALUES ('schema', ?) ON DUPLICATE KEY UPDATE v = VALUES(v)");
@@ -341,5 +348,6 @@ require APP_DIR . '/apps.php';
 require APP_DIR . '/plans.php';
 require APP_DIR . '/flow.php';
 require APP_DIR . '/billing.php';
+require APP_DIR . '/halloween.php';
 require APP_DIR . '/accounts.php';
 require APP_DIR . '/mail.php';

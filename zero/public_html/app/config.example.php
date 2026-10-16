@@ -40,6 +40,12 @@ return [
         'sandbox' => true,
     ],
 
+    // Panel of /hallowing/config. Generate the hash with: php -r "echo password_hash('LA_CLAVE', PASSWORD_DEFAULT);"
+    'halloween' => [
+        'admin_email' => '',
+        'admin_password_hash' => '',
+    ],
+
     // Where FlowDesk actually runs (Vercel). zerosolutions.cl/flowdesk forwards every request there.
     'flowdesk_upstream' => 'https://flowdesk-ten-ruby.vercel.app',
 ];

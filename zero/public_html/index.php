@@ -59,6 +59,30 @@ function route(string $method, string $path): void
                 'description' => 'Planes de FlowDesk y ZERO Plus, mensuales o anuales, en pesos chilenos con IVA incluido.',
             ]);
             return;
+        // ---- Halloween ------------------------------------------------------------
+        case 'GET /hallowing':
+            render('halloween/page', ['layout' => 'none', 'hw' => hw_settings()]);
+            return;
+        case 'GET /hallowing/config':
+            hw_is_admin()
+                ? render('halloween/config', ['layout' => 'none', 'hw' => hw_settings()])
+                : render('halloween/login', ['title' => 'Panel de Halloween · ZERO', 'layout' => 'auth', 'error' => null]);
+            return;
+        case 'POST /hallowing/config/entrar':
+            $error = hw_login((string) ($_POST['email'] ?? ''), (string) ($_POST['password'] ?? ''));
+            if ($error) {
+                http_response_code(422);
+                $GLOBALS['zero_old'] = ['email' => (string) ($_POST['email'] ?? '')];
+                render('halloween/login', ['title' => 'Panel de Halloween · ZERO', 'layout' => 'auth', 'error' => $error]);
+                return;
+            }
+            redirect('/hallowing/config');
+        case 'POST /hallowing/config/salir':
+            hw_logout();
+            redirect('/hallowing/config');
+        case 'POST /hallowing/config':
+            hw_save_action();
+            return;
         case 'GET /nosotros':
             render('about', ['title' => 'Sobre nosotros · ZERO Solutions', 'nav' => 'nosotros']);
             return;
@@ -463,4 +487,37 @@ function flow_return_action(): void
         }
     }
     redirect('/cuenta/plan' . ($payment ? '?orden=' . rawurlencode($payment['commerce_order']) : ''));
+}
+
+function hw_save_action(): void
+{
+    if (!hw_is_admin()) {
+        redirect('/hallowing/config');
+    }
+    $current = hw_settings();
+    if (($_POST['action'] ?? '') === 'reset') {
+        hw_delete_background($current['bg_image']);
+        hw_save(hw_defaults());
+        flash('success', 'Volvimos a la configuración inicial.');
+        redirect('/hallowing/config');
+    }
+    [$settings, $errors] = hw_from_form($_POST, $current);
+    if (!empty($_POST['bg_remove'])) {
+        hw_delete_background($current['bg_image']);
+        $settings['bg_image'] = '';
+    }
+    if (($_FILES['bg_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        try {
+            $settings['bg_image'] = hw_store_background($_FILES['bg_file']);
+            hw_delete_background($current['bg_image']);
+        } catch (RuntimeException $err) {
+            $errors[] = $err->getMessage();
+        }
+    }
+    hw_save($settings);
+    foreach ($errors as $error) {
+        flash('error', $error);
+    }
+    flash('success', 'Cambios guardados. Ya se ven en zerosolutions.cl/hallowing.');
+    redirect('/hallowing/config');
 }
