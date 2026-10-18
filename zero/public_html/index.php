@@ -375,10 +375,10 @@ function open_app_action(string $id): void
     }
     if (!config('sso_secret')) {
         // Without the shared secret the apps can't trust a ZERO session: send people to the app's own sign-in.
-        redirect(rtrim($app['url'], '/') . '/login');
+        redirect(rtrim($app['url'], '/') . ($app['login_path'] ?? '/login'));
     }
     record_app_open((int) $user['id'], $id);
-    redirect(rtrim($app['url'], '/') . '/api/auth/zero?ticket=' . rawurlencode(sso_ticket($user, $id)), 302);
+    redirect(rtrim($app['url'], '/') . ($app['sso_path'] ?? '/api/auth/zero') . '?ticket=' . rawurlencode(sso_ticket($user, $id)), 302);
 }
 
 // ---- Plans and payments -----------------------------------------------------------------

@@ -31,7 +31,7 @@
         </div>
         <div class="foot">
           <a href="/abrir/<?= e($id) ?>" class="btn btn-primary btn-sm">Abrir <?= e($app['name']) ?> <?= icon('external-link', 15) ?></a>
-          <a href="/productos/<?= e($id) ?>" class="btn btn-ghost btn-sm">Ver detalles</a>
+          <?php if (!empty($app['page'])): ?><a href="<?= e($app['page']) ?>" class="btn btn-ghost btn-sm">Ver detalles</a><?php endif; ?>
         </div>
       </div>
     <?php endforeach; ?>

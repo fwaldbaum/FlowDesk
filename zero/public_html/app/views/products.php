@@ -16,7 +16,7 @@
           <h3><?= e($app['name']) ?> <span class="badge badge-live" style="vertical-align:middle;margin-left:6px">Disponible</span></h3>
           <p><?= e($app['summary']) ?></p>
           <div class="foot">
-            <a href="/productos/<?= e($id) ?>" class="btn btn-secondary btn-sm">Ver producto</a>
+            <?php if (!empty($app['page'])): ?><a href="<?= e($app['page']) ?>" class="btn btn-secondary btn-sm">Ver producto</a><?php endif; ?>
             <a href="/abrir/<?= e($id) ?>" class="btn btn-primary btn-sm">Abrir <?= icon('arrow-right', 15, 'icon-arrow') ?></a>
           </div>
         </div>

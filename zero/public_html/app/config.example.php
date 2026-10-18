@@ -30,6 +30,7 @@ return [
     'sso_secret' => '',
     'apps' => [
         'flowdesk' => 'https://zerosolutions.cl/flowdesk',
+        'repeat' => 'https://repeat.zerosolutions.cl',
     ],
 
     // Payments with Flow (flow.cl): Mi cuenta > Datos de integración shows the apiKey and secretKey.
