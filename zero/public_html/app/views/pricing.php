@@ -2,6 +2,37 @@
 $plans = zero_plans();
 $best = max(array_map(fn ($p) => yearly_saving($p)['percent'], $plans));
 $checkoutLink = fn (string $key, string $period) => '/cuenta/plan?plan=' . rawurlencode($key) . '&periodo=' . ($period === 'year' ? 'anual' : 'mes');
+$planCard = function (string $key, array $plan) use ($checkoutLink): void {
+    $save = yearly_saving($plan);
+    $list = $plan['list_price'] ?? null;
+    $featured = !empty($plan['featured']) || !empty($plan['offer']);
+    $mark = $plan['app'] === 'zero' ? '<img src="/assets/img/zero-mark.svg" width="24" height="24" alt="">' : app_mark($plan['app'], 26);
+    ?>
+        <div class="card price-card<?= $featured ? ' featured' : '' ?><?= !empty($plan['offer']) ? ' offer' : '' ?>" data-plan>
+          <?php if (!empty($plan['offer'])): ?><span class="ribbon"><?= e($plan['offer']) ?></span><?php elseif (!empty($plan['featured'])): ?><span class="ribbon">Recomendado</span><?php endif; ?>
+          <span class="app-icon"><?= $mark ?></span>
+          <h3><?= e($plan['name']) ?></h3>
+          <p class="tagline"><?= e($plan['tagline']) ?></p>
+          <?php if ($list): ?>
+            <p class="was-price"><span data-month="<?= e(clp($list['month'])) ?>" data-year="<?= e(clp((int) round($list['year'] / 12))) ?>"><?= e(clp($list['month'])) ?></span> <b><?= (int) round((1 - $plan['price']['month'] / $list['month']) * 100) ?>% menos</b></p>
+          <?php endif; ?>
+          <div class="price">
+            <span class="amount" data-month="<?= e(clp($plan['price']['month'])) ?>" data-year="<?= e(clp($save['per_month'])) ?>"><?= e(clp($plan['price']['month'])) ?></span>
+            <span class="per">/ mes</span>
+          </div>
+          <p class="price-note"
+             data-month="<?= e('o ' . clp($plan['price']['year']) . ' al año, ahorrando ' . $save['percent'] . '%') ?>"
+             data-year="<?= e(clp($plan['price']['year']) . ' en un solo pago al año') ?>"><?= e('o ' . clp($plan['price']['year']) . ' al año, ahorrando ' . $save['percent'] . '%') ?></p>
+          <a href="<?= e($checkoutLink($key, 'month')) ?>" data-month="<?= e($checkoutLink($key, 'month')) ?>" data-year="<?= e($checkoutLink($key, 'year')) ?>"
+             class="btn <?= $featured ? 'btn-primary' : 'btn-secondary' ?> btn-block">Elegir <?= e($plan['name']) ?></a>
+          <ul class="checks">
+            <?php foreach ($plan['features'] as $feature): ?>
+              <li><?= icon('check', 18) ?><span><?= e($feature) ?></span></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+    <?php
+};
 ?>
 <section class="page-head">
   <div class="container">
@@ -33,28 +64,36 @@ $checkoutLink = fn (string $key, string $period) => '/cuenta/plan?plan=' . rawur
         </ul>
       </div>
 
-      <?php foreach ($plans as $key => $plan): $save = yearly_saving($plan); ?>
-        <div class="card price-card<?= !empty($plan['featured']) ? ' featured' : '' ?>" data-plan>
-          <?php if (!empty($plan['featured'])): ?><span class="ribbon">Recomendado</span><?php endif; ?>
-          <span class="app-icon"><?= $key === 'zero_plus' ? '<img src="/assets/img/zero-mark.svg" width="24" height="24" alt="">' : app_mark('flowdesk', 26) ?></span>
-          <h3><?= e($plan['name']) ?></h3>
-          <p class="tagline"><?= e($plan['tagline']) ?></p>
-          <div class="price">
-            <span class="amount" data-month="<?= e(clp($plan['price']['month'])) ?>" data-year="<?= e(clp($save['per_month'])) ?>"><?= e(clp($plan['price']['month'])) ?></span>
-            <span class="per">/ mes</span>
-          </div>
-          <p class="price-note"
-             data-month="<?= e('o ' . clp($plan['price']['year']) . ' al año, ahorrando ' . $save['percent'] . '%') ?>"
-             data-year="<?= e(clp($plan['price']['year']) . ' en un solo pago al año') ?>"><?= e('o ' . clp($plan['price']['year']) . ' al año, ahorrando ' . $save['percent'] . '%') ?></p>
-          <a href="<?= e($checkoutLink($key, 'month')) ?>" data-month="<?= e($checkoutLink($key, 'month')) ?>" data-year="<?= e($checkoutLink($key, 'year')) ?>"
-             class="btn <?= !empty($plan['featured']) ? 'btn-primary' : 'btn-secondary' ?> btn-block">Elegir <?= e($plan['name']) ?></a>
+      <?php foreach ($plans as $key => $plan) {
+          if ($plan['app'] !== 'repeat') {
+              $planCard($key, $plan);
+          }
+      } ?>
+    </div>
+
+    <div class="pricing-group" id="repeat">
+      <div class="pricing-group-head">
+        <span class="app-icon"><?= app_mark('repeat', 26) ?></span>
+        <div><h2>Repeat</h2><p>Tarjetas de sellos digitales para que tus clientes vuelvan.</p></div>
+      </div>
+      <div class="pricing-grid two">
+        <div class="card price-card">
+          <span class="app-icon"><?= app_mark('repeat', 26) ?></span>
+          <h3>Repeat Gratis</h3>
+          <p class="tagline">Tu tarjeta de sellos digital, lista en minutos.</p>
+          <div class="price"><span class="amount">$0</span></div>
+          <p class="price-note">Sin tarjeta, para siempre.</p>
+          <a href="<?= e(zero_app('repeat')['url'] ?? '/productos') ?>" class="btn btn-secondary btn-block">Empezar gratis</a>
           <ul class="checks">
-            <?php foreach ($plan['features'] as $feature): ?>
-              <li><?= icon('check', 18) ?><span><?= e($feature) ?></span></li>
-            <?php endforeach; ?>
+            <li><?= icon('check', 18) ?><span>Clientes ilimitados</span></li>
+            <li><?= icon('check', 18) ?><span>Escáner con la cámara y búsqueda por teléfono</span></li>
+            <li><?= icon('check', 18) ?><span>Tarjeta en el celular y en Google Wallet</span></li>
+            <li><?= icon('check', 18) ?><span>Clientes por recuperar y cumpleaños del mes</span></li>
+            <li><?= icon('check', 18) ?><span>Afiche con tu QR para imprimir</span></li>
           </ul>
         </div>
-      <?php endforeach; ?>
+        <?php $planCard('repeat_pro', zero_plan('repeat_pro')); ?>
+      </div>
     </div>
 
     <div class="pricing-faq">

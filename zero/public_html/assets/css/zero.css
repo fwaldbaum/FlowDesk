@@ -439,3 +439,19 @@ a.app-tile:hover .app-icon { transform: translateY(-3px); box-shadow: var(--shad
 .table th { padding: 14px 20px 10px; text-align: left; font-size: 12.5px; font-weight: 600; color: var(--subtle); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
 .table td { padding: 12px 20px; border-top: 1px solid var(--line); white-space: nowrap; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; color: var(--muted); }
+
+/* Pricing groups and launch offers */
+.pricing-grid.two { grid-template-columns: repeat(2, 1fr); max-width: 760px; margin: 0 auto; }
+@media (max-width: 620px) { .pricing-grid.two { grid-template-columns: 1fr; } }
+.pricing-group { margin-top: 72px; }
+.pricing-group-head { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 28px; text-align: left; }
+.pricing-group-head .app-icon { width: 48px; height: 48px; border-radius: 14px; }
+.pricing-group-head h2 { font-size: 26px; }
+.pricing-group-head p { margin-top: 2px; color: var(--muted); }
+.price-card.offer { border-color: #059669; box-shadow: 0 0 0 1px #059669, var(--shadow); }
+.price-card.offer .ribbon { background: #059669; }
+.price-card .was-price { margin-top: 16px; font-size: 14px; color: var(--subtle); }
+.price-card .was-price span { text-decoration: line-through; }
+.price-card .was-price b { margin-left: 6px; color: var(--green); font-weight: 600; }
+.price-card .was-price + .price { margin-top: 2px; }
+@media (min-width: 900px) { .split-reverse > :first-child { order: 2; } }

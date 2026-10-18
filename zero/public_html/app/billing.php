@@ -195,26 +195,31 @@ function app_plan_claim(int $userId, string $app): array
 function push_app_plans(array $user): void
 {
     $secret = (string) config('sso_secret');
-    $upstream = rtrim((string) config('flowdesk_upstream', ''), '/');
-    if ($secret === '' || $upstream === '' || !$user['email_verified_at']) {
+    if ($secret === '' || !$user['email_verified_at']) {
         return;
     }
-    $body = json_encode(['app' => 'flowdesk', 'email' => $user['email'], 'iat' => time()] + app_plan_claim((int) $user['id'], 'flowdesk'));
-    $ch = curl_init($upstream . '/api/zero/plan');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => $body,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_TIMEOUT => 15,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-Zero-Signature: ' . hash_hmac('sha256', $body, $secret)],
-    ]);
-    $answer = curl_exec($ch);
-    $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    curl_close($ch);
-    if ($status !== 200) {
-        // Not fatal: the next sign-in ticket carries the same plan.
-        error_log("[zero] flowdesk plan push answered {$status}: " . substr((string) $answer, 0, 200));
+    $targets = array_filter([
+        'flowdesk' => rtrim((string) config('flowdesk_upstream', ''), '/') . '/api/zero/plan',
+        'repeat' => !empty(config('apps', [])['repeat']) ? rtrim(config('apps')['repeat'], '/') . '/zero/plan' : null,
+    ], fn ($url) => $url && str_starts_with($url, 'http'));
+    foreach ($targets as $app => $endpoint) {
+        $body = json_encode(['app' => $app, 'email' => $user['email'], 'iat' => time()] + app_plan_claim((int) $user['id'], $app));
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'X-Zero-Signature: ' . hash_hmac('sha256', $body, $secret)],
+        ]);
+        $answer = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+        if ($status !== 200) {
+            // Not fatal: the next sign-in ticket carries the same plan.
+            error_log("[zero] {$app} plan push answered {$status}: " . substr((string) $answer, 0, 200));
+        }
     }
 }
 

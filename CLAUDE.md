@@ -89,8 +89,10 @@ cloud de Claude).
 - **Planes y pagos** se venden en ZERO (`/precios`, `/cuenta/plan`) con **Flow** (flow.cl): `app/plans.php` (precios
   CLP con IVA, `covers` por app), `app/flow.php` (firma HMAC de la API v3), `app/billing.php` (periodos prepagados,
   `zero_payments`/`zero_subscriptions`, crédito en días al subir de plan), `app/cron.php` (recordatorios). Un pago
-  confirmado se aplica una sola vez y se avisa a FlowDesk en `POST /api/zero/plan` (firma `X-Zero-Signature` sobre el
-  cuerpo exacto); el ticket SSO también trae `plan`. En FlowDesk: `workspaces.plan` (`free|pro|max`) y
+  confirmado se aplica una sola vez y se avisa a cada app con la misma firma (`X-Zero-Signature` sobre el cuerpo
+  exacto): FlowDesk en `POST /api/zero/plan`, Repeat en `POST /zero/plan`. El ticket SSO también trae `plan`.
+  Planes: FlowDesk Pro/Max, **Repeat Pro** (`repeat_pro`, $6.990 con `list_price` tachado de $14.990) y ZERO Plus
+  (cubre todo). Repeat (repo `fwaldbaum/repeat`, repeat.zerosolutions.cl) aparece en la portada y en `/precios#repeat`. En FlowDesk: `workspaces.plan` (`free|pro|max`) y
   `plan_expires_at` (v7); `applyZeroPlan` solo avanza (más tier o más tiempo). **Los límites por plan aún no se
   aplican** en FlowDesk.
 - En FlowDesk, `ZeroAnnouncement` (portada y `/app`, no en `/f/:key`) anuncia la unión con ZERO una vez por navegador

@@ -17,6 +17,7 @@ function zero_plans(): array
 {
     return [
         'flowdesk_pro' => [
+            'app' => 'flowdesk',
             'name' => 'FlowDesk Pro',
             'tagline' => 'Para emprendedores que venden todos los días.',
             'rank' => 1,
@@ -31,6 +32,7 @@ function zero_plans(): array
             ],
         ],
         'flowdesk_max' => [
+            'app' => 'flowdesk',
             'name' => 'FlowDesk Max',
             'tagline' => 'Para empresas con equipo de ventas.',
             'rank' => 2,
@@ -45,14 +47,34 @@ function zero_plans(): array
                 'Acceso anticipado a reportes y automatizaciones',
             ],
         ],
+        'repeat_pro' => [
+            'app' => 'repeat',
+            'name' => 'Repeat Pro',
+            'tagline' => 'Tarjetas de sellos con tu marca y herramientas para que vuelvan más.',
+            'rank' => 1,
+            'covers' => ['repeat' => 'pro'],
+            'price' => ['month' => 6990, 'year' => 69900],
+            // Launch offer: the regular price, shown crossed out.
+            'list_price' => ['month' => 14990, 'year' => 149900],
+            'offer' => 'Oferta de lanzamiento',
+            'features' => [
+                'Sin el logo de Repeat en tus tarjetas',
+                'Ícono de sello a tu medida',
+                'Regalo de cumpleaños automático',
+                'Horas de sellos dobles',
+                'Trae a un amigo: ambos ganan sellos',
+                'Exportar clientes a Excel',
+            ],
+        ],
         'zero_plus' => [
+            'app' => 'zero',
             'name' => 'ZERO Plus',
             'tagline' => 'Todas las aplicaciones de ZERO en una sola suscripción.',
             'rank' => 3,
             'covers' => ['flowdesk' => 'max', '*' => 'max'],
             'price' => ['month' => 29990, 'year' => 299900],
             'features' => [
-                'FlowDesk Max incluido',
+                'FlowDesk Max y Repeat Pro incluidos',
                 'Cada aplicación nueva de ZERO, sin pagar aparte',
                 'Usuarios ilimitados',
                 'Sesión de configuración inicial con nuestro equipo',

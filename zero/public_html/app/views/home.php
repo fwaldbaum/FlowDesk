@@ -1,8 +1,9 @@
+<?php $repeatUrl = zero_app('repeat')['url'] ?? null; ?>
 <section class="hero">
   <div class="container">
     <a href="/productos/flowdesk" class="pill"><span>Conoce <b>FlowDesk</b>, el CRM para pymes</span><span class="pill-tag">Nuevo</span></a>
     <h1>Software simple para <span class="accent hook">hacer crecer</span> tu negocio</h1>
-    <p class="lead">ZERO Solutions crea herramientas para emprendedores y pymes. Con una sola cuenta ZERO accedes a todas nuestras aplicaciones, empezando por FlowDesk.</p>
+    <p class="lead">ZERO Solutions crea herramientas para emprendedores y pymes. Con una sola cuenta ZERO accedes a todas nuestras aplicaciones: FlowDesk para vender y Repeat para que tus clientes vuelvan.</p>
     <div class="hero-ctas">
       <a href="/registro" class="btn btn-primary btn-lg">Crear cuenta gratis <?= icon('arrow-right', 18, 'icon-arrow') ?></a>
       <a href="/productos/flowdesk" class="btn btn-secondary btn-lg">Conocer FlowDesk</a>
@@ -11,7 +12,8 @@
 
     <div class="apps-row" aria-label="Aplicaciones ZERO">
       <a href="/productos/flowdesk" class="app-tile"><span class="app-icon"><?= app_mark('flowdesk', 34) ?></span>FlowDesk</a>
-      <?php for ($i = 0; $i < 3; $i++): ?>
+      <?php if ($repeatUrl): ?><a href="#repeat" class="app-tile"><span class="app-icon"><?= app_mark('repeat', 34) ?></span>Repeat</a><?php endif; ?>
+      <?php for ($i = 0; $i < ($repeatUrl ? 2 : 3); $i++): ?>
         <span class="app-tile soon"><span class="app-icon"><?= icon('plus', 26) ?></span>Próximamente</span>
       <?php endfor; ?>
     </div>
@@ -76,14 +78,43 @@
   </div>
 </section>
 
-<section class="section section-soft">
+<?php if ($repeatUrl): ?>
+<section class="section section-soft" id="repeat">
+  <div class="container split split-reverse">
+    <div class="reveal">
+      <div class="product-head">
+        <span class="app-icon"><?= app_mark('repeat', 30) ?></span>
+        <div><b>Repeat</b><div class="tag">Fidelización</div></div>
+      </div>
+      <h2 class="h2" style="margin-top:24px">Que tus clientes <span class="hook">vuelvan</span>, una y otra vez</h2>
+      <p class="sub">La tarjeta de sellos de cartón, ahora en el celular de tus clientes. <span class="hook hook-thin">Sin apps que descargar</span> y sin tarjetas perdidas.</p>
+      <ul class="checks">
+        <li><?= icon('check', 18) ?><span><b>Tarjeta digital</b> con tus colores, tu logo y tu premio.</span></li>
+        <li><?= icon('check', 18) ?><span><b>Sellos con la cámara</b> de tu celular, o buscando al cliente por su teléfono.</span></li>
+        <li><?= icon('check', 18) ?><span><b>Google Wallet</b>: la tarjeta se guarda junto a sus pases y se actualiza sola.</span></li>
+        <li><?= icon('check', 18) ?><span><b>Clientes por recuperar</b> con un mensaje de WhatsApp ya escrito.</span></li>
+        <li><?= icon('check', 18) ?><span><b>Repeat Pro</b>: cumpleaños, sellos dobles, trae a un amigo y tu marca sin la nuestra.</span></li>
+      </ul>
+      <div class="hero-ctas" style="justify-content:flex-start">
+        <a href="/registro?next=/abrir/repeat" class="btn btn-primary">Probar Repeat gratis <?= icon('arrow-right', 17, 'icon-arrow') ?></a>
+        <a href="/precios#repeat" class="btn btn-secondary">Ver Repeat Pro</a>
+      </div>
+    </div>
+    <div class="reveal">
+      <?php partial('browser', ['src' => '/assets/img/repeat/panel.webp', 'alt' => 'Panel de Repeat con clientes, sellos del día y actividad reciente', 'url' => 'repeat.zerosolutions.cl']); ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
+<section class="section">
   <div class="container center">
     <span class="eyebrow">Cómo funciona</span>
     <h2 class="h2">Empieza en <span class="hook">tres pasos</span></h2>
     <div class="steps" style="text-align:left">
       <div class="step reveal"><span class="step-num">1</span><h3>Crea tu cuenta ZERO</h3><p>Solo tu nombre, tu correo y una contraseña.</p></div>
       <div class="step reveal"><span class="step-num">2</span><h3>Confirma tu correo</h3><p>Te enviamos un enlace para activar tu cuenta.</p></div>
-      <div class="step reveal"><span class="step-num">3</span><h3>Abre tus aplicaciones</h3><p>Entra a FlowDesk desde tu cuenta, sin otra contraseña.</p></div>
+      <div class="step reveal"><span class="step-num">3</span><h3>Abre tus aplicaciones</h3><p>Entra a FlowDesk o Repeat desde tu cuenta, sin otra contraseña.</p></div>
     </div>
   </div>
 </section>
