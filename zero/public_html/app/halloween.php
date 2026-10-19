@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 /**
- * Halloween event at /hallowing: a witch, a "fingerprint" you hold for a few seconds, then a prize wheel.
+ * Halloween event at /hallowing: a "how did you behave?" bar (1-100), a "fingerprint" you hold for a few seconds,
+ * then a prize wheel. The better the score, the likelier the rare (low-weight) prizes; then it starts over.
  * Everything visible is editable at /hallowing/config, stored as one JSON row in zero_settings.
  * Admin access: config('halloween') holds the admin email and a password_hash(), never the password.
  */
@@ -18,7 +19,12 @@ function hw_defaults(): array
         'sensor_hint' => 'Mantén presionado el sensor',
         'sensor_done' => 'Huella aceptada',
         'result_title' => 'La bruja te dio',
-        'replay_label' => 'Girar otra vez',
+        'replay_label' => 'Jugar otra vez',
+        'behavior_title' => '¿Cómo te portaste este año?',
+        'behavior_hint' => 'Mientras mejor te portaste, más suerte tendrás con los premios difíciles.',
+        'behavior_low' => 'Muy mal',
+        'behavior_high' => 'Muy bien',
+        'behavior_button' => 'Listo, ir a la huella',
         'footer' => 'Una sorpresa de ZERO Solutions',
         'bg_from' => '#2a0a4a',
         'bg_to' => '#0d0221',
@@ -35,6 +41,7 @@ function hw_defaults(): array
         'spin_seconds' => 8,
         'spin_speed' => 2.5,
         'allow_replay' => true,
+        'behavior' => true,
         'sound' => true,
         'bats' => true,
         'stars' => true,
@@ -53,9 +60,10 @@ function hw_defaults(): array
 const HW_TEXTS = [
     'title' => 80, 'subtitle' => 200, 'sensor_title' => 40, 'sensor_hint' => 80, 'sensor_done' => 40,
     'result_title' => 60, 'replay_label' => 30, 'footer' => 120,
+    'behavior_title' => 60, 'behavior_hint' => 160, 'behavior_low' => 24, 'behavior_high' => 24, 'behavior_button' => 40,
 ];
 const HW_COLORS = ['bg_from', 'bg_to', 'accent', 'text', 'robe', 'hat', 'skin', 'potion_1', 'potion_2', 'potion_3'];
-const HW_FLAGS = ['allow_replay', 'sound', 'bats', 'stars'];
+const HW_FLAGS = ['allow_replay', 'behavior', 'sound', 'bats', 'stars'];
 /** Numbers: [min, max]. */
 const HW_NUMBERS = ['hold_seconds' => [1, 15], 'spin_seconds' => [2, 30], 'spin_speed' => [0.5, 6]];
 

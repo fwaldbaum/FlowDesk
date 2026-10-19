@@ -1,4 +1,5 @@
-// Halloween page: hold the "fingerprint" for a few seconds, then the wheel spins and lands on a prize.
+// Halloween page: rate how you behaved (1-100), hold the "fingerprint", then the wheel lands on a prize.
+// A higher score makes the rare (low-weight) prizes likelier. After the prize it starts over for the next person.
 (() => {
   const cfg = JSON.parse(document.getElementById('hw-config').textContent);
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -59,6 +60,55 @@
     o.stop(a.currentTime + dur);
   };
   const fanfare = () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.35, 'triangle', 0.08), i * 120));
+
+  // ---- Behavior bar ---------------------------------------------------------------------
+  // Score 1-100 turns into an exponent on each prize's weight: 1 favors the common prizes even more,
+  // ~50 keeps the configured odds, 100 flips them so the rarest prize is the most likely.
+  const odds = (score) => {
+    const t = (score - 1) / 99;
+    const exp = 1 + 4 * (0.5 - t);
+    return cfg.items.map((it) => Math.pow(Math.max(1, it.weight || 1), exp));
+  };
+  const behavior = $('.hw-behavior');
+  const scoreInput = $('.behavior-input');
+  let score = 50.5;
+  const moods = [[20, 'Muy travieso'], [40, 'Algo travieso'], [60, 'Más o menos'], [80, 'Bastante bien'], [100, 'Un angelito']];
+  const minWeight = Math.min(...cfg.items.map((it) => Math.max(1, it.weight || 1)));
+  const sameWeights = cfg.items.every((it) => Math.max(1, it.weight || 1) === minWeight);
+  const paintScore = () => {
+    const v = Number(scoreInput.value);
+    $('.score-num').textContent = v;
+    $('.score-mood').textContent = moods.find(([max]) => v <= max)[1];
+    behavior.style.setProperty('--score', v);
+    behavior.style.setProperty('--hue', Math.round((v - 1) * 1.2));
+    scoreInput.setAttribute('aria-valuetext', `${v} de 100, ${moods.find(([max]) => v <= max)[1]}`);
+    if (!sameWeights) {
+      const w = odds(v);
+      const total = w.reduce((a, b) => a + b, 0);
+      const rare = cfg.items.reduce((sum, it, i) => sum + (Math.max(1, it.weight || 1) === minWeight ? w[i] : 0), 0);
+      $('.behavior-luck b').textContent = `${Math.round((rare / total) * 100)}%`;
+      $('.behavior-luck').hidden = false;
+    }
+  };
+  if (behavior) {
+    scoreInput.addEventListener('input', () => {
+      paintScore();
+      tone(220 + Number(scoreInput.value) * 6, 0.05, 'sine', 0.02);
+    });
+    paintScore();
+    $('.behavior-go').addEventListener('click', () => {
+      score = Number(scoreInput.value);
+      ctx()?.resume();
+      tone(660, 0.15);
+      behavior.classList.add('leaving');
+      setTimeout(() => {
+        behavior.hidden = true;
+        behavior.classList.remove('leaving');
+        sensorWrap.hidden = false;
+        sensor.focus({ preventScroll: true });
+      }, 450);
+    });
+  }
 
   // ---- Fingerprint sensor ------------------------------------------------------------
   const sensor = $('.hw-sensor');
@@ -189,10 +239,10 @@
   build();
 
   const pick = () => {
-    const total = items.reduce((s, it) => s + Math.max(1, it.weight || 1), 0);
-    let r = Math.random() * total;
+    const w = odds(score);
+    let r = Math.random() * w.reduce((a, b) => a + b, 0);
     for (let i = 0; i < items.length; i++) {
-      r -= Math.max(1, items[i].weight || 1);
+      r -= w[i];
       if (r < 0) return i;
     }
     return items.length - 1;
@@ -275,9 +325,39 @@
     fanfare();
     confetti(item.color);
     result.querySelector('.replay')?.focus();
+    // Without a button the page returns to the start by itself, ready for the next person.
+    const next = result.querySelector('.result-next b');
+    if (next) {
+      let left = 8;
+      next.textContent = left;
+      const timer = setInterval(() => {
+        left -= 1;
+        next.textContent = left;
+        if (left <= 0) {
+          clearInterval(timer);
+          restart();
+        }
+      }, 1000);
+    }
   };
-  result.querySelector('.replay')?.addEventListener('click', () => {
+  // Next person: back to the behavior bar (or the sensor when the bar is off).
+  const restart = () => {
     result.hidden = true;
-    spin();
-  });
+    wheelWrap.hidden = true;
+    sensorWrap.classList.remove('leaving');
+    sensor.classList.remove('done', 'holding');
+    progress = 0;
+    paint();
+    hintText.textContent = cfg.sensorHint;
+    if (behavior) {
+      scoreInput.value = 50;
+      paintScore();
+      sensorWrap.hidden = true;
+      behavior.hidden = false;
+      scoreInput.focus({ preventScroll: true });
+    } else {
+      sensorWrap.hidden = false;
+    }
+  };
+  result.querySelector('.replay')?.addEventListener('click', restart);
 })();

@@ -100,8 +100,32 @@ button { font: inherit; color: inherit; }
 
 /* ---- Panel ------------------------------------------------------------------------- */
 .hw-panel { position: relative; display: grid; place-items: center; min-height: 380px; animation: rise 1s .3s cubic-bezier(.2, .8, .2, 1) both; }
-.hw-sensor-wrap, .hw-wheel-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; }
-.hw-sensor-wrap.leaving { animation: vanish .5s ease-in forwards; }
+.hw-sensor-wrap, .hw-wheel-wrap, .hw-behavior { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.hw-sensor-wrap.leaving, .hw-behavior.leaving { animation: vanish .5s ease-in forwards; }
+.hw-sensor-wrap:not([hidden]) { animation: appear-soft .5s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes appear-soft { from { opacity: 0; transform: translateY(14px) scale(.96); } }
+
+/* ---- Behavior bar ---------------------------------------------------------------- */
+.hw-behavior { --mood: hsl(var(--hue, 60) 85% 60%); width: min(440px, 100%); animation: appear-soft .5s cubic-bezier(.2, .8, .2, 1) both; }
+.hw-behavior .hw-panel-title { margin-bottom: 10px; font-size: 15px; }
+.score { display: grid; justify-items: center; gap: 2px; }
+.score-num { font-family: 'Creepster', 'Inter', cursive; font-size: clamp(72px, 12vw, 104px); line-height: 1; color: var(--mood);
+  text-shadow: 0 0 30px color-mix(in srgb, var(--mood) 60%, transparent), 0 4px 0 rgba(0,0,0,.35); font-variant-numeric: tabular-nums; transition: color .2s; }
+.score-mood { font-size: 18px; font-weight: 700; color: var(--mood); transition: color .2s; }
+.behavior-range { width: 100%; margin-top: 22px; }
+.behavior-input { -webkit-appearance: none; appearance: none; width: 100%; height: 18px; margin: 0; border-radius: 99px; cursor: pointer; background: transparent; touch-action: pan-y; }
+.behavior-input::-webkit-slider-runnable-track { height: 18px; border-radius: 99px; background: linear-gradient(90deg, #ef4444, #f97316 30%, #facc15 55%, #4ade80); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 0 24px -6px var(--mood); }
+.behavior-input::-moz-range-track { height: 18px; border-radius: 99px; background: linear-gradient(90deg, #ef4444, #f97316 30%, #facc15 55%, #4ade80); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+.behavior-input::-webkit-slider-thumb { -webkit-appearance: none; width: 40px; height: 40px; margin-top: -11px; border-radius: 50%; border: 4px solid #12081f;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--mood) 60%); box-shadow: 0 0 0 3px var(--mood), 0 6px 18px rgba(0,0,0,.5); transition: transform .15s; }
+.behavior-input::-moz-range-thumb { width: 32px; height: 32px; border-radius: 50%; border: 4px solid #12081f; background: radial-gradient(circle at 35% 30%, #fff, var(--mood) 60%); box-shadow: 0 0 0 3px var(--mood), 0 6px 18px rgba(0,0,0,.5); }
+.behavior-input:active::-webkit-slider-thumb { transform: scale(1.12); }
+.behavior-input:focus-visible { outline: 3px solid var(--accent); outline-offset: 8px; }
+.behavior-ends { display: flex; justify-content: space-between; margin-top: 12px; font-size: 13.5px; font-weight: 600; opacity: .75; }
+.behavior-hint { margin: 18px 0 0; max-width: 380px; font-size: 15px; line-height: 1.5; opacity: .8; }
+.behavior-luck { margin: 10px 0 0; font-size: 14px; opacity: .85; }
+.behavior-luck b { color: var(--mood); font-size: 16px; font-variant-numeric: tabular-nums; }
+.behavior-go { margin-top: 22px; }
 @keyframes vanish { to { opacity: 0; transform: scale(.85); filter: blur(6px); } }
 .hw-panel-title { margin: 0 0 22px; font-size: 14px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; opacity: .8; }
 
@@ -165,6 +189,8 @@ button { font: inherit; color: inherit; }
 .result-kicker { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; opacity: .75; }
 .result-prize { margin: 14px 0 0; font-family: 'Creepster', 'Inter', cursive; font-size: clamp(34px, 6vw, 50px); line-height: 1.05; color: var(--prize, var(--accent));
   text-shadow: 0 0 22px color-mix(in srgb, var(--prize, var(--accent)) 60%, transparent); overflow-wrap: anywhere; }
+.result-next { margin: 22px 0 0; font-size: 14px; opacity: .75; }
+.result-next b { color: var(--accent); font-variant-numeric: tabular-nums; }
 .hw-btn { margin-top: 26px; height: 46px; padding: 0 24px; border: 0; border-radius: 12px; cursor: pointer; font-weight: 700;
   background: var(--accent); color: #12081f; box-shadow: 0 10px 30px -10px var(--accent); transition: transform .15s, filter .15s; }
 .hw-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }

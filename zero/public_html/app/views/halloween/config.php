@@ -24,11 +24,11 @@ $check = function (string $key, string $label) use ($hw): void {
 ?>
 <!doctype html>
 <html lang="es" class="no-js">
-<head>
+<head><meta charset="utf-8">
 <?php partial('head', ['title' => 'Panel de Halloween · ZERO']); ?>
 <meta name="robots" content="noindex">
-<link rel="stylesheet" href="/assets/css/halloween-admin.css?v=2">
-<script defer src="/assets/js/halloween-admin.js?v=2"></script>
+<link rel="stylesheet" href="/assets/css/halloween-admin.css?v=3">
+<script defer src="/assets/js/halloween-admin.js?v=3"></script>
 </head>
 <body class="acct-body">
 <header class="acct-top">
@@ -61,8 +61,20 @@ $check = function (string $key, string $label) use ($hw): void {
             <?php $text('sensor_hint', 'Instrucción del sensor'); ?>
             <?php $text('sensor_done', 'Mensaje al aceptar la huella'); ?>
             <?php $text('result_title', 'Texto sobre el premio', 'Aparece encima del premio que salió.'); ?>
-            <?php $text('replay_label', 'Botón para volver a girar'); ?>
+            <?php $text('replay_label', 'Botón para el siguiente turno', 'Después del premio vuelve a la barra de comportamiento.'); ?>
             <?php $text('footer', 'Pie de página', 'Déjalo vacío para no mostrarlo.'); ?>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h3>Barra de comportamiento</h3><p>Antes de la huella, cada persona marca del 1 al 100 cómo se portó. Mientras más alto, más probable que salga el premio con menos peso.</p></div>
+          <div class="panel-body grid-fields">
+            <div class="checks-row"><?php $check('behavior', 'Mostrar la barra antes de la huella'); ?></div>
+            <?php $text('behavior_title', 'Pregunta'); ?>
+            <?php $text('behavior_hint', 'Explicación', '', true); ?>
+            <?php $text('behavior_low', 'Texto del 1'); ?>
+            <?php $text('behavior_high', 'Texto del 100'); ?>
+            <?php $text('behavior_button', 'Botón para seguir'); ?>
           </div>
         </section>
 
@@ -74,7 +86,7 @@ $check = function (string $key, string $label) use ($hw): void {
             <?php $range('spin_speed', 'Velocidad (vueltas por segundo)', 'v/s', 0.1); ?>
             <p class="hint" data-turns>La ruleta dará unas <b></b> vueltas antes de detenerse.</p>
             <div class="checks-row">
-              <?php $check('allow_replay', 'Permitir girar otra vez'); ?>
+              <?php $check('allow_replay', 'Mostrar botón para el siguiente turno (si no, vuelve sola a los 8 s)'); ?>
               <?php $check('sound', 'Sonidos'); ?>
             </div>
           </div>
@@ -100,6 +112,7 @@ $check = function (string $key, string $label) use ($hw): void {
               <?php endforeach; ?>
             </div>
             <button type="button" class="btn btn-secondary btn-sm" data-add><?= icon('plus', 16) ?> Agregar premio</button>
+            <p class="hint" data-odds>La columna Prob. es para quien marca 50. El premio más difícil (<b data-odds-name></b>) sale <b data-odds-low></b> de las veces si marcan 1, y <b data-odds-high></b> si marcan 100.</p>
           </div>
         </section>
 

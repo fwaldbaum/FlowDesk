@@ -16,6 +16,19 @@
       r.querySelector('[data-remove]').disabled = rows().length <= 2;
     });
     form.querySelector('[data-add]').disabled = rows().length >= MAX;
+
+    // Same formula as the public page: weight ^ (1 + 4 * (0.5 - t)), t = (score - 1) / 99.
+    const share = (score, i) => {
+      const exp = 1 + 4 * (0.5 - (score - 1) / 99);
+      const w = weights.map((x) => Math.pow(x, exp));
+      return `${Math.round((w[i] / w.reduce((a, b) => a + b, 0)) * 100)}%`;
+    };
+    const odds = form.querySelector('[data-odds]');
+    const rare = weights.indexOf(Math.min(...weights));
+    odds.hidden = weights.every((x) => x === weights[0]);
+    odds.querySelector('[data-odds-name]').textContent = rows()[rare]?.querySelector('[name="item_label[]"]').value || 'sin nombre';
+    odds.querySelector('[data-odds-low]').textContent = share(1, rare);
+    odds.querySelector('[data-odds-high]').textContent = share(100, rare);
   };
   form.querySelector('[data-add]').addEventListener('click', () => {
     const row = tpl.content.firstElementChild.cloneNode(true);
@@ -54,7 +67,10 @@
   refreshRanges();
 
   // Live preview inside the iframe (same origin): colors as CSS variables, texts by selector.
-  const targets = { title: '.hw-title', subtitle: '.hw-subtitle', sensor_title: '.hw-panel-title', sensor_hint: '.hint-text', footer: '.hw-foot' };
+  const targets = {
+    title: '.hw-title', subtitle: '.hw-subtitle', sensor_title: '.hw-sensor-wrap .hw-panel-title', sensor_hint: '.hint-text', footer: '.hw-foot',
+    behavior_title: '.hw-behavior-title', behavior_hint: '.behavior-hint', behavior_button: '.behavior-go',
+  };
   const doc = () => frame.contentDocument;
   form.addEventListener('input', (e) => {
     const t = e.target;

@@ -12,12 +12,13 @@ $public = [
     'holdSeconds' => $hw['hold_seconds'], 'spinSeconds' => $hw['spin_seconds'], 'spinSpeed' => $hw['spin_speed'],
     'allowReplay' => $hw['allow_replay'], 'sound' => $hw['sound'], 'stars' => $hw['stars'], 'bats' => $hw['bats'],
     'items' => $hw['items'], 'sensorHint' => $hw['sensor_hint'], 'sensorDone' => $hw['sensor_done'],
+    'behavior' => $hw['behavior'],
 ];
 ?>
 <!doctype html>
 <html lang="es">
-<head>
-<meta charset="utf-8">
+<head><meta charset="utf-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($hw['title']) ?></title>
 <meta name="description" content="<?= e($hw['subtitle']) ?>">
@@ -28,8 +29,8 @@ $public = [
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="/assets/css/halloween.css?v=1">
-<script defer src="/assets/js/halloween.js?v=1"></script>
+<link rel="stylesheet" href="/assets/css/halloween.css?v=3">
+<script defer src="/assets/js/halloween.js?v=3"></script>
 </head>
 <body class="hw" style="<?= $style ?>">
 <div class="hw-sky" aria-hidden="true">
@@ -175,7 +176,20 @@ $public = [
     </figure>
 
     <section class="hw-panel" aria-live="polite">
-      <div class="hw-sensor-wrap" data-step="sensor">
+      <?php if ($hw['behavior']): ?>
+        <div class="hw-behavior" data-step="behavior">
+          <h2 class="hw-panel-title hw-behavior-title"><?= e($hw['behavior_title']) ?></h2>
+          <div class="score" aria-hidden="true"><span class="score-num">50</span><span class="score-mood">Más o menos</span></div>
+          <div class="behavior-range">
+            <input type="range" min="1" max="100" step="1" value="50" class="behavior-input" aria-label="<?= e($hw['behavior_title']) ?>" aria-valuetext="50 de 100">
+            <div class="behavior-ends"><span><?= e($hw['behavior_low']) ?> · 1</span><span>100 · <?= e($hw['behavior_high']) ?></span></div>
+          </div>
+          <p class="behavior-hint"><?= e($hw['behavior_hint']) ?></p>
+          <p class="behavior-luck" hidden>Suerte con el premio más difícil: <b></b></p>
+          <button type="button" class="hw-btn behavior-go"><?= e($hw['behavior_button']) ?></button>
+        </div>
+      <?php endif; ?>
+      <div class="hw-sensor-wrap" data-step="sensor"<?= $hw['behavior'] ? ' hidden' : '' ?>>
         <h2 class="hw-panel-title"><?= e($hw['sensor_title']) ?></h2>
         <button type="button" class="hw-sensor" aria-label="<?= e($hw['sensor_hint']) ?>">
           <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
@@ -212,7 +226,7 @@ $public = [
   <div class="hw-result-card" role="dialog" aria-modal="true" aria-labelledby="hw-result-title">
     <p class="result-kicker" id="hw-result-title"><?= e($hw['result_title']) ?></p>
     <p class="result-prize"></p>
-    <?php if ($hw['allow_replay']): ?><button type="button" class="hw-btn replay"><?= e($hw['replay_label']) ?></button><?php endif; ?>
+    <?php if ($hw['allow_replay']): ?><button type="button" class="hw-btn replay"><?= e($hw['replay_label']) ?></button><?php else: ?><p class="result-next">Siguiente turno en <b>8</b> s</p><?php endif; ?>
   </div>
   <canvas class="hw-confetti" aria-hidden="true"></canvas>
 </div>
