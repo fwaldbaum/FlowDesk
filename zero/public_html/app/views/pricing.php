@@ -65,7 +65,7 @@ $planCard = function (string $key, array $plan) use ($checkoutLink): void {
       </div>
 
       <?php foreach ($plans as $key => $plan) {
-          if ($plan['app'] !== 'repeat') {
+          if (!in_array($plan['app'], ['repeat', 'venu'], true)) {
               $planCard($key, $plan);
           }
       } ?>
@@ -95,6 +95,33 @@ $planCard = function (string $key, array $plan) use ($checkoutLink): void {
         <?php $planCard('repeat_pro', zero_plan('repeat_pro')); ?>
       </div>
     </div>
+
+    <?php if (zero_app('venu')): ?>
+    <div class="pricing-group" id="venu">
+      <div class="pricing-group-head">
+        <span class="app-icon"><?= app_mark('venu', 26) ?></span>
+        <div><h2>Venu</h2><p>Tu página de eventos para vender entradas con Flow o Stripe.</p></div>
+      </div>
+      <div class="pricing-grid two">
+        <div class="card price-card">
+          <span class="app-icon"><?= app_mark('venu', 26) ?></span>
+          <h3>Venu Gratis</h3>
+          <p class="tagline">Tu página de eventos y tus entradas, sin comisión.</p>
+          <div class="price"><span class="amount">$0</span></div>
+          <p class="price-note">Sin tarjeta, para siempre.</p>
+          <a href="<?= e(zero_app('venu')['url']) ?>" class="btn btn-secondary btn-block">Empezar gratis</a>
+          <ul class="checks">
+            <li><?= icon('check', 18) ?><span>Tu página en tumarca.venu.zerosolutions.cl</span></li>
+            <li><?= icon('check', 18) ?><span>Cobros con Flow y Stripe, directo a tu cuenta</span></li>
+            <li><?= icon('check', 18) ?><span>Editor de página y de correo</span></li>
+            <li><?= icon('check', 18) ?><span>Hasta 3 eventos publicados y 25 correos al día</span></li>
+            <li><?= icon('check', 18) ?><span>Entradas con QR y control de acceso</span></li>
+          </ul>
+        </div>
+        <?php $planCard('venu_pro', zero_plan('venu_pro')); ?>
+      </div>
+    </div>
+    <?php endif; ?>
 
     <div class="pricing-faq">
       <div>

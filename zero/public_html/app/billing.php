@@ -201,6 +201,7 @@ function push_app_plans(array $user): void
     $targets = array_filter([
         'flowdesk' => rtrim((string) config('flowdesk_upstream', ''), '/') . '/api/zero/plan',
         'repeat' => !empty(config('apps', [])['repeat']) ? rtrim(config('apps')['repeat'], '/') . '/zero/plan' : null,
+        'venu' => !empty(config('apps', [])['venu']) ? rtrim(config('apps')['venu'], '/') . '/zero/plan' : null,
     ], fn ($url) => $url && str_starts_with($url, 'http'));
     foreach ($targets as $app => $endpoint) {
         $body = json_encode(['app' => $app, 'email' => $user['email'], 'iat' => time()] + app_plan_claim((int) $user['id'], $app));

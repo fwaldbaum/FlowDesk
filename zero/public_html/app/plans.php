@@ -66,6 +66,25 @@ function zero_plans(): array
                 'Exportar clientes a Excel',
             ],
         ],
+        'venu_pro' => [
+            'app' => 'venu',
+            'name' => 'Venu Pro',
+            'tagline' => 'Tus eventos con tu dominio, tu marca y más correos.',
+            'rank' => 1,
+            'covers' => ['venu' => 'pro'],
+            'price' => ['month' => 5990, 'year' => 59900],
+            // Launch offer: the regular price, shown crossed out.
+            'list_price' => ['month' => 22990, 'year' => 229900],
+            'offer' => 'Oferta de lanzamiento',
+            'features' => [
+                'Tu propio dominio',
+                'Hasta 500 correos al día',
+                'Sin la marca de Venu',
+                'Galería, video, cuenta regresiva y preguntas',
+                'Eventos ilimitados',
+                'Exportar asistentes',
+            ],
+        ],
         'zero_plus' => [
             'app' => 'zero',
             'name' => 'ZERO Plus',
@@ -74,7 +93,7 @@ function zero_plans(): array
             'covers' => ['flowdesk' => 'max', '*' => 'max'],
             'price' => ['month' => 29990, 'year' => 299900],
             'features' => [
-                'FlowDesk Max y Repeat Pro incluidos',
+                'FlowDesk Max, Repeat Pro y Venu Pro incluidos',
                 'Cada aplicación nueva de ZERO, sin pagar aparte',
                 'Usuarios ilimitados',
                 'Sesión de configuración inicial con nuestro equipo',
