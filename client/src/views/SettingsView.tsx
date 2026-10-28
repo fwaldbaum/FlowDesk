@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import clsx from 'clsx';
-import { ExternalLink, KeyRound, Sparkles, MessageCircle, RefreshCw, Send, Trash2, UserPlus } from 'lucide-react';
+import { Check, ExternalLink, KeyRound, Lock, Sparkles, MessageCircle, RefreshCw, Send, Trash2, UserPlus } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { Header } from '../components/Header';
 import { LeadCaptureForm } from '../components/LeadCaptureForm';
+import { PlanBadge, UpgradeNote, usePlan } from '../components/plan';
 import { Avatar, Button, IconButton, StatusDot } from '../components/ui';
 import { api } from '../lib/api';
 import { STATUSES } from '../lib/constants';
+import { PLAN_NAMES } from '../lib/plans';
 import { formatDate, formatDateTime, timeAgo } from '../lib/format';
 import { fillTemplate, TEMPLATE_VARIABLES } from '../lib/contact';
 import type { FormSettings, User, WebhookEvent } from '../lib/types';
@@ -36,9 +38,10 @@ function Section({ title, description, children, aside }: {
 }
 
 export function SettingsView() {
-  const { webhookTick, connection, toast, realtimeMode } = useStore();
+  const { webhookTick, connection, toast, realtimeMode, askUpgrade } = useStore();
   const [events, setEvents] = useState<WebhookEvent[] | null>(null);
   const { user } = useAuth();
+  const { limits } = usePlan();
   const [webhookKey, setWebhookKey] = useState<string | null>(null);
   const [revealKey, setRevealKey] = useState(false);
   const [confirmRotate, setConfirmRotate] = useState(false);
@@ -67,6 +70,7 @@ export function SettingsView() {
   }, [loadEvents, webhookTick]);
 
   const sendTest = async () => {
+    if (!limits.webhook) return askUpgrade('Recibe leads desde tus anuncios, tu web, Zapier, Make o n8n con el webhook.');
     setSending(true);
     try {
       await api.sendTestWebhook();
@@ -111,6 +115,7 @@ export function SettingsView() {
       <Header title="Configuración" subtitle="Integraciones y ajustes del espacio de trabajo" />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-6 md:px-6">
+          <PlanSection />
           <FormSection />
           <WhatsAppSection />
 
@@ -124,6 +129,12 @@ export function SettingsView() {
               </Button>
             }
           >
+            {!limits.webhook && (
+              <UpgradeNote>
+                El webhook es parte de FlowDesk Pro. Con el plan Gratis las solicitudes se rechazan y quedan en la actividad
+                de abajo; tu formulario web sí sigue recibiendo leads.
+              </UpgradeNote>
+            )}
             <div className="space-y-4">
               <div>
                 <p className="label">URL del webhook (incluye la clave de tu espacio)</p>
@@ -218,7 +229,6 @@ export function SettingsView() {
             )}
           </Section>
 
-          <PlanSection />
           <TeamSection />
           <AccountSection />
 
@@ -268,6 +278,8 @@ function TeamSection() {
   const [error, setError] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const isOwner = me?.role === 'owner';
+  const { plan, limits } = usePlan();
+  const full = users !== null && users.length >= limits.users;
 
   useEffect(() => {
     api.users().then(setUsers).catch(() => setUsers([]));
@@ -341,7 +353,19 @@ function TeamSection() {
         ))}
       </ul>
 
-      {isOwner && (
+      {isOwner && full && plan === 'max' && (
+        <p className="mt-4 text-xs text-subtle">Llegaste al máximo de {limits.users} usuarios de FlowDesk Max.</p>
+      )}
+      {isOwner && full && plan !== 'max' && (
+        <div className="mt-4">
+          <UpgradeNote className="">
+            {plan === 'free'
+              ? 'El plan Gratis es para 1 usuario. Con Pro suma hasta 3 personas a tu equipo, y hasta 15 con Max.'
+              : `Tu plan Pro llega a ${limits.users} usuarios. Con Max son hasta 15.`}
+          </UpgradeNote>
+        </div>
+      )}
+      {isOwner && !full && (
         <form onSubmit={add} className="mt-4 rounded-lg border border-line bg-canvas p-4">
           <p className="mb-3 flex items-center gap-2 text-xs font-medium text-muted">
             <UserPlus size={14} /> Añadir miembro
@@ -375,18 +399,51 @@ function TeamSection() {
   );
 }
 
-const PLAN_NAMES = { free: 'Gratis', pro: 'Pro', max: 'Max' } as const;
+function Meter({ label, used, max }: { label: string; used: number | null; max: number | null }) {
+  const full = max !== null && used !== null && used >= max;
+  return (
+    <div className="rounded-lg border border-line bg-canvas px-3 py-2.5">
+      <div className="flex items-baseline justify-between gap-2 text-xs">
+        <span className="text-muted">{label}</span>
+        <span className={clsx('tabular-nums', full ? 'text-amber-300' : 'text-fg')}>
+          {used ?? '…'}
+          <span className="text-subtle"> / {max ?? 'sin límite'}</span>
+        </span>
+      </div>
+      {max !== null && (
+        <div className="mt-2 h-1 overflow-hidden rounded-full bg-raised">
+          <div
+            className={clsx('h-full rounded-full transition-[width] duration-500', full ? 'bg-amber-400' : 'bg-accent')}
+            style={{ width: `${Math.min(100, ((used ?? 0) / max) * 100)}%` }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 function PlanSection() {
   const { user } = useAuth();
+  const { leads } = useStore();
+  const { plan, paid, limits } = usePlan();
+  const [users, setUsers] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.users().then((list) => setUsers(list.length)).catch(() => {});
+  }, []);
+
   if (!user) return null;
-  const paid = user.plan !== 'free';
+  const features = [
+    { label: 'Importar y exportar CSV', on: limits.csv },
+    { label: 'Webhook e integraciones', on: limits.webhook },
+    { label: 'Plantilla de WhatsApp', on: limits.whatsapp_template },
+  ];
   return (
     <Section
       title="Plan"
       description={
         paid
-          ? `FlowDesk ${PLAN_NAMES[user.plan]}${user.plan_expires_at ? ` · activo hasta el ${formatDate(user.plan_expires_at)}` : ''}`
+          ? `FlowDesk ${PLAN_NAMES[plan]}${user.plan_expires_at ? ` · activo hasta el ${formatDate(user.plan_expires_at)}` : ''}`
           : 'FlowDesk Gratis'
       }
       aside={
@@ -404,10 +461,27 @@ function PlanSection() {
         </a>
       }
     >
-      <p className="text-xs leading-relaxed text-muted">
+      {paid && (
+        <p className="mb-3 flex items-center gap-2 text-[13px] text-fg">
+          <PlanBadge plan={plan} /> Tu espacio tiene todas las funciones de {PLAN_NAMES[plan]}.
+        </p>
+      )}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Meter label="Leads" used={Object.keys(leads).length} max={limits.leads} />
+        <Meter label="Usuarios" used={users} max={limits.users} />
+      </div>
+      <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+        {features.map((f) => (
+          <li key={f.label} className={clsx('flex items-center gap-1.5 text-xs', f.on ? 'text-fg/90' : 'text-subtle')}>
+            {f.on ? <Check size={13} className="text-emerald-400" /> : <Lock size={12} />}
+            {f.label}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs leading-relaxed text-muted">
         {paid
           ? 'Los planes se pagan y renuevan desde tu cuenta ZERO en zerosolutions.cl, con el mismo correo que usas aquí.'
-          : 'Con Pro o Max sumas usuarios, leads ilimitados e integraciones. Se contratan desde tu cuenta ZERO (mismo correo), con pago mensual o anual a través de Flow.'}
+          : 'Con Pro o Max sumas usuarios, leads ilimitados e integraciones. Se contratan desde tu cuenta ZERO (mismo correo), con pago mensual o anual a través de Mercado Pago.'}
       </p>
     </Section>
   );
@@ -698,6 +772,7 @@ function WhatsAppSection() {
   const [country, setCountry] = useState('');
   const [saving, setSaving] = useState(false);
   const isOwner = user?.role === 'owner';
+  const { limits } = usePlan();
 
   useEffect(() => {
     if (!workspace) return;
@@ -717,7 +792,11 @@ function WhatsAppSection() {
   const save = async () => {
     setSaving(true);
     try {
-      setWorkspace(await api.updateWorkspace({ whatsapp_template: template, country_code: country }));
+      setWorkspace(
+        await api.updateWorkspace(
+          limits.whatsapp_template ? { whatsapp_template: template, country_code: country } : { country_code: country },
+        ),
+      );
       toast({ tone: 'success', title: 'Mensaje de WhatsApp guardado' });
     } catch (err) {
       toast({ tone: 'error', title: 'No se pudo guardar', description: (err as Error).message });
@@ -731,19 +810,23 @@ function WhatsAppSection() {
       title="WhatsApp"
       description="Mensaje que se escribe solo al pulsar «WhatsApp» en un lead. Cada contacto queda registrado en su historial."
     >
+      {!limits.whatsapp_template && (
+        <UpgradeNote>Con el plan Gratis se usa este mensaje. Escribe el tuyo, con las variables del lead, en FlowDesk Pro.</UpgradeNote>
+      )}
       <fieldset disabled={!isOwner} className="grid gap-5 lg:grid-cols-2">
         <div className="space-y-3">
           <div>
             <label className="label" htmlFor="wa-template">Mensaje</label>
             <textarea
               id="wa-template"
+              disabled={!limits.whatsapp_template}
               rows={4}
               maxLength={500}
               className="input resize-none leading-relaxed"
               value={template}
               onChange={(e) => setTemplate(e.target.value)}
             />
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className={clsx('mt-2 flex flex-wrap gap-1.5', !limits.whatsapp_template && 'hidden')}>
               {TEMPLATE_VARIABLES.map((v) => (
                 <button
                   key={v.key}

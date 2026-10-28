@@ -5,6 +5,7 @@ import { query } from '../db.js';
 import { requireOwner } from '../middleware/auth.js';
 import { createRateLimiter } from '../services/auth.js';
 import { createLead } from '../services/leads.js';
+import { DEFAULT_WHATSAPP_TEMPLATE, PLAN_LIMITS, planRequired, workspacePlan } from '../services/plans.js';
 import { FORM_DEFAULTS, formatZodError, formSubmitSchema, workspaceUpdateSchema } from '../validation.js';
 
 const withDefaults = (settings) => ({
@@ -22,7 +23,13 @@ async function loadWorkspace(id) {
     'SELECT id, name, country_code, whatsapp_template, form_key, form_settings FROM workspaces WHERE id = $1',
     [id],
   );
-  return { ...ws, form_settings: withDefaults(ws.form_settings) };
+  const { whatsapp_template: custom } = PLAN_LIMITS[await workspacePlan(id)];
+  return {
+    ...ws,
+    // A custom message is kept while on Gratis and comes back with Pro.
+    whatsapp_template: custom ? ws.whatsapp_template : DEFAULT_WHATSAPP_TEMPLATE,
+    form_settings: withDefaults(ws.form_settings),
+  };
 }
 
 workspaceRouter.get('/workspace', async (req, res) => {
@@ -31,6 +38,9 @@ workspaceRouter.get('/workspace', async (req, res) => {
 
 workspaceRouter.patch('/workspace', requireOwner, async (req, res) => {
   const patch = workspaceUpdateSchema.parse(req.body);
+  if (patch.whatsapp_template !== undefined && !PLAN_LIMITS[await workspacePlan(req.user.workspace_id)].whatsapp_template) {
+    throw planRequired('Personalizar el mensaje de WhatsApp es parte de FlowDesk Pro.');
+  }
   const fields = Object.keys(patch);
   if (fields.length) {
     await query(

@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { RequireAdmin, useAuth } from './auth/AuthContext';
 import { LeadSlideOver } from './components/LeadSlideOver';
 import { NewLeadModal } from './components/NewLeadModal';
+import { UpgradeDialog } from './components/plan';
 import { Sidebar } from './components/Sidebar';
 import { Toasts } from './components/Toasts';
 import { WelcomeVideo } from './components/WelcomeVideo';
@@ -55,6 +56,7 @@ export function App() {
       </motion.main>
       <LeadSlideOver />
       <NewLeadModal />
+      <UpgradeDialog />
       <Toasts />
       <WelcomeVideo />
       <ZeroAnnouncement suppress={Boolean(user?.needs_welcome)} />

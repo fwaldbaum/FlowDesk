@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 import { query } from '../db.js';
 import { requireOwner } from '../middleware/auth.js';
 import { createLead } from '../services/leads.js';
+import { planLimits } from '../services/plans.js';
 import { formatZodError, webhookLeadSchema } from '../validation.js';
 
 /** Public: third parties post leads here; the workspace is identified by its webhook key. */
@@ -20,6 +21,11 @@ async function logEvent({ workspaceId = null, status, leadId = null, payload, er
 }
 
 async function ingest(req, res, workspaceId, payload) {
+  if (!(await planLimits(workspaceId)).webhook) {
+    const error = 'El webhook es parte de FlowDesk Pro. Mejora tu plan en zerosolutions.cl/precios.';
+    await logEvent({ workspaceId, status: 'rejected', payload, error, ip: req.ip });
+    return res.status(402).json({ ok: false, code: 'PLAN_REQUIRED', error });
+  }
   try {
     const data = webhookLeadSchema.parse(payload);
     const lead = await createLead(workspaceId, data, { origin: 'webhook' });
@@ -65,7 +71,7 @@ webhooksRouter.post('/webhooks/test', async (req, res) => {
     { name: 'Diego Navarro', company: 'Navarro & Asociados', source: 'Referido', value: 6500 },
   ];
   const sample = samples[Math.floor(Math.random() * samples.length)];
-  const slug = sample.name.toLowerCase().split(' ')[0];
+  const slug = sample.name.toLowerCase().split(' ')[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   return ingest(req, res, req.user.workspace_id, {
     ...sample,
     email: `${slug}@example.com`,

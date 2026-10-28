@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, CircleCheck, Clock, RefreshCw, Search } from 'lucide-react';
 import { Header } from '../../components/Header';
 import { ease } from '../../components/motion';
+import { ProTag, UpgradeNote, usePlan } from '../../components/plan';
 import { IconButton } from '../../components/ui';
 import { api } from '../../lib/api';
 import { formatDateTime, timeAgo } from '../../lib/format';
@@ -15,6 +16,9 @@ import { B, StepCard, WebhookContext } from './parts';
 import { publicUrl } from '../../lib/base';
 
 const progressKey = (id: string) => `fd:guide:${id}`;
+
+/** Native guides use the embeddable form (free); the rest go through the webhook (Pro). */
+const usesWebhook = (guide: Guide) => guide.via !== 'Nativo';
 
 function readProgress(id: string): number[] {
   try {
@@ -70,6 +74,7 @@ function ViaBadge({ via }: { via: string }) {
 
 export function IntegrationsView() {
   const { events } = useWebhookEvents();
+  const { limits } = usePlan();
   const [category, setCategory] = useState<Category | 'all'>('all');
   const [query, setQuery] = useState('');
 
@@ -144,6 +149,8 @@ export function IntegrationsView() {
                             <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-2xs font-medium text-emerald-300">
                               <CircleCheck size={11} /> Conectado
                             </span>
+                          ) : !limits.webhook && usesWebhook(g) ? (
+                            <ProTag />
                           ) : done > 0 ? (
                             <span className="rounded-full bg-raised px-2 py-0.5 text-2xs text-muted">
                               {Math.min(done, g.steps.length)}/{g.steps.length} pasos
@@ -183,6 +190,7 @@ export function IntegrationGuide() {
   const { events, reload } = useWebhookEvents();
   const [key, setKey] = useState<string | null>(null);
   const [done, setDone] = useState<number[]>(() => readProgress(id));
+  const { limits } = usePlan();
 
   useEffect(() => {
     api.webhookConfig().then((c) => setKey(c.key)).catch(() => {});
@@ -211,6 +219,13 @@ export function IntegrationGuide() {
           <Link to="/app/integraciones" className="inline-flex w-fit items-center gap-1.5 text-xs text-muted transition-colors hover:text-fg">
             <ArrowLeft size={13} /> Todas las integraciones
           </Link>
+
+          {!limits.webhook && usesWebhook(guide) && (
+            <UpgradeNote className="">
+              Esta integración envía los leads al webhook, que es parte de FlowDesk Pro. Con el plan Gratis puedes seguir la
+              guía, pero los leads no entrarán hasta que mejores tu plan.
+            </UpgradeNote>
+          )}
 
           <section className="relative overflow-hidden rounded-xl border border-line bg-surface p-5 md:p-6">
             <div aria-hidden className="bg-grid absolute inset-0 opacity-40" />

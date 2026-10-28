@@ -8,6 +8,7 @@ import {
   deleteSession, getSession, hashPassword, isConfiguredAdmin, loadUser, parseCookies, publicUser,
   SESSION_COOKIE, SESSION_TTL_MS, applyZeroPlan, verifyPassword, verifyZeroTicket,
 } from '../services/auth.js';
+import { planLimits, planRequired, usage } from '../services/plans.js';
 import { emailEnabled, resetPasswordMessage, sendEmail, verifyEmailMessage, welcomeMessage } from '../services/email.js';
 import {
   emailOnlySchema, loginSchema, memberSchema, passwordChangeSchema, passwordResetSchema, registerSchema,
@@ -352,6 +353,12 @@ usersRouter.get('/users', async (req, res) => {
 
 usersRouter.post('/users', requireOwner, async (req, res) => {
   const data = memberSchema.parse(req.body);
+  const [{ users: max }, { users }] = await Promise.all([planLimits(req.user.workspace_id), usage(req.user.workspace_id)]);
+  if (users >= max) {
+    throw planRequired(max === 1
+      ? 'El plan Gratis es para 1 usuario. Con FlowDesk Pro suma hasta 3 personas a tu equipo.'
+      : `Tu plan permite hasta ${max} usuarios.${max < 15 ? ' Con FlowDesk Max son hasta 15.' : ''}`);
+  }
   try {
     const { rows: [user] } = await query(
       `INSERT INTO users (workspace_id, name, email, password_hash, role, email_verified_at)

@@ -4,7 +4,7 @@ export const ZERO_URL = 'https://zerosolutions.cl';
 /** FlowDesk's home on the ZERO site (served by its proxy). */
 export const ZERO_FLOWDESK_URL = 'https://zerosolutions.cl/flowdesk/';
 
-/** Plans are sold on the ZERO site, paid with Flow. */
+/** Plans are sold on the ZERO site, paid with Mercado Pago. */
 export const ZERO_PRICING_URL = 'https://zerosolutions.cl/precios';
 export const ZERO_PLAN_URL = 'https://zerosolutions.cl/cuenta/plan';
 

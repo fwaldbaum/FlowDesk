@@ -3,6 +3,7 @@ import {
   addNote, createLead, deleteLead, deleteNote, getLead, importLeads, listLeads, listNotes, logContact,
   moveLead, today, updateLead, updateNote,
 } from '../services/leads.js';
+import { assertLeadRoom, planLimits, planRequired } from '../services/plans.js';
 import {
   contactSchema, importSchema,
   leadCreateSchema, leadMoveSchema, leadUpdateSchema, noteCreateSchema, noteUpdateSchema,
@@ -34,6 +35,9 @@ leadsRouter.get('/today', async (req, res) => {
 });
 
 leadsRouter.post('/leads/import', async (req, res) => {
+  if (!(await planLimits(ws(req))).csv) {
+    throw planRequired('Importar contactos desde CSV es parte de FlowDesk Pro.');
+  }
   const { rows, skipDuplicates } = importSchema.parse(req.body);
   const valid = [];
   const invalid = [];
@@ -47,6 +51,7 @@ leadsRouter.post('/leads/import', async (req, res) => {
 });
 
 leadsRouter.post('/leads', async (req, res) => {
+  await assertLeadRoom(ws(req));
   const lead = await createLead(ws(req), leadCreateSchema.parse(req.body));
   res.status(201).json(lead);
 });

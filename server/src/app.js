@@ -102,7 +102,7 @@ app.use((err, _req, res, _next) => {
   }
   const status = err.status ?? 500;
   if (status >= 500) console.error(err);
-  res.status(status).json({ error: status >= 500 ? 'Error interno' : err.message });
+  res.status(status).json({ error: status >= 500 ? 'Error interno' : err.message, code: status < 500 ? err.code : undefined });
 });
 
 // Vercel's Express preset uses the default export as the request handler.

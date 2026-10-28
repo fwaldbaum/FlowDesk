@@ -95,8 +95,11 @@ cloud de Claude).
   Planes: FlowDesk Pro/Max, **Repeat Pro** (`repeat_pro`, $6.990 con `list_price` tachado de $14.990), **Venu Pro**
   (`venu_pro`, $5.990 con $22.990 tachado; Venu avisado en `POST /zero/plan`) y ZERO Plus (cubre todo). Repeat (repo `fwaldbaum/repeat`, repeat.zerosolutions.cl) y Venu (entradas y eventos, venu.zerosolutions.cl) aparecen en la
   portada y en `/precios#repeat` y `/precios#venu`. En FlowDesk: `workspaces.plan` (`free|pro|max`) y
-  `plan_expires_at` (v7); `applyZeroPlan` solo avanza (más tier o más tiempo). **Los límites por plan aún no se
-  aplican** en FlowDesk.
+  `plan_expires_at` (v7); `applyZeroPlan` solo avanza (más tier o más tiempo). **Límites por plan** en
+  `server/src/services/plans.js` (`PLAN_LIMITS`, espejo en `client/src/lib/plans.ts`): Gratis = 1 usuario, 100 leads, sin
+  CSV, sin webhook y mensaje de WhatsApp por defecto; Pro = 3 usuarios; Max = 15. El servidor responde 402
+  `PLAN_REQUIRED` y el cliente abre `UpgradeDialog` (`askUpgrade`). El formulario web sigue recibiendo leads sobre el
+  límite y nunca se borra nada al vencer un plan. Insignia del plan en `Sidebar` y uso en Configuración → Plan.
 - En FlowDesk, `ZeroAnnouncement` (portada y `/app`, no en `/f/:key`) anuncia la unión con ZERO una vez por navegador
   (`localStorage` `fd_zero_announcement_v1`); las cuentas nuevas no lo ven. Logos de ZERO en `client/public/brand/`.
 - **FlowDesk se publica en zerosolutions.cl/flowdesk** (portada) y `/flowdesk/app` (panel) mediante el proxy PHP
@@ -160,4 +163,4 @@ Detalle en `.env.example` y `README.md`.
 - No hay tests automatizados en el repo.
 - Ideas acordadas para el futuro: responsable por lead, etiquetas y campos personalizados, motivo de pérdida,
   reportes (embudo y rendimiento por origen), automatizaciones, integración con Meta Lead Ads o WhatsApp Business,
-  límites por plan (Gratis/Pro/Max), modo claro y PWA.
+  modo claro y PWA.

@@ -144,6 +144,9 @@ interface Store extends DataState {
   /** Workspace settings (WhatsApp template, country code, form). */
   workspace: Workspace | null;
   setWorkspace: (ws: Workspace) => void;
+  /** Why the "Disponible con Pro" dialog is open (null = closed). */
+  upgradeReason: string | null;
+  askUpgrade: (reason: string | null) => void;
 
   toasts: Toast[];
   toast: (t: Omit<Toast, 'id'>) => void;
@@ -163,6 +166,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [realtimeMode, setRealtimeMode] = useState<'socket' | 'poll'>('socket');
   const [today, setToday] = useState<TodayData | null>(null);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [upgradeReason, askUpgrade] = useState<string | null>(null);
 
   useEffect(() => {
     api.workspace().then(setWorkspace).catch(() => {});
@@ -380,11 +384,13 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       refreshToday,
       workspace,
       setWorkspace,
+      upgradeReason,
+      askUpgrade,
       toasts,
       toast,
       dismissToast,
     }),
-    [state, reload, loadNotes, moveLead, search, selectedId, newLeadOpen, realtimeMode, today, refreshToday, workspace, toasts, toast, dismissToast],
+    [state, reload, loadNotes, moveLead, search, selectedId, newLeadOpen, realtimeMode, today, refreshToday, workspace, upgradeReason, toasts, toast, dismissToast],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

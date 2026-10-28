@@ -1,11 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
-import { LogOut, Plug, Settings, ShieldCheck, SquareKanban, Sun, Users } from 'lucide-react';
+import { LogOut, Plug, Settings, ShieldCheck, Sparkles, SquareKanban, Sun, Users } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { useStore } from '../store/AppStore';
+import { ZERO_PRICING_URL } from '../lib/zero';
 import { Logo, LogoMark } from './Logo';
 import { spring } from './motion';
+import { PlanBadge } from './plan';
 import { Avatar } from './ui';
 
 const NAV = [
@@ -89,13 +91,30 @@ export function Sidebar() {
         <span className="hidden md:inline">{conn.label}</span>
       </div>
 
+      {user?.plan === 'free' && user.role === 'owner' && (
+        <a
+          href={ZERO_PRICING_URL}
+          target="_blank"
+          rel="noreferrer"
+          title="Mejorar a FlowDesk Pro"
+          className="mx-2 mb-2 flex h-8 items-center justify-center gap-2 rounded-md border border-line text-xs font-medium text-muted transition-colors hover:border-accent/50 hover:text-fg md:justify-start md:px-2.5"
+        >
+          <Sparkles size={14} className="text-accent-soft" />
+          <span className="hidden md:inline">Mejorar a Pro</span>
+        </a>
+      )}
+
       {user && (
         <div className="flex flex-col items-center gap-2 border-t border-line p-2 md:flex-row md:gap-2.5 md:p-3">
           <span title={`${user.name} · ${user.email}`}>
             <Avatar name={user.name} size="sm" />
           </span>
+          <PlanBadge plan={user.plan} className="md:hidden" />
           <div className="hidden min-w-0 flex-1 md:block">
-            <p className="truncate text-xs font-medium text-fg">{user.name}</p>
+            <p className="flex items-center gap-1.5 text-xs font-medium text-fg">
+              <span className="truncate">{user.name}</span>
+              <PlanBadge plan={user.plan} />
+            </p>
             <p className="truncate text-2xs text-subtle">{user.workspace_name ?? user.email}</p>
           </div>
           <button

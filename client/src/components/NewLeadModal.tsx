@@ -6,12 +6,13 @@ import { SOURCE_SUGGESTIONS, STATUSES } from '../lib/constants';
 import type { LeadInput, Status } from '../lib/types';
 import { useStore } from '../store/AppStore';
 import { dialogMotion, overlayMotion } from './motion';
+import { isPlanError } from './plan';
 import { Button, IconButton } from './ui';
 
 const EMPTY = { name: '', company: '', email: '', phone: '', source: '', value: '', status: 'new' as Status, notes: '' };
 
 export function NewLeadModal() {
-  const { newLeadOpen, setNewLeadOpen, dispatch, toast, openLead } = useStore();
+  const { newLeadOpen, setNewLeadOpen, dispatch, toast, openLead, askUpgrade } = useStore();
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -55,7 +56,12 @@ export function NewLeadModal() {
         action: { label: 'Abrir', onClick: () => openLead(lead.id) },
       });
     } catch (err) {
-      setError((err as Error).message);
+      if (isPlanError(err)) {
+        setNewLeadOpen(false);
+        askUpgrade(err.message);
+      } else {
+        setError((err as Error).message);
+      }
     } finally {
       setSaving(false);
     }

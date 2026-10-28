@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Bell, Download, Upload, Users } from '
 import { ImportModal } from '../components/ImportModal';
 import { downloadFile, leadsToCsv } from '../lib/csv';
 import { Header } from '../components/Header';
+import { ProTag, usePlan } from '../components/plan';
 import { Avatar, Button, StatusBadge } from '../components/ui';
 import { STATUSES } from '../lib/constants';
 import { formatDate, money, timeAgo } from '../lib/format';
@@ -34,9 +35,12 @@ const COLUMNS: { key: SortKey; label: string; className?: string }[] = [
 ];
 
 export function ContactsView() {
-  const { openLead, loaded, leads, setNewLeadOpen, search } = useStore();
+  const { openLead, loaded, leads, setNewLeadOpen, search, askUpgrade } = useStore();
+  const { limits } = usePlan();
   const visible = useFilteredLeads();
   const [importOpen, setImportOpen] = useState(false);
+  const startImport = () =>
+    limits.csv ? setImportOpen(true) : askUpgrade('Importa tus contactos desde Excel o Google Sheets con un archivo CSV.');
   const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'created_at', dir: -1 });
 
@@ -58,10 +62,18 @@ export function ContactsView() {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: key === 'name' || key === 'company' ? 1 : -1 }));
 
   const totalLeads = Object.keys(leads).length;
+  const exportCsv = () =>
+    limits.csv
+      ? downloadFile(`leads-${new Date().toISOString().slice(0, 10)}.csv`, leadsToCsv(rows))
+      : askUpgrade('Descarga tus contactos en un CSV para abrirlos en Excel o Google Sheets.');
 
   return (
     <>
-      <Header title="Contactos" subtitle={`${totalLeads} ${totalLeads === 1 ? 'lead' : 'leads'} en total`} />
+      <Header title="Contactos" subtitle={
+          limits.leads === null
+            ? `${totalLeads} ${totalLeads === 1 ? 'lead' : 'leads'} en total`
+            : `${totalLeads} de ${limits.leads} leads del plan Gratis`
+        } />
 
       <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-line px-4 py-2 md:px-6">
         {[{ id: 'all' as const, label: 'Todos' }, ...STATUSES].map((s) => (
@@ -78,17 +90,17 @@ export function ContactsView() {
           </button>
         ))}
         <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-3">
-          <Button size="sm" variant="ghost" onClick={() => setImportOpen(true)}>
-            <Upload size={13} /> Importar
+          <Button size="sm" variant="ghost" onClick={startImport}>
+            <Upload size={13} /> Importar {!limits.csv && <ProTag />}
           </Button>
           <Button
             size="sm"
             variant="ghost"
             disabled={rows.length === 0}
-            onClick={() => downloadFile(`leads-${new Date().toISOString().slice(0, 10)}.csv`, leadsToCsv(rows))}
+            onClick={exportCsv}
             title="Exporta los leads visibles con los filtros actuales"
           >
-            <Download size={13} /> Exportar
+            <Download size={13} /> Exportar {!limits.csv && <ProTag />}
           </Button>
         </div>
       </div>
@@ -104,7 +116,7 @@ export function ContactsView() {
             {!search && statusFilter === 'all' && (
               <div className="flex gap-2">
                 <Button variant="primary" onClick={() => setNewLeadOpen(true)}>Crear el primero</Button>
-                <Button onClick={() => setImportOpen(true)}>
+                <Button onClick={startImport}>
                   <Upload size={13} /> Importar CSV
                 </Button>
               </div>
