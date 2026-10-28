@@ -126,7 +126,7 @@ $planCard = function (string $key, array $plan) use ($checkoutLink): void {
     <div class="pricing-faq">
       <div>
         <h4><?= icon('credit-card', 18) ?> ¿Cómo pago?</h4>
-        <p>Con Flow: tarjetas de crédito y débito, transferencia y otros medios chilenos. Pagas por mes o por año, sin contratos.</p>
+        <p>Con Mercado Pago: tarjetas de crédito y débito o tu saldo en Mercado Pago. Pagas por mes o por año, sin contratos.</p>
       </div>
       <div>
         <h4><?= icon('zap', 18) ?> ¿Y si cambio de plan?</h4>

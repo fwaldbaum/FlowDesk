@@ -21,8 +21,8 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 $method = $_SERVER['REQUEST_METHOD'];
 $path = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/', '/') ?: '/';
 
-// Flow calls these from its own servers and checkout page, so they can't carry our CSRF token.
-if ($method === 'POST' && !str_starts_with($path, '/pagos/flow/')) {
+// Mercado Pago calls these from its own servers, so they can't carry our CSRF token.
+if ($method === 'POST' && !str_starts_with($path, '/pagos/mp/')) {
     verify_csrf();
 }
 
@@ -149,12 +149,11 @@ function route(string $method, string $path): void
         case 'POST /pagar':
             pay_action();
             return;
-        case 'POST /pagos/flow/confirmacion':
-            flow_confirmation_action();
+        case 'POST /pagos/mp/webhook':
+            mp_webhook_action();
             return;
-        case 'GET /pagos/flow/retorno':
-        case 'POST /pagos/flow/retorno':
-            flow_return_action();
+        case 'GET /pagos/mp/retorno':
+            mp_return_action();
             return;
         case 'POST /cuenta/perfil':
             profile_action();
@@ -438,7 +437,7 @@ function pay_action(): void
         flash('error', "Tu plan {$covered['name']} ya incluye todo lo de " . zero_plan($planKey)['name'] . '.');
         redirect('/cuenta/plan');
     }
-    if (!flow_enabled()) {
+    if (!mp_enabled()) {
         flash('error', 'Los pagos todavía no están habilitados. Escríbenos a ' . config('contact_email') . ' y te ayudamos.');
         redirect($back);
     }
@@ -448,43 +447,68 @@ function pay_action(): void
     }
     try {
         redirect(start_checkout($user, $planKey, $period));
-    } catch (FlowError $err) {
-        error_log('[zero] flow checkout: ' . $err->getMessage());
-        flash('error', flow_problem($err));
+    } catch (MercadoPagoError $err) {
+        error_log('[zero] mercadopago checkout: ' . $err->getMessage());
+        flash('error', mp_problem($err));
         redirect($back);
     }
 }
 
-/** Flow's server-to-server notice: check the real status with Flow and apply it. */
-function flow_confirmation_action(): void
+/**
+ * Mercado Pago's notice (webhook). It only says "payment X changed": we read the payment from the API ourselves and
+ * apply it. Answering 200 stops the retries; a 500 makes Mercado Pago try again later.
+ */
+function mp_webhook_action(): void
 {
-    $token = (string) ($_POST['token'] ?? '');
+    $body = json_decode((string) file_get_contents('php://input'), true) ?: [];
+    // PHP turns "?data.id=" into data_id. Older notices use ?topic=payment&id=.
+    $type = (string) ($_GET['type'] ?? $body['type'] ?? $_GET['topic'] ?? '');
+    $id = (string) ($_GET['data_id'] ?? $body['data']['id'] ?? $_GET['id'] ?? '');
+    if ($type !== 'payment' || $id === '') {
+        exit('ignored'); // merchant_order and other topics: the payment notice is enough
+    }
+    if (!mp_signature_ok((string) ($_GET['data_id'] ?? $id), (string) ($_SERVER['HTTP_X_REQUEST_ID'] ?? ''), (string) ($_SERVER['HTTP_X_SIGNATURE'] ?? ''))) {
+        error_log('[zero] mercadopago webhook with an invalid signature for ' . $id);
+        http_response_code(401);
+        exit('invalid signature');
+    }
     try {
-        $payment = $token !== '' ? settle_payment($token) : null;
+        $payment = settle_mp_payment($id);
+    } catch (MercadoPagoError $err) {
+        if (in_array($err->getCode(), [400, 404], true)) {
+            exit('unknown payment'); // not a payment of this account: retrying won't help
+        }
+        error_log('[zero] mercadopago webhook: ' . $err->getMessage());
+        http_response_code(500);
+        exit('error');
     } catch (Throwable $err) {
-        error_log('[zero] flow confirmation: ' . $err->getMessage());
-        http_response_code(500); // Flow retries the notice
+        error_log('[zero] mercadopago webhook: ' . $err->getMessage());
+        http_response_code(500);
         exit('error');
     }
-    http_response_code($payment ? 200 : 404);
-    exit($payment ? 'ok' : 'unknown token');
+    exit($payment ? 'ok' : 'unknown payment');
 }
 
 /**
- * Where Flow sends the buyer back (a cross-site POST, so the session cookie isn't there yet). Settle the
- * payment here too in case the confirmation hasn't arrived, then show the result on the account page.
+ * Where Mercado Pago sends the buyer back (?payment_id=&status=&external_reference=). Settle the payment here too in
+ * case the notice hasn't arrived, then show the result on the account page.
  */
-function flow_return_action(): void
+function mp_return_action(): void
 {
-    $token = (string) ($_POST['token'] ?? $_GET['token'] ?? '');
+    $mpId = (string) ($_GET['payment_id'] ?? $_GET['collection_id'] ?? '');
+    $ref = (string) ($_GET['external_reference'] ?? '');
     $payment = null;
-    if ($token !== '') {
+    if (preg_match('/^\d+$/', $mpId)) {
         try {
-            $payment = settle_payment($token);
+            $payment = settle_mp_payment($mpId);
         } catch (Throwable $err) {
-            error_log('[zero] flow return: ' . $err->getMessage());
-            $payment = q('SELECT * FROM zero_payments WHERE flow_token = ?', [$token])->fetch() ?: null;
+            error_log('[zero] mercadopago return: ' . $err->getMessage());
         }
+    }
+    $payment ??= $ref !== '' ? (q('SELECT * FROM zero_payments WHERE commerce_order = ?', [$ref])->fetch() ?: null) : null;
+    // Came back without paying (closed or cancelled the checkout).
+    if ($payment && $payment['status'] === 'pending' && !preg_match('/^\d+$/', $mpId)) {
+        q("UPDATE zero_payments SET status = 'cancelled' WHERE id = ? AND status = 'pending'", [$payment['id']]);
     }
     redirect('/cuenta/plan' . ($payment ? '?orden=' . rawurlencode($payment['commerce_order']) : ''));
 }

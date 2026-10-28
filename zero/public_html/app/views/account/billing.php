@@ -11,7 +11,10 @@ $flowdesk = app_tier((int) $user['id'], 'flowdesk');
       <span>Pago recibido. <?= e(zero_plan($order['plan'])['name'] ?? $order['plan']) ?> está activo hasta el <?= e(local_time($order['period_end'], 'j M Y')) ?>. Te enviamos el comprobante por correo.</span></div>
   <?php elseif ($order['status'] === 'pending'): ?>
     <div class="alert alert-info" style="margin-top:24px"><?= icon('clock', 18) ?>
-      <span>Flow todavía está procesando tu pago (orden <?= e($order['commerce_order']) ?>). Cuando se confirme, tu plan se activa solo y te avisamos por correo.</span></div>
+      <span>Mercado Pago todavía está procesando tu pago (orden <?= e($order['commerce_order']) ?>). Cuando se confirme, tu plan se activa solo y te avisamos por correo.</span></div>
+  <?php elseif ($order['status'] === 'mismatch'): ?>
+    <div class="alert alert-info" style="margin-top:24px"><?= icon('clock', 18) ?>
+      <span>Recibimos tu pago (orden <?= e($order['commerce_order']) ?>), pero no coincide con el plan elegido y lo estamos revisando. Te escribimos a tu correo para resolverlo; no tienes que volver a pagar.</span></div>
   <?php else: ?>
     <div class="alert alert-error" style="margin-top:24px"><?= icon('alert-circle', 18) ?>
       <span>El pago no se completó (orden <?= e($order['commerce_order']) ?>). No se hizo ningún cobro; puedes intentarlo de nuevo.</span></div>
@@ -51,11 +54,11 @@ $flowdesk = app_tier((int) $user['id'], 'flowdesk');
               <?= csrf_field() ?>
               <input type="hidden" name="plan" value="<?= e($checkout['key']) ?>">
               <input type="hidden" name="periodo" value="<?= $period === 'year' ? 'anual' : 'mes' ?>">
-              <button class="btn btn-primary"><?= icon('credit-card', 17) ?> Pagar <?= e(clp($plan['price'][$period])) ?> con Flow</button>
+              <button class="btn btn-primary"><?= icon('credit-card', 17) ?> Pagar <?= e(clp($plan['price'][$period])) ?> con Mercado Pago</button>
               <a href="/precios" class="btn btn-ghost">Ver otros planes</a>
             </form>
           <?php endif; ?>
-          <p class="hint" style="margin-top:14px">Te llevamos a Flow para pagar con tarjeta, transferencia u otros medios. Al volver, tu plan se activa al instante.</p>
+          <p class="hint" style="margin-top:14px">Te llevamos a Mercado Pago para pagar con tarjeta de crédito, débito o tu saldo de Mercado Pago. Al volver, tu plan se activa al instante.</p>
         <?php endif; ?>
       </div>
     </div>

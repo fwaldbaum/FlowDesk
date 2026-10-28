@@ -16,7 +16,7 @@ zero/public_html/          <- todo esto va a public_html en cPanel
     ├── accounts.php       cuentas, tokens de correo y pases de inicio de sesión (SSO)
     ├── apps.php           catálogo de aplicaciones: agrega aquí los próximos productos
     ├── plans.php          planes y precios (FlowDesk Pro, FlowDesk Max, ZERO Plus)
-    ├── flow.php           cliente de la API de Flow (flow.cl)
+    ├── mercadopago.php    cliente de Mercado Pago (Checkout Pro)
     ├── billing.php        compras, activación de planes y aviso a las apps
     ├── cron.php           tarea diaria: recordatorios de renovación
     ├── mail.php           correos (confirmación y recuperación de contraseña)
@@ -29,7 +29,7 @@ zero/public_html/          <- todo esto va a public_html en cPanel
 - `/registro`, `/entrar`, `/recuperar`, `/restablecer`, `/verificar`
 - `/cuenta` (aplicaciones de la cuenta), `/cuenta/ajustes` (perfil, contraseña, cerrar sesiones)
 - `/abrir/flowdesk`: entra a FlowDesk con la cuenta ZERO
-- `/precios`, `/cuenta/plan` (planes, pago y comprobantes), `/pagos/flow/confirmacion` y `/pagos/flow/retorno` (los llama Flow)
+- `/precios`, `/cuenta/plan` (planes, pago y comprobantes), `/pagos/mp/webhook` y `/pagos/mp/retorno` (los llama Mercado Pago)
 
 ## Instalar en cPanel
 
@@ -87,24 +87,28 @@ Sin `sso_secret`, el botón *Abrir FlowDesk* lleva al login normal de FlowDesk.
 2. En cPanel → *Zone Editor*, agrega un registro **CNAME** `flowdesk` → `cname.vercel-dns.com`.
 3. Cambia `APP_URL` en Vercel y `apps.flowdesk` en `config.php` a `https://flowdesk.zerosolutions.cl`.
 
-## Pagos con Flow
+## Pagos con Mercado Pago
 
-Cada compra es un periodo prepagado (mes o año) que se paga en Flow con tarjeta, transferencia u otros medios. Pagar
-de nuevo extiende el plan; subir de plan convierte los días que quedaban en días extra del plan nuevo. No hay cobros
-automáticos: 5 días antes del vencimiento llega un correo para renovar.
+Cada compra es un periodo prepagado (mes o año) que se paga en Mercado Pago (Checkout Pro) con tarjeta de crédito,
+débito o saldo de Mercado Pago. Pagar de nuevo extiende el plan; subir de plan convierte los días que quedaban en días
+extra del plan nuevo. No hay cobros automáticos: 5 días antes del vencimiento llega un correo para renovar.
+ZERO nunca confía en lo que dice el navegador o el aviso: vuelve a consultar cada pago a la API antes de activar un plan.
 
-1. Crea la cuenta de comercio en [flow.cl](https://www.flow.cl) y, para probar, otra en
-   [sandbox.flow.cl](https://sandbox.flow.cl).
-2. En Flow → *Mi cuenta → Integraciones* (o *Datos de integración*) copia el **apiKey** y el **secretKey**.
-3. En `app/config.php`:
+1. Crea la cuenta en [mercadopago.cl](https://www.mercadopago.cl) y valida tu identidad.
+2. En [mercadopago.cl/developers](https://www.mercadopago.cl/developers) → *Tus integraciones* → *Crear aplicación*
+   (producto **Checkout Pro**, pagos online). Ahí están las credenciales de prueba (`TEST-...`) y, al activarlas, las de
+   producción (`APP_USR-...`).
+3. En la aplicación → *Webhooks*: URL `https://zerosolutions.cl/pagos/mp/webhook`, evento **Pagos**. Guarda y copia
+   la **clave secreta**.
+4. En `app/config.php`:
    ```php
-   'flow' => ['api_key' => '...', 'secret_key' => '...', 'sandbox' => true],
+   'mercadopago' => ['access_token' => 'APP_USR-...', 'webhook_secret' => '...'],
    ```
-   Con `sandbox => true` los pagos son de prueba (usa las tarjetas de prueba que indica Flow). Cuando funcione, pon
-   las claves del comercio real y `'sandbox' => false`.
-4. cPanel → *Cron Jobs* → una vez al día (por ejemplo a las 10:00):
+   Para probar, usa el Access Token de prueba y paga con un usuario comprador de prueba y las tarjetas de prueba de
+   Mercado Pago. Cuando funcione, cambia al Access Token de producción.
+5. cPanel → *Cron Jobs* → una vez al día (por ejemplo a las 10:00):
    `/usr/local/bin/php /home3/<cuenta>/public_html/app/cron.php`
-5. Los precios y lo que incluye cada plan están en `app/plans.php` (CLP, IVA incluido).
+6. Los precios y lo que incluye cada plan están en `app/plans.php` (CLP, IVA incluido).
 
 Al confirmarse un pago, ZERO avisa a FlowDesk (`POST /api/zero/plan`, firmado con `sso_secret`) y el espacio de la
 cuenta FlowDesk con el mismo correo pasa a Pro o Max hasta la fecha de término. Si FlowDesk no estaba disponible, el
@@ -117,7 +121,13 @@ cp zero/public_html/app/config.example.php zero/public_html/app/config.php   # '
 php -S 127.0.0.1:8080 -t zero/public_html zero/public_html/index.php
 ```
 
-Con `transport => 'log'` los correos se escriben en `app/storage/mail.log`.
+Con `transport => 'log'` los correos se escriben en `app/storage/mail.log`. Para probar pagos sin cuenta, el
+simulador de Mercado Pago:
+
+```bash
+php -S 127.0.0.1:9191 zero/tools/mpmock/index.php
+# config.php: 'mercadopago' => ['access_token' => 'TEST-mock', 'webhook_secret' => 'mock-secret', 'api_url' => 'http://127.0.0.1:9191']
+```
 
 ## Agregar un producto nuevo
 

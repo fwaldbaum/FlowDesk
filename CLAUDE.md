@@ -86,8 +86,9 @@ cloud de Claude).
   `GET /api/auth/zero` (`verifyZeroTicket`, nonce en `zero_sso_nonces`) con `ZERO_SSO_SECRET`, que debe ser igual a
   `sso_secret` de ZERO.
 - Productos nuevos: agrégalos en `zero/public_html/app/apps.php`.
-- **Planes y pagos** se venden en ZERO (`/precios`, `/cuenta/plan`) con **Flow** (flow.cl): `app/plans.php` (precios
-  CLP con IVA, `covers` por app), `app/flow.php` (firma HMAC de la API v3), `app/billing.php` (periodos prepagados,
+- **Planes y pagos** se venden en ZERO (`/precios`, `/cuenta/plan`) con **Mercado Pago** (Checkout Pro; Flow se retiró):
+  `app/plans.php` (precios CLP con IVA, `covers` por app), `app/mercadopago.php` (preferencias, `GET /v1/payments`, firma
+  `x-signature` del webhook `/pagos/mp/webhook`), `app/billing.php` (periodos prepagados,
   `zero_payments`/`zero_subscriptions`, crédito en días al subir de plan), `app/cron.php` (recordatorios). Un pago
   confirmado se aplica una sola vez y se avisa a cada app con la misma firma (`X-Zero-Signature` sobre el cuerpo
   exacto): FlowDesk en `POST /api/zero/plan`, Repeat en `POST /zero/plan`. El ticket SSO también trae `plan`.

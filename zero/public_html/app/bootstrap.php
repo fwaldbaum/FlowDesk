@@ -109,7 +109,7 @@ function local_time(?string $utc, string $format = 'j M Y, H:i'): string
  */
 function migrate(PDO $pdo): void
 {
-    $version = 3;
+    $version = 4;
     try {
         $current = (int) $pdo->query("SELECT v FROM zero_meta WHERE k = 'schema'")->fetchColumn();
         if ($current >= $version) {
@@ -211,6 +211,20 @@ function migrate(PDO $pdo): void
         v MEDIUMTEXT NOT NULL,
         updated_at DATETIME NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    // ---- v4: payments through Mercado Pago (Flow rows keep their columns for the history) ----
+    $columns = [
+        'provider' => "VARCHAR(12) NOT NULL DEFAULT 'flow'",
+        'mp_preference' => 'VARCHAR(80) NULL',
+        'mp_payment' => 'VARCHAR(24) NULL',
+    ];
+    $has = $pdo->prepare('SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?');
+    foreach ($columns as $column => $definition) {
+        $has->execute(['zero_payments', $column]);
+        if (!$has->fetchColumn()) {
+            $pdo->exec("ALTER TABLE zero_payments ADD COLUMN {$column} {$definition}");
+        }
+    }
 
     $stmt = $pdo->prepare("INSERT INTO zero_meta (k, v) VALUES ('schema', ?) ON DUPLICATE KEY UPDATE v = VALUES(v)");
     $stmt->execute([(string) $version]);
@@ -346,7 +360,7 @@ function icon(string $name, int $size = 20, string $class = ''): string
 
 require APP_DIR . '/apps.php';
 require APP_DIR . '/plans.php';
-require APP_DIR . '/flow.php';
+require APP_DIR . '/mercadopago.php';
 require APP_DIR . '/billing.php';
 require APP_DIR . '/halloween.php';
 require APP_DIR . '/accounts.php';

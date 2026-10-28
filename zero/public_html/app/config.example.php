@@ -33,12 +33,12 @@ return [
         'repeat' => 'https://repeat.zerosolutions.cl',
     ],
 
-    // Payments with Flow (flow.cl): Mi cuenta > Datos de integración shows the apiKey and secretKey.
-    // Test first with 'sandbox' => true and the keys from sandbox.flow.cl, then switch to the real ones.
-    'flow' => [
-        'api_key' => '',
-        'secret_key' => '',
-        'sandbox' => true,
+    // Payments with Mercado Pago (Checkout Pro). In mercadopago.cl/developers > Tus integraciones > your app:
+    // "Credenciales de producción" has the Access Token (APP_USR-...); the test one starts with TEST-.
+    // "Webhooks" gives the secret key used to check each notice (URL: https://zerosolutions.cl/pagos/mp/webhook).
+    'mercadopago' => [
+        'access_token' => '',
+        'webhook_secret' => '',
     ],
 
     // Panel of /hallowing/config. Generate the hash with: php -r "echo password_hash('LA_CLAVE', PASSWORD_DEFAULT);"

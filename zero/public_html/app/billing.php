@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Plan purchases through Flow. Each purchase is a prepaid period (month or year): paying again extends it,
+ * Plan purchases through Mercado Pago. Each purchase is a prepaid period (month or year): paying again extends it,
  * and buying a higher plan turns the time left on the plan it replaces into extra days. The paid tier is
  * pushed to each app right away and also travels in every sign-in ticket, so apps catch up even if the
  * push fails.
@@ -61,69 +61,78 @@ function upgrade_credit_seconds(int $userId, string $planKey, string $period): i
     return $seconds;
 }
 
-/** Creates the order and returns Flow's checkout URL. Throws FlowError or returns a message for the user. */
+/** Creates the order and returns Mercado Pago's checkout URL. Throws MercadoPagoError. */
 function start_checkout(array $user, string $planKey, string $period): string
 {
     $plan = zero_plan($planKey);
     $amount = $plan['price'][$period];
     $commerceOrder = 'pending-' . bin2hex(random_bytes(8));
     q(
-        'INSERT INTO zero_payments (user_id, plan, period, amount, currency, commerce_order, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [$user['id'], $planKey, $period, $amount, 'CLP', $commerceOrder, 'created'],
+        'INSERT INTO zero_payments (user_id, plan, period, amount, currency, commerce_order, status, provider) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [$user['id'], $planKey, $period, $amount, 'CLP', $commerceOrder, 'created', 'mercadopago'],
     );
     $id = (int) db()->lastInsertId();
-    // Readable in Flow's dashboard and unique even if a test database is reset.
+    // Readable in Mercado Pago's activity and unique even if a test database is reset.
     $commerceOrder = sprintf('ZS%06d-%s', $id, bin2hex(random_bytes(3)));
     q('UPDATE zero_payments SET commerce_order = ? WHERE id = ?', [$commerceOrder, $id]);
 
     try {
-        [$checkout, $token, $flowOrder] = flow_create_payment([
-            'commerceOrder' => $commerceOrder,
-            'subject' => "{$plan['name']} · " . PLAN_PERIODS[$period]['label'],
-            'currency' => 'CLP',
-            'amount' => $amount,
-            'email' => $user['email'],
-            'paymentMethod' => 9,
-            'urlConfirmation' => url('/pagos/flow/confirmacion'),
-            'urlReturn' => url('/pagos/flow/retorno'),
-            'optional' => json_encode(['plan' => $planKey, 'period' => $period, 'account' => (int) $user['id']]),
-            'timeout' => 3600,
+        [$preference, $checkout] = mp_create_preference([
+            'items' => [[
+                'id' => $planKey,
+                'title' => "{$plan['name']} · " . PLAN_PERIODS[$period]['label'],
+                'quantity' => 1,
+                'unit_price' => (int) $amount,
+                'currency_id' => 'CLP',
+                'category_id' => 'services',
+            ]],
+            'payer' => ['email' => $user['email'], 'name' => $user['name']],
+            'external_reference' => $commerceOrder,
+            'back_urls' => ['success' => url('/pagos/mp/retorno'), 'failure' => url('/pagos/mp/retorno'), 'pending' => url('/pagos/mp/retorno')],
+            'auto_return' => 'approved',
+            // Only approved or rejected: no cash vouchers that stay pending for days.
+            'binary_mode' => true,
+            'notification_url' => url('/pagos/mp/webhook'),
+            'statement_descriptor' => 'ZERO SOLUTIONS',
+            'metadata' => ['plan' => $planKey, 'period' => $period, 'account' => (int) $user['id']],
         ]);
-    } catch (FlowError $err) {
+    } catch (MercadoPagoError $err) {
         q("UPDATE zero_payments SET status = 'error', detail = ? WHERE id = ?", [mb_substr($err->getMessage(), 0, 250), $id]);
         throw $err;
     }
-    q("UPDATE zero_payments SET status = 'pending', flow_token = ?, flow_order = ? WHERE id = ?", [$token, $flowOrder ?: null, $id]);
+    q("UPDATE zero_payments SET status = 'pending', mp_preference = ? WHERE id = ?", [$preference, $id]);
     return $checkout;
 }
 
 /**
- * Asks Flow for the real status of a payment token and records it. Safe to call any number of times
- * (Flow's confirmation and the buyer's return both land here). Returns the payment row, or null when
- * the token isn't ours.
+ * Reads a Mercado Pago payment from the API and records it on our order (found by external_reference). Safe to
+ * call any number of times: the notice and the buyer's return both land here. Returns our row, or null when the
+ * payment isn't ours.
  */
-function settle_payment(string $token): ?array
+function settle_mp_payment(string $mpPaymentId): ?array
 {
-    $payment = q('SELECT * FROM zero_payments WHERE flow_token = ?', [$token])->fetch();
+    $mp = mp_payment($mpPaymentId);
+    $payment = q('SELECT * FROM zero_payments WHERE commerce_order = ?', [(string) ($mp['external_reference'] ?? '')])->fetch();
     if (!$payment) {
         return null;
     }
     if ($payment['status'] === 'paid') {
         return $payment;
     }
-    $flow = flow_payment_status($token);
-    $status = (int) ($flow['status'] ?? 0);
-    $matches = (string) ($flow['commerceOrder'] ?? '') === $payment['commerce_order']
-        && (int) round((float) ($flow['amount'] ?? 0)) === (int) $payment['amount']
-        && strtoupper((string) ($flow['currency'] ?? 'CLP')) === $payment['currency'];
+    $status = (string) ($mp['status'] ?? '');
+    $matches = (int) round((float) ($mp['transaction_amount'] ?? 0)) === (int) $payment['amount']
+        && strtoupper((string) ($mp['currency_id'] ?? '')) === $payment['currency'];
+    q('UPDATE zero_payments SET mp_payment = ? WHERE id = ?', [(string) $mp['id'], $payment['id']]);
 
-    if ($status === FLOW_PAID && !$matches) {
-        error_log("[zero] flow payment {$payment['id']} does not match its order: " . json_encode($flow));
-        q("UPDATE zero_payments SET status = 'mismatch', detail = ? WHERE id = ?", [mb_substr(json_encode($flow), 0, 250), $payment['id']]);
-    } elseif ($status === FLOW_PAID) {
-        apply_payment((int) $payment['id'], (string) ($flow['paymentData']['media'] ?? ''));
-    } elseif ($status === FLOW_REJECTED || $status === FLOW_CANCELLED) {
-        q('UPDATE zero_payments SET status = ? WHERE id = ? AND status <> ?', [$status === FLOW_REJECTED ? 'rejected' : 'cancelled', $payment['id'], 'paid']);
+    if ($status === 'approved' && !$matches) {
+        error_log("[zero] mercadopago payment {$payment['id']} does not match its order: " . json_encode($mp));
+        q("UPDATE zero_payments SET status = 'mismatch', detail = ? WHERE id = ?", [mb_substr("MP {$mp['id']}: " . ($mp['transaction_amount'] ?? '?') . ' ' . ($mp['currency_id'] ?? '?'), 0, 250), $payment['id']]);
+    } elseif ($status === 'approved') {
+        apply_payment((int) $payment['id'], mp_media($mp));
+    } elseif (in_array($status, ['rejected', 'cancelled', 'refunded', 'charged_back'], true)) {
+        q('UPDATE zero_payments SET status = ?, detail = ? WHERE id = ? AND status <> ?', [
+            $status === 'rejected' ? 'rejected' : 'cancelled', mb_substr((string) ($mp['status_detail'] ?? ''), 0, 250), $payment['id'], 'paid',
+        ]);
     }
     return q('SELECT * FROM zero_payments WHERE id = ?', [$payment['id']])->fetch();
 }
