@@ -81,7 +81,7 @@ $flowdesk = app_tier((int) $user['id'], 'flowdesk');
         <div class="panel"><div class="panel-body plan-row">
           <div>
             <b><?= e($plan['name']) ?></b> <span class="badge badge-live">Activo</span>
-            <p>Vence el <?= e(local_time($sub['ends_at'], 'j M Y')) ?> · quedan <?= $days ?> <?= $days === 1 ? 'día' : 'días' ?> · último pago <?= e(clp((int) $sub['amount'])) ?> (<?= e(mb_strtolower(PLAN_PERIODS[$sub['period']]['label'])) ?>)</p>
+            <p>Vence el <?= e(local_time($sub['ends_at'], 'j M Y')) ?> · quedan <?= $days ?> <?= $days === 1 ? 'día' : 'días' ?> · <?= (int) $sub['amount'] === 0 ? 'regalado por ZERO' : 'último pago ' . e(clp((int) $sub['amount'])) . ' (' . e(mb_strtolower(PLAN_PERIODS[$sub['period']]['label'])) . ')' ?></p>
           </div>
           <div class="plan-actions">
             <a href="/cuenta/plan?plan=<?= e(rawurlencode($key)) ?>&periodo=<?= $sub['period'] === 'year' ? 'anual' : 'mes' ?>" class="btn btn-secondary btn-sm">Renovar</a>

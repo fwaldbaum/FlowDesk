@@ -1,7 +1,7 @@
 <?php $user = current_user(); $nav = $nav ?? ''; ?>
 <!doctype html>
 <html lang="es" class="no-js">
-<head><?php partial('head', ['title' => $title ?? null, 'description' => $description ?? null]); ?></head>
+<head><meta charset="utf-8"><?php partial('head', ['title' => $title ?? null, 'description' => $description ?? null]); ?></head>
 <body>
 <header class="nav">
   <div class="container nav-inner">

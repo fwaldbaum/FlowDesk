@@ -60,3 +60,9 @@ if (periodToggle) {
     if (btn) show(btn.dataset.period);
   });
 }
+
+// Admin: forms that change someone else's data ask first.
+document.addEventListener('submit', (e) => {
+  const message = e.target.dataset && e.target.dataset.confirm;
+  if (message && !window.confirm(message)) e.preventDefault();
+});

@@ -47,6 +47,9 @@ return [
         'admin_password_hash' => '',
     ],
 
+    // ZERO accounts (confirmed email) that can open /admin: every app's admin, except FlowDesk's, which has its own.
+    'admin_emails' => ['facundo@zerosolutions.cl'],
+
     // Where FlowDesk actually runs (Vercel). zerosolutions.cl/flowdesk forwards every request there.
     'flowdesk_upstream' => 'https://flowdesk-ten-ruby.vercel.app',
 ];

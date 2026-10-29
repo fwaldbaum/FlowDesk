@@ -169,6 +169,10 @@ function route(string $method, string $path): void
             redirect('/cuenta/ajustes');
     }
 
+    if (admin_route($method, $path)) {
+        return;
+    }
+
     if ($method === 'GET' && preg_match('#^/abrir/([a-z0-9-]+)$#', $path, $m)) {
         open_app_action($m[1]);
         return;

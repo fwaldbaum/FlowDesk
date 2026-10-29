@@ -109,7 +109,7 @@ function local_time(?string $utc, string $format = 'j M Y, H:i'): string
  */
 function migrate(PDO $pdo): void
 {
-    $version = 4;
+    $version = 5;
     try {
         $current = (int) $pdo->query("SELECT v FROM zero_meta WHERE k = 'schema'")->fetchColumn();
         if ($current >= $version) {
@@ -225,6 +225,18 @@ function migrate(PDO $pdo): void
             $pdo->exec("ALTER TABLE zero_payments ADD COLUMN {$column} {$definition}");
         }
     }
+
+    // ---- v5: platform admin log ----
+    $pdo->exec("CREATE TABLE IF NOT EXISTS zero_admin_actions (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        admin_id INT UNSIGNED NOT NULL,
+        action VARCHAR(40) NOT NULL,
+        target VARCHAR(190) NOT NULL,
+        detail VARCHAR(500) NOT NULL DEFAULT '',
+        created_at DATETIME NOT NULL,
+        KEY zero_admin_actions_target (target, created_at),
+        KEY zero_admin_actions_time (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $stmt = $pdo->prepare("INSERT INTO zero_meta (k, v) VALUES ('schema', ?) ON DUPLICATE KEY UPDATE v = VALUES(v)");
     $stmt->execute([(string) $version]);
@@ -365,3 +377,4 @@ require APP_DIR . '/billing.php';
 require APP_DIR . '/halloween.php';
 require APP_DIR . '/accounts.php';
 require APP_DIR . '/mail.php';
+require APP_DIR . '/admin.php';

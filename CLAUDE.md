@@ -86,6 +86,10 @@ cloud de Claude).
   `GET /api/auth/zero` (`verifyZeroTicket`, nonce en `zero_sso_nonces`) con `ZERO_SSO_SECRET`, que debe ser igual a
   `sso_secret` de ZERO.
 - Productos nuevos: agrégalos en `zero/public_html/app/apps.php`.
+- **Admin de plataforma** en `/admin` (`app/admin.php`, vistas `app/views/admin/`): solo cuentas confirmadas de
+  `admin_emails` (por defecto `facundo@zerosolutions.cl`). Repeat (`rp_*`) y Venu (`vn_*`) comparten la BD de ZERO y se
+  administran ahí directo; FlowDesk tiene su propio admin y `/admin` solo enlaza a él. Regalar o terminar planes,
+  confirmar correos, cerrar sesiones y despublicar eventos de Venu; todo queda en `zero_admin_actions` (v5).
 - **Planes y pagos** se venden en ZERO (`/precios`, `/cuenta/plan`) con **Mercado Pago** (Checkout Pro; Flow se retiró):
   `app/plans.php` (precios CLP con IVA, `covers` por app), `app/mercadopago.php` (preferencias, `GET /v1/payments`, firma
   `x-signature` del webhook `/pagos/mp/webhook`), `app/billing.php` (periodos prepagados,
