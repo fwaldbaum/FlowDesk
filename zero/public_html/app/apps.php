@@ -40,6 +40,17 @@ function zero_apps(): array
             'sso_path' => '/auth/zero',
             'login_path' => '/',
         ],
+        'pido' => [
+            'name' => 'Pido',
+            'category' => 'Autoservicio para restaurantes',
+            'summary' => 'Tu tótem de pedidos en una tablet: tus clientes piden, pagan con QR y retiran con su número.',
+            'url' => $urls['pido'] ?? null,
+            'color' => '#FF5A1F',
+            // Pido's own landing page is its product page.
+            'page' => $urls['pido'] ?? null,
+            'sso_path' => '/auth/zero',
+            'login_path' => '/',
+        ],
     ], fn (array $app) => !empty($app['url']));
 }
 
@@ -64,6 +75,9 @@ function app_mark(string $id, int $size = 28): string
         $gid = 'vn' . bin2hex(random_bytes(3));
         $body = str_replace('vn-', $gid . '-', '<defs> <linearGradient id="vn-l" gradientUnits="userSpaceOnUse" x1="23" y1="20" x2="48" y2="80"><stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#7C3AED"/></linearGradient> <linearGradient id="vn-r" gradientUnits="userSpaceOnUse" x1="77" y1="20" x2="52" y2="80"><stop offset="0" stop-color="#EC4899"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient> <clipPath id="vn-cl"><path clip-rule="evenodd" d="M-10 -10H110V110H-10ZM16.48 20.00a5.0 5.0 0 1 0 10.0 0a5.0 5.0 0 1 0 -10.0 0Z"/></clipPath> <clipPath id="vn-cg"><path clip-rule="evenodd" d="M-10 -10H110V110H-10ZM72.79 13.35L87.30 20.12A10.6 10.6 0 0 1 92.42 34.20L92.42 34.20L71.29 79.52A10.6 10.6 0 0 1 57.21 84.65L57.21 84.65L42.70 77.88A10.6 10.6 0 0 1 37.58 63.80L37.58 63.80L58.71 18.48A10.6 10.6 0 0 1 72.79 13.35Z"/></clipPath> <clipPath id="vn-cr"><path clip-rule="evenodd" d="M-10 -10H110V110H-10ZM73.52 20.00a5.0 5.0 0 1 0 10.0 0a5.0 5.0 0 1 0 -10.0 0Z"/></clipPath> </defs> <g clip-path="url(#vn-cg)"><g clip-path="url(#vn-cl)"><path d="M14.23 23.38L28.73 16.62A7 7 0 0 1 38.03 20.00L38.03 20.00L59.16 65.32A7 7 0 0 1 55.77 74.62L55.77 74.62L41.27 81.38A7 7 0 0 1 31.97 78.00L31.97 78.00L10.84 32.68A7 7 0 0 1 14.23 23.38Z" fill="url(#vn-l)"/></g></g> <g clip-path="url(#vn-cr)"><path d="M71.27 16.62L85.77 23.38A7 7 0 0 1 89.16 32.68L89.16 32.68L68.03 78.00A7 7 0 0 1 58.73 81.38L58.73 81.38L44.23 74.62A7 7 0 0 1 40.84 65.32L40.84 65.32L61.97 20.00A7 7 0 0 1 71.27 16.62Z" fill="url(#vn-r)"/></g>');
         return '<svg width="' . $size . '" height="' . $size . '" viewBox="0 0 100 100" fill="none" aria-hidden="true">' . $body . '</svg>';
+    }
+    if ($id === 'pido') {
+        return '<svg width="' . $size . '" height="' . $size . '" viewBox="0 0 100 100" fill="none" aria-hidden="true"><rect width="100" height="100" rx="24" fill="#FF5A1F"/><path d="M50.2 17.3a25.5 25.5 0 1 1 -9.6 49.1L29.6 78.9c-1.9 1.9-5.2.6-5.2-2.1V42.8a25.8 25.8 0 0 1 25.8-25.5Z" fill="#fff"/><circle cx="50.2" cy="43" r="13.6" fill="#FF5A1F"/><path d="M40.2 50.6 37.8 57.4c-.2.6.3 1 .9.8l6.9-2.4Z" fill="#FF5A1F" stroke="#FF5A1F" stroke-width="1" stroke-linejoin="round"/><circle cx="50.2" cy="42.6" r="4.5" stroke="#fff" stroke-width="2.6"/><path d="M45.5 49.2a8.1 8.1 0 1 1 9.4 0" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>';
     }
     return icon('layout-grid', $size);
 }

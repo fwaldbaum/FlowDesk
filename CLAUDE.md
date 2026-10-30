@@ -87,8 +87,8 @@ cloud de Claude).
   `sso_secret` de ZERO.
 - Productos nuevos: agrégalos en `zero/public_html/app/apps.php`.
 - **Admin de plataforma** en `/admin` (`app/admin.php`, vistas `app/views/admin/`): solo cuentas confirmadas de
-  `admin_emails` (por defecto `facundo@zerosolutions.cl`). Repeat (`rp_*`) y Venu (`vn_*`) comparten la BD de ZERO y se
-  administran ahí directo; FlowDesk tiene su propio admin y `/admin` solo enlaza a él. Regalar o terminar planes,
+  `admin_emails` (por defecto `facundo@zerosolutions.cl`). Repeat (`rp_*`), Venu (`vn_*`) y Pido (`pd_*`) comparten la BD de ZERO
+  y se administran ahí directo; FlowDesk tiene su propio admin y `/admin` solo enlaza a él. Regalar o terminar planes,
   confirmar correos, cerrar sesiones y despublicar eventos de Venu; todo queda en `zero_admin_actions` (v5).
 - **Planes y pagos** se venden en ZERO (`/precios`, `/cuenta/plan`) con **Mercado Pago** (Checkout Pro; Flow se retiró):
   `app/plans.php` (precios CLP con IVA, `covers` por app), `app/mercadopago.php` (preferencias, `GET /v1/payments`, firma
@@ -97,7 +97,8 @@ cloud de Claude).
   confirmado se aplica una sola vez y se avisa a cada app con la misma firma (`X-Zero-Signature` sobre el cuerpo
   exacto): FlowDesk en `POST /api/zero/plan`, Repeat en `POST /zero/plan`. El ticket SSO también trae `plan`.
   Planes: FlowDesk Pro/Max, **Repeat Pro** (`repeat_pro`, $6.990 con `list_price` tachado de $14.990), **Venu Pro**
-  (`venu_pro`, $5.990 con $22.990 tachado; Venu avisado en `POST /zero/plan`) y ZERO Plus (cubre todo). Repeat (repo `fwaldbaum/repeat`, repeat.zerosolutions.cl) y Venu (entradas y eventos, venu.zerosolutions.cl) aparecen en la
+  (`venu_pro`, $5.990 con $22.990 tachado; Venu avisado en `POST /zero/plan`), **Pido Pro** (`pido_pro`, $9.990 con $19.990
+  tachado; Pido, tótem de autoservicio en pido.zerosolutions.cl, repo local `pido/`, avisado en `POST /zero/plan`) y ZERO Plus (cubre todo). Repeat (repo `fwaldbaum/repeat`, repeat.zerosolutions.cl) y Venu (entradas y eventos, venu.zerosolutions.cl) aparecen en la
   portada y en `/precios#repeat` y `/precios#venu`. En FlowDesk: `workspaces.plan` (`free|pro|max`) y
   `plan_expires_at` (v7); `applyZeroPlan` solo avanza (más tier o más tiempo). **Límites por plan** en
   `server/src/services/plans.js` (`PLAN_LIMITS`, espejo en `client/src/lib/plans.ts`): Gratis = 1 usuario, 100 leads, sin

@@ -4,6 +4,7 @@ $tabs = [
     'accounts' => ['Cuentas ZERO', 'users', '/admin/cuentas'],
     'repeat' => ['Repeat', null, '/admin/repeat'],
     'venu' => ['Venu', null, '/admin/venu'],
+    'pido' => ['Pido', null, '/admin/pido'],
     'log' => ['Registro', 'history', '/admin/registro'],
 ];
 ?>

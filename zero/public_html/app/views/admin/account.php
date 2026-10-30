@@ -1,7 +1,7 @@
 <?php
 $a = $account;
 $statusLabel = ['paid' => ['Pagado', 'badge-live'], 'rejected' => ['Rechazado', ''], 'mismatch' => ['En revisión', 'badge-warn'], 'cancelled' => ['Anulado', ''], 'error' => ['Error', '']];
-$appNames = ['repeat' => 'Repeat', 'venu' => 'Venu'];
+$appNames = ['repeat' => 'Repeat', 'venu' => 'Venu', 'pido' => 'Pido'];
 ?>
 <a href="/admin/cuentas" class="admin-back"><?= icon('arrow-left', 15) ?> Cuentas</a>
 <div class="admin-person">
@@ -74,7 +74,7 @@ $appNames = ['repeat' => 'Repeat', 'venu' => 'Venu'];
     </table>
     <?php endif; ?>
   </div></div>
-  <p class="hint">Al terminar un plan, Repeat y Venu cambian en el acto. FlowDesk lo mantiene hasta su fecha de término; para quitarlo antes, usa su <a href="<?= e(flowdesk_admin_url()) ?>" target="_blank" rel="noopener">administración</a>.</p>
+  <p class="hint">Al terminar un plan, Repeat, Venu y Pido cambian en el acto. FlowDesk lo mantiene hasta su fecha de término; para quitarlo antes, usa su <a href="<?= e(flowdesk_admin_url()) ?>" target="_blank" rel="noopener">administración</a>.</p>
 </section>
 
 <?php if (array_filter($apps)): ?>
@@ -85,7 +85,7 @@ $appNames = ['repeat' => 'Repeat', 'venu' => 'Venu'];
       <div class="panel admin-app">
         <div class="admin-app-head"><span class="app-icon"><?= app_mark($id, 24) ?></span><div><b><?= e($appNames[$id]) ?></b><small><?= e($row['space'] ?? 'Sin espacio creado') ?></small></div><?php partial('tier_badge', ['plan' => $row['plan'], 'until' => $row['plan_expires_at']]); ?></div>
         <dl class="admin-mini">
-          <?php if ($id === 'repeat'): ?><div><dt>Clientes</dt><dd><?= (int) $row['customers'] ?></dd></div><?php else: ?><div><dt>Eventos</dt><dd><?= (int) $row['events'] ?></dd></div><?php endif; ?>
+          <?php if ($id === 'repeat'): ?><div><dt>Clientes</dt><dd><?= (int) $row['customers'] ?></dd></div><?php elseif ($id === 'venu'): ?><div><dt>Eventos</dt><dd><?= (int) $row['events'] ?></dd></div><?php else: ?><div><dt>Tótems</dt><dd><?= (int) $row['kiosks'] ?></dd></div><?php endif; ?>
           <div><dt>Último acceso</dt><dd><?= e(local_time($row['last_login_at'], 'j M')) ?: '—' ?></dd></div>
         </dl>
         <?php if ($row['slug']): ?><a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="<?= e($id === 'repeat' ? repeat_card_url($row['slug']) : venu_org_url($row['slug'])) ?>">Ver página pública <?= icon('external-link', 14) ?></a><?php endif; ?>

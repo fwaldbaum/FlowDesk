@@ -65,7 +65,7 @@ $planCard = function (string $key, array $plan) use ($checkoutLink): void {
       </div>
 
       <?php foreach ($plans as $key => $plan) {
-          if (!in_array($plan['app'], ['repeat', 'venu'], true)) {
+          if (!in_array($plan['app'], ['repeat', 'venu', 'pido'], true)) {
               $planCard($key, $plan);
           }
       } ?>
@@ -119,6 +119,33 @@ $planCard = function (string $key, array $plan) use ($checkoutLink): void {
           </ul>
         </div>
         <?php $planCard('venu_pro', zero_plan('venu_pro')); ?>
+      </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if (zero_app('pido')): ?>
+    <div class="pricing-group" id="pido">
+      <div class="pricing-group-head">
+        <span class="app-icon"><?= app_mark('pido', 26) ?></span>
+        <div><h2>Pido</h2><p>Tótem de autoservicio para restaurantes, con pago por QR.</p></div>
+      </div>
+      <div class="pricing-grid two">
+        <div class="card price-card">
+          <span class="app-icon"><?= app_mark('pido', 26) ?></span>
+          <h3>Pido Gratis</h3>
+          <p class="tagline">Tu tótem funcionando hoy, sin comisión por venta.</p>
+          <div class="price"><span class="amount">$0</span></div>
+          <p class="price-note">Sin tarjeta, para siempre.</p>
+          <a href="<?= e(zero_app('pido')['url']) ?>" class="btn btn-secondary btn-block">Empezar gratis</a>
+          <ul class="checks">
+            <li><?= icon('check', 18) ?><span>1 tótem en tu tablet o pantalla</span></li>
+            <li><?= icon('check', 18) ?><span>Menú con fotos y opciones por producto</span></li>
+            <li><?= icon('check', 18) ?><span>Pagos con QR (Mercado Pago, Flow, Stripe) o en caja</span></li>
+            <li><?= icon('check', 18) ?><span>Pantallas de cocina, retiro y caja</span></li>
+            <li><?= icon('check', 18) ?><span>Editor de diseño con animaciones</span></li>
+          </ul>
+        </div>
+        <?php $planCard('pido_pro', zero_plan('pido_pro')); ?>
       </div>
     </div>
     <?php endif; ?>

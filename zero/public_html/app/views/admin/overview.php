@@ -1,6 +1,6 @@
 <?php
 $statusLabel = ['paid' => ['Pagado', 'badge-live'], 'rejected' => ['Rechazado', ''], 'mismatch' => ['En revisión', 'badge-warn'], 'cancelled' => ['Anulado', ''], 'error' => ['Error', '']];
-$appLinks = ['repeat' => '/admin/repeat', 'venu' => '/admin/venu'];
+$appLinks = ['repeat' => '/admin/repeat', 'venu' => '/admin/venu', 'pido' => '/admin/pido'];
 ?>
 <h1>Administración</h1>
 <p class="intro">Todas las cuentas y aplicaciones de ZERO en un solo lugar.</p>
@@ -26,7 +26,7 @@ $appLinks = ['repeat' => '/admin/repeat', 'venu' => '/admin/venu'];
       <p>FlowDesk tiene su propia administración: usuarios, espacios, suspensiones y su registro de acciones.</p>
       <a href="<?= e(flowdesk_admin_url()) ?>" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Abrir admin de FlowDesk <?= icon('external-link', 14) ?></a>
     </div>
-    <?php foreach (['repeat' => 'Fidelización', 'venu' => 'Entradas y eventos'] as $id => $cat): ?>
+    <?php foreach (['repeat' => 'Fidelización', 'venu' => 'Entradas y eventos', 'pido' => 'Autoservicio para restaurantes'] as $id => $cat): ?>
       <div class="panel admin-app">
         <div class="admin-app-head"><span class="app-icon"><?= app_mark($id, 24) ?></span><div><b><?= e(ucfirst($id)) ?></b><small><?= e($cat) ?></small></div></div>
         <?php if (isset($apps[$id])): ?>

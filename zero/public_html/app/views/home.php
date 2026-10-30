@@ -1,9 +1,9 @@
-<?php $repeatUrl = zero_app('repeat')['url'] ?? null; $venuUrl = zero_app('venu')['url'] ?? null; ?>
+<?php $repeatUrl = zero_app('repeat')['url'] ?? null; $venuUrl = zero_app('venu')['url'] ?? null; $pidoUrl = zero_app('pido')['url'] ?? null; ?>
 <section class="hero">
   <div class="container">
     <a href="/productos/flowdesk" class="pill"><span>Conoce <b>FlowDesk</b>, el CRM para pymes</span><span class="pill-tag">Nuevo</span></a>
     <h1>Software simple para <span class="accent hook">hacer crecer</span> tu negocio</h1>
-    <p class="lead">ZERO Solutions crea herramientas para emprendedores y pymes. Con una sola cuenta ZERO accedes a todas nuestras aplicaciones: FlowDesk para vender, Repeat para que tus clientes vuelvan y Venu para vender entradas de tus eventos.</p>
+    <p class="lead">ZERO Solutions crea herramientas para emprendedores y pymes. Con una sola cuenta ZERO accedes a todas nuestras aplicaciones: FlowDesk para vender, Repeat para que tus clientes vuelvan, Venu para vender entradas de tus eventos y Pido para que tus clientes pidan solos en un tótem.</p>
     <div class="hero-ctas">
       <a href="/registro" class="btn btn-primary btn-lg">Crear cuenta gratis <?= icon('arrow-right', 18, 'icon-arrow') ?></a>
       <a href="/productos/flowdesk" class="btn btn-secondary btn-lg">Conocer FlowDesk</a>
@@ -14,7 +14,8 @@
       <a href="/productos/flowdesk" class="app-tile"><span class="app-icon"><?= app_mark('flowdesk', 34) ?></span>FlowDesk</a>
       <?php if ($repeatUrl): ?><a href="#repeat" class="app-tile"><span class="app-icon"><?= app_mark('repeat', 34) ?></span>Repeat</a><?php endif; ?>
       <?php if ($venuUrl): ?><a href="#venu" class="app-tile"><span class="app-icon"><?= app_mark('venu', 34) ?></span>Venu</a><?php endif; ?>
-      <?php for ($i = 0; $i < 3 - ($repeatUrl ? 1 : 0) - ($venuUrl ? 1 : 0); $i++): ?>
+      <?php if ($pidoUrl): ?><a href="#pido" class="app-tile"><span class="app-icon"><?= app_mark('pido', 34) ?></span>Pido</a><?php endif; ?>
+      <?php for ($i = 0; $i < 3 - ($repeatUrl ? 1 : 0) - ($venuUrl ? 1 : 0) - ($pidoUrl ? 1 : 0); $i++): ?>
         <span class="app-tile soon"><span class="app-icon"><?= icon('plus', 26) ?></span>Próximamente</span>
       <?php endfor; ?>
     </div>
@@ -132,6 +133,35 @@
     </div>
     <div class="reveal">
       <?php partial('browser', ['src' => '/assets/img/venu/evento.webp', 'alt' => 'Página de un evento en Venu con entradas a la venta', 'url' => 'tumarca.venu.zerosolutions.cl']); ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
+<?php if ($pidoUrl): ?>
+<section class="section section-soft" id="pido">
+  <div class="container split split-reverse">
+    <div class="reveal">
+      <div class="product-head">
+        <span class="app-icon"><?= app_mark('pido', 30) ?></span>
+        <div><b>Pido</b><div class="tag">Autoservicio para restaurantes</div></div>
+      </div>
+      <h2 class="h2" style="margin-top:24px">Tu tótem de pedidos, <span class="hook">en una tablet</span></h2>
+      <p class="sub">Tus clientes eligen en una pantalla con fotos, pagan con un QR desde su celular y retiran cuando aparece su número. <span class="hook hook-thin">Sin comisión por venta.</span></p>
+      <ul class="checks">
+        <li><?= icon('check', 18) ?><span><b>Menú con opciones</b>: tamaños, agregados con precio, combos con bebida.</span></li>
+        <li><?= icon('check', 18) ?><span><b>Pagos con QR</b> con tu Mercado Pago, Flow o Stripe, o pago en caja.</span></li>
+        <li><?= icon('check', 18) ?><span><b>Pantallas de cocina y retiro</b> con aviso sonoro para cada pedido.</span></li>
+        <li><?= icon('check', 18) ?><span><b>Tu diseño</b>: colores, letras, fotos y animaciones, o tu propio código.</span></li>
+        <li><?= icon('check', 18) ?><span><b>Pido Pro</b>: tótems ilimitados y sin nuestra marca.</span></li>
+      </ul>
+      <div class="hero-ctas" style="justify-content:flex-start">
+        <a href="/registro?next=/abrir/pido" class="btn btn-primary">Probar Pido gratis <?= icon('arrow-right', 17, 'icon-arrow') ?></a>
+        <a href="/precios#pido" class="btn btn-secondary">Ver Pido Pro</a>
+      </div>
+    </div>
+    <div class="reveal">
+      <?php partial('browser', ['src' => '/assets/img/pido/totem.webp', 'alt' => 'Tótem de Pido con el menú de una hamburguesería', 'url' => 'pido.zerosolutions.cl']); ?>
     </div>
   </div>
 </section>

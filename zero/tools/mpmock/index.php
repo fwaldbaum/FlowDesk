@@ -32,6 +32,19 @@ if ($path === '/checkout/preferences' && $_SERVER['REQUEST_METHOD'] === 'POST') 
     $json(201, ['id' => $id, 'init_point' => 'http://127.0.0.1:9191/checkout?pref=' . $id]);
 }
 
+// Pido looks payments up by its own reference.
+if ($path === '/v1/payments/search') {
+    if (!$authed()) {
+        $json(401, ['message' => 'invalid access token', 'status' => 401]);
+    }
+    $ref = (string) ($_GET['external_reference'] ?? '');
+    $json(200, ['results' => array_values(array_reverse(array_filter($db['payments'], fn ($p) => $p['external_reference'] === $ref)))]);
+}
+
+if ($path === '/users/me') {
+    $authed() ? $json(200, ['id' => 1, 'nickname' => 'TIENDA_MOCK', 'site_id' => 'MLC']) : $json(401, ['message' => 'invalid access token', 'status' => 401]);
+}
+
 if (preg_match('#^/v1/payments/(\d+)$#', $path, $m)) {
     if (!$authed()) {
         $json(401, ['message' => 'invalid access token', 'status' => 401]);

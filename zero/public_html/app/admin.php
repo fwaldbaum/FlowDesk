@@ -117,6 +117,15 @@ function admin_overview(): array
             'Ventas pagadas' => clp((int) q("SELECT COALESCE(SUM(total), 0) FROM vn_orders WHERE status = 'paid'")->fetchColumn()),
         ];
     }
+    if (app_installed('pd_stores')) {
+        $sold = "'paid', 'preparing', 'ready', 'delivered'";
+        $apps['pido'] = [
+            'Restaurantes' => (int) q('SELECT COUNT(*) FROM pd_stores')->fetchColumn(),
+            'Tótems activos' => (int) q('SELECT COUNT(*) FROM pd_kiosks WHERE active = 1 AND last_seen_at > ?', [now_utc(-7 * 86400)])->fetchColumn(),
+            'Pedidos en 30 días' => (int) q("SELECT COUNT(*) FROM pd_orders WHERE status IN ({$sold}) AND paid_at > ?", [now_utc(-30 * 86400)])->fetchColumn(),
+            'Ventas pagadas' => clp((int) q("SELECT COALESCE(SUM(total), 0) FROM pd_orders WHERE status IN ({$sold})")->fetchColumn()),
+        ];
+    }
     $payments = q(
         'SELECT p.*, u.name, u.email FROM zero_payments p JOIN zero_users u ON u.id = p.user_id
           WHERE p.status <> \'pending\' ORDER BY p.created_at DESC LIMIT 8',
@@ -172,6 +181,14 @@ function admin_account(int $id): ?array
             [$email],
         )->fetch() ?: null;
     }
+    if (app_installed('pd_users')) {
+        $apps['pido'] = q(
+            'SELECT u.plan, u.plan_expires_at, u.last_login_at, s.name AS space, NULL AS slug,
+                    (SELECT COUNT(*) FROM pd_kiosks k WHERE k.store_id = s.id) AS kiosks
+               FROM pd_users u LEFT JOIN pd_stores s ON s.owner_id = u.id WHERE u.email = ? LIMIT 1',
+            [$email],
+        )->fetch() ?: null;
+    }
     return [
         'account' => $account,
         'access' => app_access($id),
@@ -218,7 +235,7 @@ function admin_end_plan(array $admin, array $account, string $planKey): void
     if (!$changed) {
         throw new InvalidArgumentException('Ese plan ya no estaba activo.');
     }
-    foreach (['repeat' => 'rp_users', 'venu' => 'vn_users'] as $app => $table) {
+    foreach (['repeat' => 'rp_users', 'venu' => 'vn_users', 'pido' => 'pd_users'] as $app => $table) {
         if (!app_installed($table)) {
             continue;
         }
@@ -274,6 +291,26 @@ function admin_venu(string $search): array
         $params,
     )->fetchAll();
     return ['orgs' => $orgs, 'events' => $events];
+}
+
+function admin_pido(string $search): array
+{
+    if (!app_installed('pd_stores')) {
+        return [];
+    }
+    $sold = "'paid', 'preparing', 'ready', 'delivered'";
+    $where = $search !== '' ? 'WHERE s.name LIKE ? OR u.email LIKE ?' : '';
+    return q(
+        "SELECT s.id, s.name, s.created_at, u.email, u.plan, u.plan_expires_at, z.id AS zero_id,
+                (SELECT COUNT(*) FROM pd_kiosks k WHERE k.store_id = s.id AND k.active = 1) AS kiosks,
+                (SELECT MAX(k.last_seen_at) FROM pd_kiosks k WHERE k.store_id = s.id) AS last_seen,
+                (SELECT COUNT(*) FROM pd_products p WHERE p.store_id = s.id) AS products,
+                (SELECT COUNT(*) FROM pd_orders o WHERE o.store_id = s.id AND o.status IN ({$sold}) AND o.paid_at > ?) AS orders_30d,
+                (SELECT COALESCE(SUM(o.total), 0) FROM pd_orders o WHERE o.store_id = s.id AND o.status IN ({$sold})) AS sales
+           FROM pd_stores s JOIN pd_users u ON u.id = s.owner_id LEFT JOIN zero_users z ON z.email = u.email
+          {$where} ORDER BY s.created_at DESC LIMIT 200",
+        array_merge([now_utc(-30 * 86400)], $search !== '' ? [like($search), like($search)] : []),
+    )->fetchAll();
 }
 
 /** Takes an event off the public site (it stays as a draft the organizer can fix and republish). */
@@ -381,6 +418,10 @@ function admin_route(string $method, string $path): bool
     }
     if ($method === 'GET' && $path === '/admin/venu') {
         render('admin/venu', $base + admin_venu($search) + ['title' => 'Venu · Administración', 'tab' => 'venu', 'search' => $search, 'installed' => app_installed('vn_orgs')]);
+        return true;
+    }
+    if ($method === 'GET' && $path === '/admin/pido') {
+        render('admin/pido', $base + ['title' => 'Pido · Administración', 'tab' => 'pido', 'search' => $search, 'rows' => admin_pido($search), 'installed' => app_installed('pd_stores')]);
         return true;
     }
     if ($method === 'POST' && preg_match('#^/admin/venu/eventos/(\d+)/despublicar$#', $path, $m)) {

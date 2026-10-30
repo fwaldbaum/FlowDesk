@@ -85,6 +85,23 @@ function zero_plans(): array
                 'Exportar asistentes',
             ],
         ],
+        'pido_pro' => [
+            'app' => 'pido',
+            'name' => 'Pido Pro',
+            'tagline' => 'Todos los tótems que quieras, con tu marca de punta a punta.',
+            'rank' => 1,
+            'covers' => ['pido' => 'pro'],
+            'price' => ['month' => 9990, 'year' => 99900],
+            // Launch offer: the regular price, shown crossed out.
+            'list_price' => ['month' => 19990, 'year' => 199900],
+            'offer' => 'Oferta de lanzamiento',
+            'features' => [
+                'Tótems ilimitados',
+                'Tu propio CSS y HTML en el tótem',
+                'Sin la marca de Pido',
+                'Exportar ventas a Excel',
+            ],
+        ],
         'zero_plus' => [
             'app' => 'zero',
             'name' => 'ZERO Plus',
@@ -93,7 +110,7 @@ function zero_plans(): array
             'covers' => ['flowdesk' => 'max', '*' => 'max'],
             'price' => ['month' => 29990, 'year' => 299900],
             'features' => [
-                'FlowDesk Max, Repeat Pro y Venu Pro incluidos',
+                'FlowDesk Max, Repeat Pro, Venu Pro y Pido Pro incluidos',
                 'Cada aplicación nueva de ZERO, sin pagar aparte',
                 'Usuarios ilimitados',
                 'Sesión de configuración inicial con nuestro equipo',
