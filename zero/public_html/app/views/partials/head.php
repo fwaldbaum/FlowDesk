@@ -10,6 +10,9 @@
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="/assets/css/zero.css?v=8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..800&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/assets/css/zero.css?v=9">
+<link rel="stylesheet" href="/assets/css/zfx.css?v=1">
 <script defer src="/assets/js/zero.js?v=5"></script>
+<script defer src="/assets/js/zfx.js?v=1"></script>
+<?= $extraHead ?? '' ?>

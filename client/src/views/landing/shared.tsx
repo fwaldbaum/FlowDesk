@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useInView, useReducedMotion } from 'motion/react';
 import { useAuth } from '../../auth/AuthContext';
 import { Reveal } from '../../components/motion';
+import { SplitText } from './fx';
 
 /** Primary call to action adapts to where the visitor is in the funnel. */
 export function usePrimaryCta() {
@@ -55,7 +56,7 @@ export function SectionHeading({ eyebrow, title, body, align = 'center' }: {
     <Reveal className={clsx('mb-14 max-w-2xl', align === 'center' && 'mx-auto text-center')}>
       <Eyebrow>{eyebrow}</Eyebrow>
       <h2 className="text-balance text-3xl font-semibold tracking-[-0.025em] text-fg md:text-[44px] md:leading-[1.1]">
-        {title}
+        {typeof title === 'string' ? <SplitText text={title} by="word" /> : title}
       </h2>
       {body && (
         <p className={clsx('mt-4 max-w-xl text-pretty text-[15px] leading-relaxed text-muted md:text-base', align === 'center' && 'mx-auto')}>

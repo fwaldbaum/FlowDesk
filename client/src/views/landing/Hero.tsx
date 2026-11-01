@@ -12,6 +12,7 @@ import { ease, softSpring } from '../../components/motion';
 import { STATUS_BY_ID } from '../../lib/constants';
 import type { Status } from '../../lib/types';
 import { CtaLink, spotlightHandlers, usePrimaryCta } from './shared';
+import { ClickSpark, DotGrid, Magnet, RotatingText, SplitText, VelocityMarquee } from './fx';
 
 // ---- Live board demo -------------------------------------------------------------
 
@@ -415,11 +416,6 @@ const heroItem = {
   show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.7, ease } },
 };
 
-const word = {
-  hidden: { opacity: 0, y: '0.35em', filter: 'blur(8px)' },
-  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.65, ease } },
-};
-
 const CHIPS = [
   { icon: CreditCard, label: 'Sin tarjeta de crédito' },
   { icon: Timer, label: 'Listo en minutos' },
@@ -431,8 +427,9 @@ export function Hero() {
   return (
     <section className="relative -mt-16 overflow-hidden pt-16" {...spotlightHandlers()}>
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="bg-grid absolute inset-x-0 top-0 h-[760px]" />
-        <div className="bg-grid-spot absolute inset-x-0 top-0 h-[760px]" />
+        <div className="absolute inset-x-0 top-0 h-[820px] [mask-image:radial-gradient(70%_70%_at_50%_30%,#000_40%,transparent_85%)]">
+          <DotGrid />
+        </div>
         <motion.div
           className="absolute left-1/2 top-[-200px] h-[560px] w-[960px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(79,70,229,0.24),transparent)]"
           animate={{ x: ['-50%', '-46%', '-54%', '-50%'], scale: [1, 1.06, 0.97, 1] }}
@@ -461,35 +458,32 @@ export function Hero() {
             Vista Hoy, WhatsApp en un clic y formulario para tu web
             <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" />
           </motion.a>
-          <motion.h1
-            variants={{ show: { transition: { staggerChildren: 0.06 } } }}
-            className="text-balance text-[42px] font-semibold leading-[1.04] tracking-[-0.04em] text-fg sm:text-6xl md:text-[72px]"
+          <h1
+            className="text-[42px] font-semibold leading-[1.04] sm:text-balance tracking-[-0.04em] text-fg sm:text-6xl md:text-[72px]"
           >
-            {'Convierte leads en clientes,'.split(' ').map((w, i) => (
-              <span key={i}>
-                <motion.span variants={word} className="inline-block">{w}</motion.span>{' '}
-              </span>
-            ))}
-            <motion.span variants={word} className="inline-block">
-              <motion.span
-                className="inline-block bg-[linear-gradient(110deg,#93A5FF_0%,#A5B4FC_40%,#EEF0FF_50%,#A5B4FC_60%,#60A5FA_100%)] bg-[length:250%_100%] bg-clip-text pb-1 text-transparent"
-                initial={{ backgroundPosition: '100% 0%' }}
-                animate={{ backgroundPosition: '0% 0%' }}
-                transition={{ duration: 2.4, ease: 'easeInOut', delay: 1.1 }}
-              >
-                sin perder ninguno.
-              </motion.span>
-            </motion.span>
-          </motion.h1>
+            <SplitText text="Convierte leads en clientes," delay={0.15} />{' '}
+            <span className="sm:whitespace-nowrap">
+              <SplitText text="sin perder" delay={0.85} />{' '}
+              <RotatingText
+                words={['ninguno.', 'una venta.', 'un seguimiento.']}
+                every={2600}
+                className="max-sm:flex max-sm:justify-center bg-[linear-gradient(110deg,#93A5FF_0%,#A5B4FC_45%,#60A5FA_100%)] bg-clip-text text-transparent [&>span]:bg-[linear-gradient(110deg,#93A5FF_0%,#A5B4FC_45%,#60A5FA_100%)] [&>span]:bg-clip-text"
+              />
+            </span>
+          </h1>
           <motion.p variants={heroItem} className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted md:text-lg">
             FlowDesk reúne los contactos que llegan desde tu web, formularios y campañas en un tablero claro.
             Haz seguimiento, escríbeles por WhatsApp y lleva cada oportunidad hasta el cierre.
           </motion.p>
           <motion.div variants={heroItem} className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <CtaLink to={cta.to} size="lg" className="w-full sm:w-auto">
-              {cta.label}
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-            </CtaLink>
+            <ClickSpark className="w-full sm:w-auto">
+              <Magnet className="w-full sm:w-auto">
+                <CtaLink to={cta.to} size="lg" className="w-full sm:w-auto">
+                  {cta.label}
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                </CtaLink>
+              </Magnet>
+            </ClickSpark>
             <CtaLink to="#demo" variant="secondary" size="lg" className="w-full sm:w-auto">
               Probar la demo
             </CtaLink>
@@ -510,15 +504,11 @@ export function Hero() {
         <div className="mt-12 flex flex-col items-center gap-5">
           <p className="text-xs text-subtle">Recibe leads desde</p>
           <div className="relative w-full max-w-4xl overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_15%,#000_85%,transparent)]">
-            <motion.div
-              className="flex w-max gap-12"
-              animate={{ x: ['0%', '-50%'] }}
-              transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
-            >
-              {[...SOURCES, ...SOURCES].map((s, i) => (
-                <span key={i} className="whitespace-nowrap text-sm font-semibold tracking-tight text-subtle">{s}</span>
+            <VelocityMarquee speed={36}>
+              {SOURCES.map((s) => (
+                <span key={s} className="mr-12 whitespace-nowrap text-sm font-semibold tracking-tight text-subtle">{s}</span>
               ))}
-            </motion.div>
+            </VelocityMarquee>
           </div>
         </div>
       </div>

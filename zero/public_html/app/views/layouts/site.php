@@ -1,9 +1,9 @@
 <?php $user = current_user(); $nav = $nav ?? ''; ?>
 <!doctype html>
 <html lang="es" class="no-js">
-<head><meta charset="utf-8"><?php partial('head', ['title' => $title ?? null, 'description' => $description ?? null]); ?></head>
+<head><meta charset="utf-8"><?php partial('head', ['title' => $title ?? null, 'description' => $description ?? null, 'extraHead' => $extraHead ?? '']); ?></head>
 <body>
-<header class="nav">
+<header class="nav" data-nav>
   <div class="container nav-inner">
     <?php partial('logo'); ?>
     <nav class="nav-links" aria-label="Principal">

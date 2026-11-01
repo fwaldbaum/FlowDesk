@@ -71,6 +71,9 @@ cloud de Claude).
   (importar/exportar CSV), `SettingsView` (formulario, WhatsApp, webhook, equipo, cuenta), `integrations/` (catálogo de 20 guías en `guides.tsx`: anuncios, mensajería, web,
   correo y avisos; cada guía con `source` muestra su estado leyendo el log del webhook), `AdminView` +
   `AdminUserPanel`, `PublicFormPage`.
+- `views/landing/fx.tsx`: versión React del kit de animaciones de ZERO (`SplitText`, `RotatingText`, `DotGrid`, `Magnet`,
+  `ClickSpark`, `VelocityMarquee`); el borde animado `.star-border` está en `index.css`. `landing/Pricing.tsx` muestra los planes
+  con `PLAN_PRICES` de `lib/plans.ts` (espejo de los precios de `zero/public_html/app/plans.php`).
 - `components/motion.tsx`: presets de animación compartidos (`spring`, `panelMotion`, `dialogMotion`, `Reveal`,
   `CountUp`…). `MotionConfig reducedMotion="user"` está en `main.tsx`.
 - `lib/`: `api.ts` (cliente fetch tipado, maneja 401), `types.ts`, `csv.ts` (parser e importación), `contact.ts`
@@ -81,7 +84,8 @@ cloud de Claude).
   compartido sin Node. Va completo a `public_html`; `app/` está bloqueado por `.htaccess`, y `app/config.php` va fuera
   de git. Guía de instalación en `zero/README.md`.
 - Estilo distinto al de FlowDesk: **blanco y azul** (`#2563EB`), minimalista. CSS propio en `assets/css/zero.css`,
-  sin build. También aquí: sin emojis (iconos Lucide en `app/icons.php`).
+  sin build. La portada usa `assets/css/home.css` y el kit de animaciones compartido `assets/js/zfx.js` + `assets/css/zfx.css`
+  (se activa con atributos `data-*`; Venu, Repeat y Pido llevan una copia). También aquí: sin emojis (iconos Lucide en `app/icons.php`).
 - SSO: `/abrir/<app>` firma un pase HMAC de un solo uso (2 min, solo correos confirmados). FlowDesk lo verifica en
   `GET /api/auth/zero` (`verifyZeroTicket`, nonce en `zero_sso_nonces`) con `ZERO_SSO_SECRET`, que debe ser igual a
   `sso_secret` de ZERO.

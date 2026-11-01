@@ -76,3 +76,16 @@ html {
   -webkit-mask-image: radial-gradient(240px circle at var(--mx, -999px) var(--my, -999px), #000, transparent 75%);
   mask-image: radial-gradient(240px circle at var(--mx, -999px) var(--my, -999px), #000, transparent 75%);
 }
+
+/* Moving gradient border for the highlighted plan (React Bits "Star Border"). */
+@property --fd-star { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.star-border { position: relative; isolation: isolate; }
+.star-border::before {
+  content: ''; position: absolute; z-index: -1; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: conic-gradient(from var(--fd-star), #4f46e5, rgba(79, 70, 229, .12) 25%, #60a5fa 50%, rgba(79, 70, 229, .12) 75%, #4f46e5);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: fd-star 6s linear infinite;
+}
+@keyframes fd-star { to { --fd-star: 360deg; } }
+@media (prefers-reduced-motion: reduce) { .star-border::before { animation: none; } }

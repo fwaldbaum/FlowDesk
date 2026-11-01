@@ -1,203 +1,174 @@
-<?php $repeatUrl = zero_app('repeat')['url'] ?? null; $venuUrl = zero_app('venu')['url'] ?? null; $pidoUrl = zero_app('pido')['url'] ?? null; ?>
-<section class="hero">
-  <div class="container">
-    <a href="/productos/flowdesk" class="pill"><span>Conoce <b>FlowDesk</b>, el CRM para pymes</span><span class="pill-tag">Nuevo</span></a>
-    <h1>Software simple para <span class="accent hook">hacer crecer</span> tu negocio</h1>
-    <p class="lead">ZERO Solutions crea herramientas para emprendedores y pymes. Con una sola cuenta ZERO accedes a todas nuestras aplicaciones: FlowDesk para vender, Repeat para que tus clientes vuelvan, Venu para vender entradas de tus eventos y Pido para que tus clientes pidan solos en un tótem.</p>
-    <div class="hero-ctas">
-      <a href="/registro" class="btn btn-primary btn-lg">Crear cuenta gratis <?= icon('arrow-right', 18, 'icon-arrow') ?></a>
-      <a href="/productos/flowdesk" class="btn btn-secondary btn-lg">Conocer FlowDesk</a>
+<?php
+$extraHead = '<link rel="stylesheet" href="/assets/css/home.css?v=' . (is_file(dirname(APP_DIR) . '/assets/css/home.css') ? filemtime(dirname(APP_DIR) . '/assets/css/home.css') : 1) . '">';
+$arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>';
+// Only the apps whose address is configured appear (see app/apps.php); FlowDesk is always there.
+$apps = array_filter([
+    'flowdesk' => [
+        'name' => 'FlowDesk', 'tag' => 'CRM y ventas', 'shot' => '/assets/img/flowdesk/tablero.webp', 'host' => 'zerosolutions.cl/flowdesk', 'theme' => 'fd',
+        'title' => 'Tus clientes, ordenados en un tablero',
+        'text' => 'Cada interesado es una tarjeta. Muévela de etapa, deja notas y recordatorios, y sabe siempre a quién llamar hoy.',
+        'points' => ['Tablero de ventas que arrastras de etapa en etapa', 'Vista Hoy con tus pendientes y los clientes que se enfrían', 'WhatsApp en un clic, con el mensaje ya escrito', 'Formulario para tu web y 20 guías de integración'],
+        'cta' => ['/registro?next=/abrir/flowdesk', 'Probar FlowDesk gratis'], 'more' => ['/productos/flowdesk', 'Ver más'],
+    ],
+    'repeat' => zero_app('repeat') ? [
+        'name' => 'Repeat', 'tag' => 'Fidelización', 'shot' => '/assets/img/repeat/panel.webp', 'host' => 'repeat.zerosolutions.cl', 'theme' => 'rp',
+        'title' => 'Que tus clientes vuelvan, una y otra vez',
+        'text' => 'La tarjeta de sellos de cartón, ahora en el celular de tus clientes. Sin apps que descargar y sin tarjetas perdidas.',
+        'points' => ['Tarjeta digital con tus colores, tu logo y tu premio', 'Sellos con la cámara de tu celular', 'Google Wallet: la tarjeta se actualiza sola', 'Clientes por recuperar con un WhatsApp ya escrito'],
+        'cta' => ['/registro?next=/abrir/repeat', 'Probar Repeat gratis'], 'more' => ['/precios#repeat', 'Ver Repeat Pro'],
+    ] : null,
+    'venu' => zero_app('venu') ? [
+        'name' => 'Venu', 'tag' => 'Entradas y eventos', 'shot' => '/assets/img/venu/evento.webp', 'host' => 'tumarca.venu.zerosolutions.cl', 'theme' => 'vn',
+        'title' => 'Tu evento, tu página, tus entradas',
+        'text' => 'Crea la página de tu evento en minutos y vende entradas con Flow o Stripe, directo a tu cuenta. Sin comisión por entrada.',
+        'points' => ['Editor de página con fotos, textos, mapa y tus colores', 'Cobros con Flow o Stripe, directo a tu cuenta', 'Entradas con QR por correo', 'Control de acceso escaneando con tu celular'],
+        'cta' => ['/registro?next=/abrir/venu', 'Probar Venu gratis'], 'more' => ['/precios#venu', 'Ver Venu Pro'],
+    ] : null,
+    'pido' => zero_app('pido') ? [
+        'name' => 'Pido', 'tag' => 'Autoservicio para restaurantes', 'shot' => '/assets/img/pido/totem.webp', 'host' => 'pido.zerosolutions.cl', 'theme' => 'pd',
+        'title' => 'Tu tótem de pedidos, en una tablet',
+        'text' => 'Tus clientes eligen en una pantalla con fotos, pagan con un QR desde su celular y retiran cuando aparece su número.',
+        'points' => ['Menú con tamaños, agregados y combos', 'Pagos con Mercado Pago, Flow, Stripe o en caja', 'Pantallas de cocina y retiro con aviso sonoro', 'Tu diseño, o tu propio código con Pido Pro'],
+        'cta' => ['/registro?next=/abrir/pido', 'Probar Pido gratis'], 'more' => [zero_app('pido')['url'] ?? '/precios#pido', 'Probar el tótem en vivo'],
+    ] : null,
+]);
+$rotate = ['negocio', 'restaurante', 'tienda', 'productora', 'cafetería', 'barbería'];
+?>
+<section class="zh-hero">
+  <canvas data-dots="28" aria-hidden="true"></canvas>
+  <div class="container zh-hero-grid">
+    <div class="zh-hero-copy">
+      <a href="#apps" class="zh-pill" data-reveal><span class="zh-pill-dot"></span><?= count($apps) ?> aplicaciones, una sola cuenta <?= icon('arrow-right', 15) ?></a>
+      <h1 class="zh-h1" data-split-group>
+        <span data-split>Software simple</span>
+        <span data-split>para hacer crecer</span>
+        <span class="zh-rot-line"><span data-split>tu</span> <span class="zh-rot" data-rotate="<?= e(json_encode($rotate, JSON_UNESCAPED_UNICODE)) ?>"><span><?= e($rotate[0]) ?></span></span></span>
+      </h1>
+      <p class="zh-lead" data-blur>ZERO Solutions crea herramientas para emprendedores y pymes de Chile. Con una sola cuenta abres todas nuestras aplicaciones: para vender, para que tus clientes vuelvan, para tus eventos y para tu restaurante.</p>
+      <div class="zh-ctas" data-reveal style="--d:.5s">
+        <a href="/registro" class="btn btn-primary btn-lg zh-btn" data-magnet data-spark>Crear cuenta gratis <?= $arrow ?></a>
+        <a href="#apps" class="btn btn-secondary btn-lg zh-btn">Ver las aplicaciones</a>
+      </div>
+      <p class="zh-note" data-reveal style="--d:.6s"><em><?= icon('check', 16) ?> Gratis para empezar</em> <em><?= icon('check', 16) ?> Sin tarjeta de crédito</em></p>
     </div>
-    <p class="hero-note">Gratis para empezar. <span class="hook hook-thin">Sin tarjeta de crédito.</span></p>
-
-    <div class="apps-row" aria-label="Aplicaciones ZERO">
-      <a href="/productos/flowdesk" class="app-tile"><span class="app-icon"><?= app_mark('flowdesk', 34) ?></span>FlowDesk</a>
-      <?php if ($repeatUrl): ?><a href="#repeat" class="app-tile"><span class="app-icon"><?= app_mark('repeat', 34) ?></span>Repeat</a><?php endif; ?>
-      <?php if ($venuUrl): ?><a href="#venu" class="app-tile"><span class="app-icon"><?= app_mark('venu', 34) ?></span>Venu</a><?php endif; ?>
-      <?php if ($pidoUrl): ?><a href="#pido" class="app-tile"><span class="app-icon"><?= app_mark('pido', 34) ?></span>Pido</a><?php endif; ?>
-      <?php for ($i = 0; $i < 3 - ($repeatUrl ? 1 : 0) - ($venuUrl ? 1 : 0) - ($pidoUrl ? 1 : 0); $i++): ?>
-        <span class="app-tile soon"><span class="app-icon"><?= icon('plus', 26) ?></span>Próximamente</span>
-      <?php endfor; ?>
-    </div>
-
-    <div class="shot-wrap reveal">
-      <?php partial('browser', ['src' => '/assets/img/flowdesk/tablero.webp', 'alt' => 'Tablero de ventas de FlowDesk con leads en cada etapa', 'loading' => 'eager']); ?>
+    <div class="zh-hero-visual" data-reveal style="--d:.2s">
+      <div class="zh-swap" data-swap="3800" aria-label="Pantallas de las aplicaciones ZERO">
+        <?php foreach ($apps as $id => $a): ?>
+          <figure class="zh-shot" data-app="<?= e($id) ?>">
+            <div class="zh-shot-bar"><i></i><i></i><i></i><span><?= e($a['host']) ?></span></div>
+            <img src="<?= e($a['shot']) ?>" alt="<?= e($a['name']) ?>: <?= e($a['title']) ?>" width="1440" height="900" loading="eager">
+          </figure>
+        <?php endforeach; ?>
+      </div>
+      <div class="zh-swap-label" aria-live="polite">
+        <?php foreach ($apps as $id => $a): ?>
+          <span class="zh-app-chip" data-chip="<?= e($id) ?>"><span class="app-icon"><?= app_mark($id, 20) ?></span><b><?= e($a['name']) ?></b><small><?= e($a['tag']) ?></small></span>
+        <?php endforeach; ?>
+      </div>
     </div>
   </div>
 </section>
 
 <?php partial('clients'); ?>
 
-<section class="section section-soft">
-  <div class="container center">
-    <span class="eyebrow">Cuenta ZERO</span>
-    <h2 class="h2"><span class="hook">Una cuenta</span> para todas tus aplicaciones</h2>
-    <p class="sub">Entra una vez y abre cualquier aplicación de ZERO <span class="hook hook-thin">sin volver a escribir tu contraseña</span>.</p>
-    <div class="grid-3" style="text-align:left">
-      <div class="card card-hover reveal">
-        <span class="feature-icon"><?= icon('layout-grid', 22) ?></span>
-        <h3>Todo en un lugar</h3>
-        <p>Desde tu cuenta ves las aplicaciones que usas y las abres con un clic.</p>
-      </div>
-      <div class="card card-hover reveal">
-        <span class="feature-icon"><?= icon('key', 22) ?></span>
-        <h3>Un solo acceso</h3>
-        <p>Tu correo y contraseña ZERO sirven para cada producto: los de hoy y los que vienen.</p>
-      </div>
-      <div class="card card-hover reveal">
-        <span class="feature-icon"><?= icon('shield-check', 22) ?></span>
-        <h3>Seguridad por defecto</h3>
-        <p>Contraseñas cifradas, confirmación de correo y cierre de sesión en todos tus dispositivos.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="container split">
-    <div class="reveal">
-      <div class="product-head">
-        <span class="app-icon"><?= app_mark('flowdesk', 30) ?></span>
-        <div><b>FlowDesk</b><div class="tag">CRM y ventas</div></div>
-      </div>
-      <h2 class="h2" style="margin-top:24px">Tus clientes, <span class="hook">ordenados</span> en un tablero</h2>
-      <p class="sub">Cada interesado es una tarjeta. Muévela de etapa, deja notas y recordatorios, y <span class="hook hook-thin">sabe siempre a quién llamar hoy</span>.</p>
-      <ul class="checks">
-        <li><?= icon('check', 18) ?><span><b>Tablero de ventas</b> que arrastras de etapa en etapa.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Vista Hoy</b> con tus pendientes y los clientes que se enfrían.</span></li>
-        <li><?= icon('check', 18) ?><span><b>WhatsApp en un clic</b>, con el mensaje ya escrito.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Formulario para tu web</b> que crea leads al instante.</span></li>
-        <li><?= icon('check', 18) ?><span><b>20 guías de integración</b>: TikTok, Instagram, Facebook, Google y más.</span></li>
+<section class="zh-account">
+  <div class="container zh-account-grid">
+    <div>
+      <span class="eyebrow" data-reveal>Cuenta ZERO</span>
+      <h2 class="zh-h2" data-split-words>Una cuenta para todas tus aplicaciones</h2>
+      <p class="zh-sub" data-reveal>Entra una vez y abre cualquier aplicación de ZERO sin volver a escribir tu contraseña. Las que lancemos después también.</p>
+      <ul class="zh-list" data-stagger="3">
+        <li><span><?= icon('layout-grid', 20) ?></span><div><b>Todo en un lugar</b><p>Desde tu cuenta ves las aplicaciones que usas y las abres con un clic.</p></div></li>
+        <li><span><?= icon('key', 20) ?></span><div><b>Un solo acceso</b><p>Tu correo y tu contraseña ZERO sirven para cada producto.</p></div></li>
+        <li><span><?= icon('shield-check', 20) ?></span><div><b>Seguridad por defecto</b><p>Contraseñas cifradas, correo confirmado y cierre de sesión en todos tus dispositivos.</p></div></li>
       </ul>
-      <div class="hero-ctas" style="justify-content:flex-start">
-        <a href="/registro?next=/abrir/flowdesk" class="btn btn-primary">Probar FlowDesk gratis <?= icon('arrow-right', 17, 'icon-arrow') ?></a>
-        <a href="/productos/flowdesk" class="btn btn-secondary">Ver más</a>
-      </div>
     </div>
-    <div class="reveal">
-      <?php partial('browser', ['src' => '/assets/img/flowdesk/hoy.webp', 'alt' => 'Vista Hoy de FlowDesk con recordatorios y leads nuevos']); ?>
+    <div class="zh-orbit" data-reveal aria-hidden="true">
+      <div class="zh-ring zh-ring-1"></div>
+      <div class="zh-ring zh-ring-2"></div>
+      <div class="zh-orbit-spin" style="--n:<?= count($apps) ?>">
+        <?php $i = 0; foreach ($apps as $id => $a): ?>
+          <span class="zh-planet" style="--k:<?= $i++ ?>"><span class="app-icon"><?= app_mark($id, 30) ?></span></span>
+        <?php endforeach; ?>
+      </div>
+      <div class="zh-core"><img src="/assets/img/zero-mark.svg" alt="" width="64" height="64"><small>1 cuenta</small></div>
     </div>
   </div>
 </section>
 
-<?php if ($repeatUrl): ?>
-<section class="section section-soft" id="repeat">
-  <div class="container split split-reverse">
-    <div class="reveal">
-      <div class="product-head">
-        <span class="app-icon"><?= app_mark('repeat', 30) ?></span>
-        <div><b>Repeat</b><div class="tag">Fidelización</div></div>
-      </div>
-      <h2 class="h2" style="margin-top:24px">Que tus clientes <span class="hook">vuelvan</span>, una y otra vez</h2>
-      <p class="sub">La tarjeta de sellos de cartón, ahora en el celular de tus clientes. <span class="hook hook-thin">Sin apps que descargar</span> y sin tarjetas perdidas.</p>
-      <ul class="checks">
-        <li><?= icon('check', 18) ?><span><b>Tarjeta digital</b> con tus colores, tu logo y tu premio.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Sellos con la cámara</b> de tu celular, o buscando al cliente por su teléfono.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Google Wallet</b>: la tarjeta se guarda junto a sus pases y se actualiza sola.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Clientes por recuperar</b> con un mensaje de WhatsApp ya escrito.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Repeat Pro</b>: cumpleaños, sellos dobles, trae a un amigo y tu marca sin la nuestra.</span></li>
-      </ul>
-      <div class="hero-ctas" style="justify-content:flex-start">
-        <a href="/registro?next=/abrir/repeat" class="btn btn-primary">Probar Repeat gratis <?= icon('arrow-right', 17, 'icon-arrow') ?></a>
-        <a href="/precios#repeat" class="btn btn-secondary">Ver Repeat Pro</a>
-      </div>
-    </div>
-    <div class="reveal">
-      <?php partial('browser', ['src' => '/assets/img/repeat/panel.webp', 'alt' => 'Panel de Repeat con clientes, sellos del día y actividad reciente', 'url' => 'repeat.zerosolutions.cl']); ?>
-    </div>
-  </div>
-</section>
-<?php endif; ?>
-
-<?php if ($venuUrl): ?>
-<section class="section" id="venu">
-  <div class="container split">
-    <div class="reveal">
-      <div class="product-head">
-        <span class="app-icon"><?= app_mark('venu', 30) ?></span>
-        <div><b>Venu</b><div class="tag">Entradas y eventos</div></div>
-      </div>
-      <h2 class="h2" style="margin-top:24px">Tu evento, tu página, <span class="hook">tus entradas</span></h2>
-      <p class="sub">Crea la página de tu evento en minutos y vende entradas con Flow o Stripe. <span class="hook hook-thin">Sin comisión por entrada.</span></p>
-      <ul class="checks">
-        <li><?= icon('check', 18) ?><span><b>Editor de página</b> con fotos, textos, botones, mapa y tus colores.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Cobros con Flow o Stripe</b>: el dinero llega directo a tu cuenta.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Entradas con QR</b> por correo, con un mensaje que tú editas.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Control de acceso</b> escaneando las entradas con tu celular.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Venu Pro</b>: tu propio dominio, sin nuestra marca y hasta 500 correos al día.</span></li>
-      </ul>
-      <div class="hero-ctas" style="justify-content:flex-start">
-        <a href="/registro?next=/abrir/venu" class="btn btn-primary">Probar Venu gratis <?= icon('arrow-right', 17, 'icon-arrow') ?></a>
-        <a href="/precios#venu" class="btn btn-secondary">Ver Venu Pro</a>
-      </div>
-    </div>
-    <div class="reveal">
-      <?php partial('browser', ['src' => '/assets/img/venu/evento.webp', 'alt' => 'Página de un evento en Venu con entradas a la venta', 'url' => 'tumarca.venu.zerosolutions.cl']); ?>
-    </div>
-  </div>
-</section>
-<?php endif; ?>
-
-<?php if ($pidoUrl): ?>
-<section class="section section-soft" id="pido">
-  <div class="container split split-reverse">
-    <div class="reveal">
-      <div class="product-head">
-        <span class="app-icon"><?= app_mark('pido', 30) ?></span>
-        <div><b>Pido</b><div class="tag">Autoservicio para restaurantes</div></div>
-      </div>
-      <h2 class="h2" style="margin-top:24px">Tu tótem de pedidos, <span class="hook">en una tablet</span></h2>
-      <p class="sub">Tus clientes eligen en una pantalla con fotos, pagan con un QR desde su celular y retiran cuando aparece su número. <span class="hook hook-thin">Sin comisión por venta.</span></p>
-      <ul class="checks">
-        <li><?= icon('check', 18) ?><span><b>Menú con opciones</b>: tamaños, agregados con precio, combos con bebida.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Pagos con QR</b> con tu Mercado Pago, Flow o Stripe, o pago en caja.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Pantallas de cocina y retiro</b> con aviso sonoro para cada pedido.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Tu diseño</b>: colores, letras, fotos y animaciones, o tu propio código.</span></li>
-        <li><?= icon('check', 18) ?><span><b>Pido Pro</b>: tótems ilimitados y sin nuestra marca.</span></li>
-      </ul>
-      <div class="hero-ctas" style="justify-content:flex-start">
-        <a href="/registro?next=/abrir/pido" class="btn btn-primary">Probar Pido gratis <?= icon('arrow-right', 17, 'icon-arrow') ?></a>
-        <a href="/precios#pido" class="btn btn-secondary">Ver Pido Pro</a>
-      </div>
-    </div>
-    <div class="reveal">
-      <?php partial('browser', ['src' => '/assets/img/pido/totem.webp', 'alt' => 'Tótem de Pido con el menú de una hamburguesería', 'url' => 'pido.zerosolutions.cl']); ?>
-    </div>
-  </div>
-</section>
-<?php endif; ?>
-
-<section class="section">
-  <div class="container center">
-    <span class="eyebrow">Cómo funciona</span>
-    <h2 class="h2">Empieza en <span class="hook">tres pasos</span></h2>
-    <div class="steps" style="text-align:left">
-      <div class="step reveal"><span class="step-num">1</span><h3>Crea tu cuenta ZERO</h3><p>Solo tu nombre, tu correo y una contraseña.</p></div>
-      <div class="step reveal"><span class="step-num">2</span><h3>Confirma tu correo</h3><p>Te enviamos un enlace para activar tu cuenta.</p></div>
-      <div class="step reveal"><span class="step-num">3</span><h3>Abre tus aplicaciones</h3><p>Entra a FlowDesk o Repeat desde tu cuenta, sin otra contraseña.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="container center">
-    <span class="eyebrow">Quiénes somos</span>
-    <h2 class="h2">Una empresa chilena que hace <span class="hook">software que se entiende</span></h2>
-    <p class="sub">ZERO Solutions fue fundada por Matías Waldbaum y Facundo Waldbaum para que cualquier negocio, sin importar su tamaño, tenga herramientas simples y bien hechas.</p>
-    <?php partial('founders'); ?>
-    <p style="margin-top:36px"><a href="/nosotros" class="link">Conoce nuestra historia <?= icon('arrow-right', 16) ?></a></p>
-  </div>
-</section>
-
-<section class="section" style="padding-top:0">
+<section class="zh-products" id="apps">
   <div class="container">
-    <div class="cta-band reveal">
-      <h2>Empieza <span class="hook hook-light">hoy</span> con ZERO</h2>
-      <p>Crea tu cuenta gratis y abre FlowDesk en minutos.</p>
-      <div class="hero-ctas">
-        <a href="/registro" class="btn btn-white btn-lg">Crear cuenta gratis</a>
-        <a href="/entrar" class="btn btn-lg" style="color:#fff;border-color:rgba(255,255,255,.3)">Ya tengo cuenta</a>
-      </div>
+    <div class="zh-head">
+      <span class="eyebrow" data-reveal>Aplicaciones</span>
+      <h2 class="zh-h2" data-split-words>Una herramienta para cada parte de tu negocio</h2>
+    </div>
+    <div class="zh-stack" data-stack>
+      <?php $i = 0; foreach ($apps as $id => $a): ?>
+        <article class="zh-card zh-<?= e($a['theme']) ?>" data-stack-card style="--i:<?= $i++ ?>" id="<?= e($id) ?>">
+          <div class="zh-card-copy">
+            <div class="zh-card-head"><span class="app-icon"><?= app_mark($id, 26) ?></span><div><b><?= e($a['name']) ?></b><small><?= e($a['tag']) ?></small></div></div>
+            <h3><?= e($a['title']) ?></h3>
+            <p><?= e($a['text']) ?></p>
+            <ul><?php foreach ($a['points'] as $pt): ?><li><?= icon('check', 16) ?><?= e($pt) ?></li><?php endforeach; ?></ul>
+            <div class="zh-card-ctas">
+              <a href="<?= e($a['cta'][0]) ?>" class="zh-cta" data-spark><?= e($a['cta'][1]) ?> <?= $arrow ?></a>
+              <a href="<?= e($a['more'][0]) ?>" class="zh-more"><?= e($a['more'][1]) ?></a>
+            </div>
+          </div>
+          <figure class="zh-card-shot">
+            <div class="zh-shot-bar"><i></i><i></i><i></i><span><?= e($a['host']) ?></span></div>
+            <img src="<?= e($a['shot']) ?>" alt="<?= e($a['name']) ?>" width="1440" height="900" loading="lazy">
+          </figure>
+        </article>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
+<section class="zh-steps">
+  <div class="container">
+    <div class="zh-head">
+      <span class="eyebrow" data-reveal>Cómo empezar</span>
+      <h2 class="zh-h2" data-split-words>De cero a funcionando en tres pasos</h2>
+    </div>
+    <div class="zh-timeline">
+      <svg class="zh-line" viewBox="0 0 1000 40" preserveAspectRatio="none" data-draw aria-hidden="true" style="--len:1100"><path d="M10 20 C 250 -10, 380 50, 500 20 S 760 -10, 990 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="1100" stroke-linecap="round"/></svg>
+      <ol data-stagger="3">
+        <li><span class="zh-num">1</span><h3>Crea tu cuenta ZERO</h3><p>Solo tu nombre, tu correo y una contraseña.</p></li>
+        <li><span class="zh-num">2</span><h3>Confirma tu correo</h3><p>Te enviamos un enlace para activar tu cuenta.</p></li>
+        <li><span class="zh-num">3</span><h3>Abre tus aplicaciones</h3><p>Entra a cualquiera desde tu cuenta, sin otra contraseña.</p></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="zh-team">
+  <div class="container zh-team-grid">
+    <div>
+      <span class="eyebrow" data-reveal>Quiénes somos</span>
+      <h2 class="zh-h2" data-split-words>Una empresa chilena que hace software que se entiende</h2>
+      <p class="zh-sub" data-reveal>ZERO Solutions fue fundada por Matías Waldbaum y Facundo Waldbaum para que cualquier negocio, sin importar su tamaño, tenga herramientas simples y bien hechas.</p>
+      <a href="/nosotros" class="zh-more zh-more-ink" data-reveal>Conoce nuestra historia <?= $arrow ?></a>
+    </div>
+    <div class="zh-founders" data-stagger="2">
+      <?php foreach ([['Matías Waldbaum', '/assets/img/team/matias.webp'], ['Facundo Waldbaum', '/assets/img/team/facundo.webp']] as [$name, $photo]): ?>
+        <figure class="zh-founder" data-tilt="12">
+          <img src="<?= e($photo) ?>" alt="<?= e($name) ?>" width="240" height="240" loading="lazy">
+          <figcaption><b><?= e($name) ?></b><small>Cofundador de ZERO Solutions</small></figcaption>
+          <span class="zh-glare" aria-hidden="true"></span>
+        </figure>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
+<section class="zh-final" data-dark>
+  <div class="container">
+    <h2 data-split-group><span data-split>Empieza hoy</span> <span data-split>con ZERO</span></h2>
+    <p data-reveal>Crea tu cuenta gratis y abre tu primera aplicación en minutos.</p>
+    <div class="zh-ctas" data-reveal style="--d:.2s">
+      <a href="/registro" class="btn btn-white btn-lg zh-btn" data-magnet data-spark>Crear cuenta gratis <?= $arrow ?></a>
+      <a href="/entrar" class="btn btn-lg zh-btn zh-btn-line">Ya tengo cuenta</a>
     </div>
   </div>
 </section>

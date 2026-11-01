@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, Briefcase, Building2, Check, Lightbulb, Plus, Users, X } from 'lucide-react';
 import { Logo, LogoMark } from '../../components/Logo';
 import { ease, Reveal, spring } from '../../components/motion';
+import { ClickSpark, Magnet, SplitText } from './fx';
 import { CtaLink, Eyebrow, SectionHeading, spotlightHandlers, usePrimaryCta } from './shared';
 
 // ---- Before / after ------------------------------------------------------------
@@ -252,15 +253,19 @@ export function FinalCta() {
               <LogoMark size={34} />
             </motion.div>
             <h2 className="text-balance text-3xl font-semibold tracking-[-0.03em] text-fg md:text-5xl">
-              Ordena tu pipeline hoy
+              <SplitText text="Ordena tu pipeline hoy" />
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-muted md:text-base">
               Crea tu cuenta, conecta tu primer formulario y empieza a dar seguimiento a cada oportunidad.
             </p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <CtaLink to={cta.to} size="lg" className="w-full sm:w-auto">
-                {cta.label} <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-              </CtaLink>
+              <ClickSpark className="w-full sm:w-auto">
+                <Magnet className="w-full sm:w-auto">
+                  <CtaLink to={cta.to} size="lg" className="w-full sm:w-auto">
+                    {cta.label} <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </CtaLink>
+                </Magnet>
+              </ClickSpark>
               {cta.to !== '/app' && (
                 <CtaLink to="/login" variant="secondary" size="lg" className="w-full sm:w-auto">
                   Ya tengo cuenta

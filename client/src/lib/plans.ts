@@ -14,3 +14,9 @@ export const PLAN_LIMITS: Record<Plan, {
   pro: { users: 3, leads: null, csv: true, webhook: true, whatsapp_template: true },
   max: { users: 15, leads: null, csv: true, webhook: true, whatsapp_template: true },
 };
+
+/** Prices in CLP with VAT, as sold in ZERO (zero/public_html/app/plans.php). */
+export const PLAN_PRICES: Record<Exclude<Plan, 'free'>, { month: number; year: number }> = {
+  pro: { month: 5990, year: 59900 },
+  max: { month: 19990, year: 199900 },
+};

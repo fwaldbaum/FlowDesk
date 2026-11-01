@@ -3,6 +3,7 @@ import { Hero } from './landing/Hero';
 import { HowItWorks } from './landing/HowItWorks';
 import { Nav } from './landing/Nav';
 import { Playground } from './landing/Playground';
+import { Pricing } from './landing/Pricing';
 import { Audience, Compare, Faq, FinalCta, Footer } from './landing/Sections';
 import { useEffect } from 'react';
 import { ZeroAnnouncement } from '../components/ZeroAnnouncement';
@@ -28,6 +29,7 @@ export function LandingPage() {
         <HowItWorks />
         <Compare />
         <Audience />
+        <Pricing />
         <Faq />
         <FinalCta />
       </main>

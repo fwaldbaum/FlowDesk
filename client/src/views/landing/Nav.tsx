@@ -12,7 +12,7 @@ const LINKS = [
   { href: '#funciones', label: 'Funciones' },
   { href: '#demo', label: 'Demo' },
   { href: '#como-funciona', label: 'Cómo funciona' },
-  { href: '#para-quien', label: 'Para quién' },
+  { href: '#precios', label: 'Precios' },
   { href: '#preguntas', label: 'Preguntas' },
 ];
 
