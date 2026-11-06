@@ -1,0 +1,48 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/geist';
+@import '@flaticon/flaticon-uicons/css/regular/rounded.css';
+@import '@flaticon/flaticon-uicons/css/brands/all.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: 11 27 63;
+  --sub: 74 88 117;
+  --mute: 132 145 170;
+  --line: 227 233 243;
+  --canvas: 247 249 253;
+  --card: 255 255 255;
+  --raised: 241 245 251;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: 236 241 250;
+    --sub: 168 180 203;
+    --mute: 112 125 150;
+    --line: 36 44 62;
+    --canvas: 10 14 24;
+    --card: 17 22 35;
+    --raised: 25 31 47;
+    color-scheme: dark;
+  }
+}
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: rgb(var(--canvas));
+  color: rgb(var(--ink));
+  font-family: 'Inter Variable', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  overflow: hidden;
+}
+input, textarea { user-select: text; }
+.drag { -webkit-app-region: drag; }
+.no-drag { -webkit-app-region: no-drag; }
+.fi { display: inline-flex; line-height: 1; }
+.fi::before { line-height: 1; }
+.scroll-thin::-webkit-scrollbar { width: 10px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: rgb(var(--line)); border-radius: 10px; border: 3px solid rgb(var(--canvas)); }
+:focus-visible { outline: 2px solid #2563EB; outline-offset: 2px; border-radius: 10px; }

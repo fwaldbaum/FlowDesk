@@ -90,6 +90,13 @@ cloud de Claude).
   `GET /api/auth/zero` (`verifyZeroTicket`, nonce en `zero_sso_nonces`) con `ZERO_SSO_SECRET`, que debe ser igual a
   `sso_secret` de ZERO.
 - Productos nuevos: agrégalos en `zero/public_html/app/apps.php`.
+- **App de escritorio ZERO** (`zero/desktop/`, Electron + React + Vite + Tailwind, íconos Flaticon UIcons con crédito en
+  «Acerca de», componentes de React Bits): inicio de sesión, cuenta, plan y pagos, dispositivos y lanzador que «instala»
+  cada app (ventana propia con `partition` aislada, SSO y acceso directo). El token del dispositivo vive cifrado con
+  `safeStorage` en el proceso principal; la UI solo habla por `preload.js`. API en `app/desktop_api.php`
+  (`/api/desktop/*`, token `zd.<id>.<secreto>` en `zero_devices`, v6) y `/desktop/continuar` (enlace de un solo uso
+  para abrir la web con sesión, p. ej. para pagar). Instaladores: `npm run dist:linux|dist:win` (wine) aquí y macOS por
+  `.github/workflows/zero-desktop.yml`. `ZERO_SERVER` apunta la app a otro servidor para pruebas.
 - **Admin de plataforma** en `/admin` (`app/admin.php`, vistas `app/views/admin/`): solo cuentas confirmadas de
   `admin_emails` (por defecto `facundo@zerosolutions.cl`). Repeat (`rp_*`), Venu (`vn_*`) y Pido (`pd_*`) comparten la BD de ZERO
   y se administran ahí directo; FlowDesk tiene su propio admin y `/admin` solo enlaza a él. Regalar o terminar planes,

@@ -1,0 +1,51 @@
+# Builds the ZERO desktop app installers (macOS needs a Mac runner). Artifacts expire after 3 days.
+name: ZERO desktop
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'zero/desktop/**'
+      - '.github/workflows/zero-desktop.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            script: dist:mac
+            files: zero/desktop/release/*.dmg
+          - os: windows-latest
+            script: dist:win
+            files: zero/desktop/release/*.exe
+          - os: ubuntu-latest
+            script: dist:linux
+            files: |
+              zero/desktop/release/*.AppImage
+              zero/desktop/release/*.deb
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: zero/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: zero/desktop/package-lock.json
+      - run: npm ci
+      - run: npm run ${{ matrix.script }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zero-desktop-${{ runner.os }}
+          path: ${{ matrix.files }}
+          retention-days: 3
+          if-no-files-found: error

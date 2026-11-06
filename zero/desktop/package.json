@@ -1,0 +1,108 @@
+{
+  "name": "zero-desktop",
+  "productName": "ZERO",
+  "version": "1.0.0",
+  "description": "Tu cuenta ZERO y todas sus aplicaciones en tu computador.",
+  "author": {
+    "name": "ZERO Solutions",
+    "email": "hola@zerosolutions.cl"
+  },
+  "homepage": "https://zerosolutions.cl",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "electron .",
+    "dist:linux": "vite build && electron-builder --linux AppImage deb --publish never",
+    "dist:win": "vite build && electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "vite build && electron-builder --mac dmg --universal --publish never"
+  },
+  "devDependencies": {
+    "@flaticon/flaticon-uicons": "^3.3.1",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "electron": "^38.4.0",
+    "electron-builder": "^26.0.12",
+    "motion": "^11.18.2",
+    "postcss": "^8.4.49",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.0.7"
+  },
+  "build": {
+    "appId": "cl.zerosolutions.desktop",
+    "productName": "ZERO",
+    "copyright": "© ZERO Solutions",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main/**",
+      "dist/**",
+      "build/icon.png",
+      "package.json"
+    ],
+    "asar": true,
+    "artifactName": "ZERO-${version}-${os}-${arch}.${ext}",
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office",
+      "icon": "build/icon.png",
+      "executableName": "zero",
+      "maintainer": "ZERO Solutions <hola@zerosolutions.cl>",
+      "synopsis": "Tu cuenta ZERO y sus aplicaciones",
+      "description": "Administra tu cuenta ZERO y abre FlowDesk, Repeat, Venu y Pido con un clic."
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ZERO",
+      "artifactName": "ZERO-Setup-${version}-windows-x64.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "artifactName": "ZERO-${version}-mac-universal.${ext}"
+    },
+    "publish": {
+      "provider": "generic",
+      "url": "https://zerosolutions.cl/descargas/zero"
+    }
+  }
+}

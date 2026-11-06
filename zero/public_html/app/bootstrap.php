@@ -109,7 +109,7 @@ function local_time(?string $utc, string $format = 'j M Y, H:i'): string
  */
 function migrate(PDO $pdo): void
 {
-    $version = 5;
+    $version = 6;
     try {
         $current = (int) $pdo->query("SELECT v FROM zero_meta WHERE k = 'schema'")->fetchColumn();
         if ($current >= $version) {
@@ -236,6 +236,20 @@ function migrate(PDO $pdo): void
         created_at DATETIME NOT NULL,
         KEY zero_admin_actions_target (target, created_at),
         KEY zero_admin_actions_time (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    // ---- v6: devices signed in to the ZERO desktop app (only the token's SHA-256 is stored) ----
+    $pdo->exec("CREATE TABLE IF NOT EXISTS zero_devices (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id INT UNSIGNED NOT NULL,
+        name VARCHAR(80) NOT NULL,
+        platform VARCHAR(12) NOT NULL DEFAULT 'other',
+        token_hash CHAR(64) NOT NULL,
+        created_at DATETIME NOT NULL,
+        last_seen_at DATETIME NULL,
+        revoked_at DATETIME NULL,
+        KEY zero_devices_user (user_id, revoked_at),
+        CONSTRAINT zero_devices_user_fk FOREIGN KEY (user_id) REFERENCES zero_users (id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $stmt = $pdo->prepare("INSERT INTO zero_meta (k, v) VALUES ('schema', ?) ON DUPLICATE KEY UPDATE v = VALUES(v)");

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-const TOKEN_TTL = ['verify' => 86400, 'reset' => 3600];
+const TOKEN_TTL = ['verify' => 86400, 'reset' => 3600, 'desktop' => 120];
 
 function normalize_email(string $email): string
 {

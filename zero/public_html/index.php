@@ -21,6 +21,12 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 $method = $_SERVER['REQUEST_METHOD'];
 $path = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/', '/') ?: '/';
 
+// The ZERO desktop app authenticates with its own device token (no cookies, so no CSRF).
+if ($path === '/api/desktop' || str_starts_with($path, '/api/desktop/')) {
+    require __DIR__ . '/app/desktop_api.php';
+    desktop_api($method, $path);
+}
+
 // Mercado Pago calls these from its own servers, so they can't carry our CSRF token.
 if ($method === 'POST' && !str_starts_with($path, '/pagos/mp/')) {
     verify_csrf();
@@ -142,6 +148,10 @@ function route(string $method, string $path): void
         case 'GET /cuenta/ajustes':
             $user = require_login();
             render('account/settings', ['title' => 'Ajustes · ZERO', 'layout' => 'account', 'user' => $user, 'section' => 'ajustes']);
+            return;
+        case 'GET /desktop/continuar':
+            require __DIR__ . '/app/desktop_api.php';
+            desktop_continue_action();
             return;
         case 'GET /cuenta/plan':
             billing_page();
