@@ -51,7 +51,7 @@
       <span class="feature-icon"><?= icon('monitor', 22) ?></span>
       <div style="flex:1;min-width:220px">
         <h3 style="font-size:16px;font-weight:700">ZERO en tu computador</h3>
-        <p style="margin-top:2px;font-size:14px;color:var(--muted)">Abre tus apps en su propia ventana, con acceso directo en el escritorio. Para Windows, Mac y Linux.</p>
+        <p style="margin-top:2px;font-size:14px;color:var(--muted)">Abre tus apps en su propia ventana, con acceso directo en el escritorio. Para Windows y Mac.</p>
       </div>
       <a href="/descargas" class="btn btn-secondary btn-sm"><?= icon('download', 16) ?> Descargar la app</a>
     </div>

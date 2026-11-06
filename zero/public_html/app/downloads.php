@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 // ZERO Desktop releases, served as static files from public_html/archivos/zero/ (not in git).
 // To publish a new version: upload the installers there and update this list (sizes and SHA-256 included).
+// Linux builds exist (npm run dist:linux) but are not offered: the hosting quota only fits Windows and macOS.
 const DESKTOP_DIR = '/archivos/zero';
 
 function desktop_release(): array
@@ -23,14 +24,6 @@ function desktop_release(): array
                 'requires' => 'macOS 12 o superior, Apple Silicon e Intel',
                 'files' => [
                     ['file' => 'ZERO-1.0.0-mac-universal.dmg', 'label' => 'Imagen de disco para Mac', 'kind' => '.dmg', 'bytes' => 205277611, 'sha256' => 'c5601dce5e30ed7e585964e96685d68ee6df4605a40805bea946c00966f9bd99'],
-                ],
-            ],
-            'linux' => [
-                'name' => 'Linux',
-                'requires' => 'Linux de 64 bits (x86_64)',
-                'files' => [
-                    ['file' => 'ZERO-1.0.0-linux-x86_64.AppImage', 'label' => 'AppImage, para cualquier distribución', 'kind' => '.AppImage', 'bytes' => 118752295, 'sha256' => 'b5e3a759a6918878013130f58c0d1120586c9874af82802edf1c742d53cfaf07'],
-                    ['file' => 'ZERO-1.0.0-linux-amd64.deb', 'label' => 'Paquete para Ubuntu y Debian', 'kind' => '.deb', 'bytes' => 82755234, 'sha256' => '37175e3d2f2356066f5e9fafe115fe321ba856603abf1643703e403861e93137'],
                 ],
             ],
         ],

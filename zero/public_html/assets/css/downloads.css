@@ -30,7 +30,7 @@
 
 .dl-sub { margin: 14px auto 0; max-width: 560px; color: var(--muted); }
 .dl-sub.left { margin-left: 0; }
-.dl-platforms { margin-top: 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.dl-platforms { margin: 48px auto 0; max-width: 900px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
 .dl-platform { display: flex; flex-direction: column; gap: 22px; }
 .dl-platform header { display: flex; align-items: center; gap: 14px; }
 .dl-platform h3 { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }

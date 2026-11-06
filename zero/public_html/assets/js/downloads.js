@@ -22,7 +22,9 @@
     button.href = '#plataformas';
     button.removeAttribute('download');
     button.querySelector('[data-primary-label]').textContent = 'Elige tu sistema';
-    hero.querySelector('[data-primary-meta]').textContent = 'La app es para computadores. Abre esta página desde tu PC o Mac para descargarla.';
+    hero.querySelector('[data-primary-meta]').textContent = os === 'mobile'
+      ? 'La app es para computadores. Abre esta página desde tu PC o Mac para descargarla.'
+      : 'Por ahora la app está disponible para Windows y macOS.';
     return;
   }
   button.href = source.getAttribute('href');

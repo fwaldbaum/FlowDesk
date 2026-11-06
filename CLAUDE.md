@@ -96,7 +96,8 @@ cloud de Claude).
   `safeStorage` en el proceso principal; la UI solo habla por `preload.js`. API en `app/desktop_api.php`
   (`/api/desktop/*`, token `zd.<id>.<secreto>` en `zero_devices`, v6) y `/desktop/continuar` (enlace de un solo uso
   para abrir la web con sesión, p. ej. para pagar). Descarga pública en `/descargas` (`app/downloads.php`: versión,
-  tamaños y SHA-256; los instaladores van en `public_html/archivos/zero/`, fuera de git). Instaladores: `npm run dist:linux|dist:win` (wine) aquí y macOS por
+  tamaños y SHA-256; instaladores de Windows y macOS en `public_html/archivos/zero/`, fuera de git; Linux no se ofrece
+  porque no cabe en la cuota de 500 MB del hosting). Instaladores: `npm run dist:linux|dist:win` (wine) aquí y macOS por
   `.github/workflows/zero-desktop.yml`. `ZERO_SERVER` apunta la app a otro servidor para pruebas.
 - **Admin de plataforma** en `/admin` (`app/admin.php`, vistas `app/views/admin/`): solo cuentas confirmadas de
   `admin_emails` (por defecto `facundo@zerosolutions.cl`). Repeat (`rp_*`), Venu (`vn_*`) y Pido (`pd_*`) comparten la BD de ZERO

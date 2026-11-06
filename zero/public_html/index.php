@@ -91,9 +91,9 @@ function route(string $method, string $path): void
             return;
         case 'GET /descargas':
             render('downloads', [
-                'title' => 'Descarga ZERO para Windows, Mac y Linux · ZERO Solutions',
+                'title' => 'Descarga ZERO para Windows y Mac · ZERO Solutions',
                 'nav' => 'descargas',
-                'description' => 'La app de escritorio de ZERO: tu cuenta y todas sus apps en un solo programa para Windows, macOS y Linux.',
+                'description' => 'La app de escritorio de ZERO: tu cuenta y todas sus apps en un solo programa para Windows y macOS.',
                 'os' => detect_os((string) ($_SERVER['HTTP_USER_AGENT'] ?? '')),
             ]);
             return;

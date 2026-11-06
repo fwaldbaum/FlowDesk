@@ -24,11 +24,6 @@ $steps = [
         'Abre ZERO desde Aplicaciones. Si macOS avisa que no puede verificar la app, ve a Ajustes del Sistema, Privacidad y seguridad, y elige «Abrir igualmente».',
         'Solo se pide la primera vez. Después ZERO se abre como cualquier app.',
     ],
-    'linux' => [
-        'AppImage: dale permiso para ejecutarse (clic derecho, Propiedades, «Permitir ejecutar») y ábrelo con doble clic.',
-        'En Ubuntu 22.04 o superior puede pedir FUSE: <code>sudo apt install libfuse2</code> (en 24.04, <code>libfuse2t64</code>).',
-        'Con el .deb: <code>sudo apt install ./ZERO-' . e($release['version']) . '-linux-amd64.deb</code> y búscalo en tus aplicaciones.',
-    ],
 ];
 ?>
 <section class="dl-hero" data-os="<?= e($os) ?>">
@@ -36,7 +31,7 @@ $steps = [
   <div class="container dl-hero-inner">
     <span class="eyebrow" data-reveal><?= icon('monitor', 16) ?> App de escritorio</span>
     <h1 data-split>ZERO, en tu computador</h1>
-    <p class="lead" data-reveal style="--d:.25s">Tu cuenta ZERO y todas sus apps en un solo programa para Windows, Mac y Linux. Instálalas una vez y ábrelas con un clic, con tu sesión ya iniciada.</p>
+    <p class="lead" data-reveal style="--d:.25s">Tu cuenta ZERO y todas sus apps en un solo programa para Windows y Mac. Instálalas una vez y ábrelas con un clic, con tu sesión ya iniciada.</p>
 
     <div class="dl-cta" data-reveal style="--d:.4s">
       <?php if ($main): ?>
@@ -46,7 +41,7 @@ $steps = [
         <p class="dl-meta" data-primary-meta>Versión <?= e($release['version']) ?> · <?= e(format_megabytes($main['bytes'])) ?> · <?= e($current['requires']) ?></p>
       <?php else: ?>
         <a href="#plataformas" class="btn btn-primary btn-lg"><?= icon('download', 19) ?> Elige tu sistema</a>
-        <p class="dl-meta"><?= $os === 'mobile' ? 'La app es para computadores. Abre esta página desde tu PC o Mac para descargarla.' : 'Disponible para Windows, macOS y Linux.' ?></p>
+        <p class="dl-meta"><?= $os === 'mobile' ? 'La app es para computadores. Abre esta página desde tu PC o Mac para descargarla.' : 'Por ahora la app está disponible para Windows y macOS.' ?></p>
       <?php endif; ?>
       <a href="#plataformas" class="link dl-other">Otras plataformas <?= icon('chevron-down', 16) ?></a>
     </div>
