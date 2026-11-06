@@ -392,3 +392,4 @@ require APP_DIR . '/halloween.php';
 require APP_DIR . '/accounts.php';
 require APP_DIR . '/mail.php';
 require APP_DIR . '/admin.php';
+require APP_DIR . '/downloads.php';

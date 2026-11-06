@@ -1,0 +1,12 @@
+# ZERO Desktop installers: always download, never render.
+Options -Indexes
+<IfModule mod_mime.c>
+  AddType application/vnd.microsoft.portable-executable .exe
+  AddType application/x-apple-diskimage .dmg
+  AddType application/vnd.debian.binary-package .deb
+  AddType application/octet-stream .AppImage
+</IfModule>
+<IfModule mod_headers.c>
+  Header set Content-Disposition "attachment"
+  Header set Cache-Control "public, max-age=86400"
+</IfModule>

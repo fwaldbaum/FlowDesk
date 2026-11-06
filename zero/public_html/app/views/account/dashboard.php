@@ -46,6 +46,19 @@
 </section>
 
 <section class="acct-section">
+  <div class="panel">
+    <div class="panel-body" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <span class="feature-icon"><?= icon('monitor', 22) ?></span>
+      <div style="flex:1;min-width:220px">
+        <h3 style="font-size:16px;font-weight:700">ZERO en tu computador</h3>
+        <p style="margin-top:2px;font-size:14px;color:var(--muted)">Abre tus apps en su propia ventana, con acceso directo en el escritorio. Para Windows, Mac y Linux.</p>
+      </div>
+      <a href="/descargas" class="btn btn-secondary btn-sm"><?= icon('download', 16) ?> Descargar la app</a>
+    </div>
+  </div>
+</section>
+
+<section class="acct-section">
   <h2>Tu cuenta</h2>
   <div class="panel">
     <div class="panel-body">
