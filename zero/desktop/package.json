@@ -93,7 +93,7 @@
       ],
       "category": "public.app-category.productivity",
       "icon": "build/icon.png",
-      "identity": "-",
+      "identity": null,
       "hardenedRuntime": false,
       "gatekeeperAssess": false
     },
@@ -103,6 +103,7 @@
     "publish": {
       "provider": "generic",
       "url": "https://zerosolutions.cl/descargas/zero"
-    }
+    },
+    "afterPack": "build/adhoc-sign.cjs"
   }
 }
